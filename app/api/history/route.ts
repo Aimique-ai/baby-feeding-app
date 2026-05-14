@@ -3,14 +3,17 @@ import { Types } from "mongoose";
 import { dbConnect } from "@/lib/mongodb";
 import { FeedingModel } from "@/models/feeding";
 import { WeightModel } from "@/models/weight";
-import { dayRangeUtc } from "@/lib/time/dayRange";
 import { dayMetrics } from "@/lib/planning/metrics";
 import { computeTarget } from "@/lib/planning/target";
-import { dayOfLife, startOfLocalDay } from "@/lib/planning/dayBoundary";
+import {
+  dayOfLife,
+  endOfLocalDay,
+  localDateISO,
+  startOfLocalDay,
+} from "@/lib/planning/dayBoundary";
+import type { Feeding } from "@/lib/planning/types";
 import { getTzFromCookie } from "@/lib/api/tz";
 import { serverError } from "@/lib/api/respond";
-import { deserializeFeeding } from "@/lib/api/serializedTypes";
-import { serializeFeeding } from "@/lib/api/feedings";
 import { resolveActiveBaby } from "@/lib/api/activeBaby";
 import { addDays, format } from "date-fns";
 
@@ -55,7 +58,9 @@ export async function GET(req: NextRequest) {
     const babyBirthDate = new Date(active.baby.birthDate);
 
     await dbConnect();
-    const weights = await WeightModel.find({ babyId }).lean();
+    const weights = await WeightModel.find({ babyId })
+      .select("date weightGrams")
+      .lean();
     const weightsPlan = (
       weights as unknown as { date: Date; weightGrams: number }[]
     ).map((w) => ({ date: w.date, weightGrams: w.weightGrams }));
@@ -74,6 +79,43 @@ export async function GET(req: NextRequest) {
       d = shiftIso(d, -1);
     }
 
+    // One Mongo query for the whole window; group feedings by local date.
+    const feedingsByDay = new Map<string, Feeding[]>();
+    for (const dateISO of days) feedingsByDay.set(dateISO, []);
+
+    if (days.length > 0) {
+      const earliest = days[days.length - 1];
+      const latest = days[0];
+      const gte = startOfLocalDay(earliest, tz);
+      const lt = endOfLocalDay(latest, tz);
+      const docs = (await FeedingModel.find({
+        babyId,
+        startAt: { $gte: gte, $lt: lt },
+      })
+        .select("startAt endAt volumeMl isTopUp")
+        .sort({ startAt: 1 })
+        .lean()) as unknown as {
+        startAt: Date;
+        endAt: Date | null;
+        volumeMl: number | null;
+        isTopUp: boolean;
+      }[];
+
+      for (const doc of docs) {
+        const iso = localDateISO(doc.startAt, tz);
+        const bucket = feedingsByDay.get(iso);
+        if (!bucket) continue;
+        bucket.push({
+          _id: "",
+          startAt: doc.startAt,
+          endAt: doc.endAt,
+          volumeMl: doc.volumeMl,
+          isTopUp: doc.isTopUp,
+          parentFeedingId: null,
+        });
+      }
+    }
+
     const items: {
       dateISO: string;
       dol: number;
@@ -87,18 +129,7 @@ export async function GET(req: NextRequest) {
 
     for (const dateISO of days) {
       const dayStart = startOfLocalDay(dateISO, tz);
-      const { gte, lt } = dayRangeUtc(dateISO, tz);
-      const docs = await FeedingModel.find({
-        babyId,
-        startAt: { $gte: gte, $lt: lt },
-      })
-        .sort({ startAt: 1 })
-        .lean();
-      const facts = (
-        docs as unknown as Parameters<typeof serializeFeeding>[0][]
-      )
-        .map(serializeFeeding)
-        .map(deserializeFeeding);
+      const facts = feedingsByDay.get(dateISO) ?? [];
       const target = computeTarget(
         dateISO,
         {
