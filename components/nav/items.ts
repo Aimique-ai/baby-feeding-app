@@ -1,4 +1,4 @@
-import { Baby, Calendar, Home, Pill, Scale } from "lucide-react";
+import { Baby, Calendar, Home, Pill, Scale, Settings } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export type NavItem = {
@@ -38,5 +38,11 @@ export const navItems: NavItem[] = [
     label: "Дети",
     match: (p) => p.startsWith("/babies"),
     Icon: Baby,
+  },
+  {
+    href: "/settings",
+    label: "Настройки",
+    match: (p) => p.startsWith("/settings"),
+    Icon: Settings,
   },
 ];

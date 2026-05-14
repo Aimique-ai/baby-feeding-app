@@ -38,8 +38,16 @@ export default async function RootLayout({
   return (
     <html
       lang="ru"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var p=localStorage.getItem('leon-palette');var allowed=['neutral','blue','green','rose','amber'];if(!p||allowed.indexOf(p)===-1)p='neutral';document.documentElement.setAttribute('data-palette',p);}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className="min-h-full">
         <Providers>
           <TzCookieSetter />
@@ -54,7 +62,7 @@ export default async function RootLayout({
               </SidebarProvider>
             </FeedingSheetProvider>
           </FeedingTimerProvider>
-          <Toaster position="top-center" richColors />
+          <Toaster position="top-center" richColors theme="system" />
         </Providers>
       </body>
     </html>

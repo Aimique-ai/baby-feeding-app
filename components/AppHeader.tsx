@@ -4,6 +4,7 @@ import { Play, Plus, Square } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useFeedingSheet } from "@/components/feeding-sheet/FeedingSheetProvider";
 import { useFeedingTimerCtx } from "@/components/feeding-sheet/FeedingTimerProvider";
 import { useElapsed } from "@/hooks/useFeedingTimer";
@@ -37,6 +38,7 @@ export function AppHeader({ babyId }: Props) {
       <SidebarTrigger className="md:hidden" />
       <span className="text-sm font-medium">Leon</span>
       <div className="ml-auto flex items-center gap-2">
+        <ThemeToggle />
         {hasActiveBaby && (
           <>
             {isRunning ? (
