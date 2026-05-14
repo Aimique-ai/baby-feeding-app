@@ -80,6 +80,7 @@ export function HistoryList() {
             <li key={it.dateISO}>
               <Link
                 href={`/history/${it.dateISO}`}
+                prefetch={false}
                 aria-label={`День ${it.dol}, ${it.dateISO}, ${Math.round(it.factOfDay)}/${Math.round(it.target)} мл`}
                 className="block rounded-md border px-3 py-2 hover:bg-accent"
               >
