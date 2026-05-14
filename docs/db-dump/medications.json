@@ -1,0 +1,42 @@
+[
+  {
+    "_id": "6a032be9afe77eccb7628d08",
+    "name": "биогая",
+    "defaultDoseDrops": 5,
+    "deletedAt": "2026-05-12T13:32:45.658Z",
+    "createdAt": "2026-05-12T13:32:25.690Z",
+    "updatedAt": "2026-05-13T08:28:17.524Z",
+    "__v": 0,
+    "babyId": "69fee163dbb812b2c87059e0"
+  },
+  {
+    "_id": "6a032c1fafe77eccb7628d09",
+    "name": "BioGaia",
+    "defaultDoseDrops": 5,
+    "deletedAt": null,
+    "createdAt": "2026-05-12T13:33:19.368Z",
+    "updatedAt": "2026-05-13T08:28:17.524Z",
+    "__v": 0,
+    "babyId": "69fee163dbb812b2c87059e0"
+  },
+  {
+    "_id": "6a032c2aafe77eccb7628d0a",
+    "name": "Simethicon",
+    "defaultDoseDrops": 20,
+    "deletedAt": null,
+    "createdAt": "2026-05-12T13:33:30.027Z",
+    "updatedAt": "2026-05-13T08:28:17.524Z",
+    "__v": 0,
+    "babyId": "69fee163dbb812b2c87059e0"
+  },
+  {
+    "_id": "6a032c37afe77eccb7628d0b",
+    "name": "Co-Lactase",
+    "defaultDoseDrops": 4,
+    "deletedAt": null,
+    "createdAt": "2026-05-12T13:33:43.718Z",
+    "updatedAt": "2026-05-13T08:28:17.524Z",
+    "__v": 0,
+    "babyId": "69fee163dbb812b2c87059e0"
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "_id": "69fee163dbb812b2c87059e1",
+    "date": "2026-04-24T21:00:00.000Z",
+    "weightGrams": 3400,
+    "createdAt": "2026-05-09T07:25:23.443Z",
+    "__v": 0,
+    "babyId": "69fee163dbb812b2c87059e0"
+  },
+  {
+    "_id": "69feebd2b8e10fa822d9cbb8",
+    "date": "2026-05-04T21:00:00.000Z",
+    "weightGrams": 3485,
+    "createdAt": "2026-05-09T08:09:54.246Z",
+    "__v": 0,
+    "babyId": "69fee163dbb812b2c87059e0"
+  },
+  {
+    "_id": "69ff225bafe77eccb7628ce4",
+    "date": "2026-05-08T21:00:00.000Z",
+    "weightGrams": 3610,
+    "createdAt": "2026-05-09T12:02:35.518Z",
+    "__v": 0,
+    "babyId": "69fee163dbb812b2c87059e0"
+  },
+  {
+    "_id": "6a01be74afe77eccb7628cfb",
+    "date": "2026-05-10T21:00:00.000Z",
+    "weightGrams": 3680,
+    "createdAt": "2026-05-11T11:33:08.036Z",
+    "__v": 0,
+    "babyId": "69fee163dbb812b2c87059e0"
+  },
+  {
+    "_id": "6a0590615e352a08a6070d1a",
+    "babyId": "69fee163dbb812b2c87059e0",
+    "date": "2026-05-13T21:00:00.000Z",
+    "weightGrams": 3845,
+    "createdAt": "2026-05-14T09:05:37.566Z",
+    "__v": 0
+  }
+]
