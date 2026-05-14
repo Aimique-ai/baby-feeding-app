@@ -12,6 +12,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useFeedingTimerOptional } from "@/components/feeding-sheet/FeedingTimerProvider";
 import { BabyForm } from "./BabyForm";
 import {
   babiesKey,
@@ -35,6 +41,8 @@ export function BabyList({ babies: initialData, activeBabyId }: Props) {
   const qc = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const timer = useFeedingTimerOptional();
+  const timerRunning = timer?.isRunning ?? false;
 
   const q = useQuery({
     queryKey: babiesKey,
@@ -174,16 +182,35 @@ export function BabyList({ babies: initialData, activeBabyId }: Props) {
                   </p>
                 </div>
                 <div className="flex items-center gap-1">
-                  {!isActive && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => switchMutation.mutate(baby._id)}
-                      disabled={switchMutation.isPending}
-                    >
-                      Выбрать
-                    </Button>
-                  )}
+                  {!isActive &&
+                    (timerRunning ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span tabIndex={0}>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled
+                              aria-disabled="true"
+                            >
+                              Выбрать
+                            </Button>
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Идёт кормление текущего ребёнка — остановите таймер
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => switchMutation.mutate(baby._id)}
+                        disabled={switchMutation.isPending}
+                      >
+                        Выбрать
+                      </Button>
+                    ))}
                   <Button
                     size="sm"
                     variant="ghost"

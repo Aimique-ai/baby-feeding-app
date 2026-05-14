@@ -7,6 +7,7 @@ import { SideNav } from "@/components/SideNav";
 import { TzCookieSetter } from "@/components/TzCookieSetter";
 import { AppHeader } from "@/components/AppHeader";
 import { FeedingSheetProvider } from "@/components/feeding-sheet/FeedingSheetProvider";
+import { FeedingTimerProvider } from "@/components/feeding-sheet/FeedingTimerProvider";
 import { resolveActiveBaby } from "@/lib/api/activeBaby";
 import { getTzFromCookie } from "@/lib/api/tz";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -42,15 +43,17 @@ export default async function RootLayout({
       <body className="min-h-full">
         <Providers>
           <TzCookieSetter />
-          <FeedingSheetProvider babyId={active?.baby._id ?? null} tz={tz}>
-            <SidebarProvider>
-              <SideNav />
-              <SidebarInset>
-                <AppHeader hasActiveBaby={!!active} />
-                <div className="block w-full">{children}</div>
-              </SidebarInset>
-            </SidebarProvider>
-          </FeedingSheetProvider>
+          <FeedingTimerProvider babyId={active?.baby._id ?? null}>
+            <FeedingSheetProvider babyId={active?.baby._id ?? null} tz={tz}>
+              <SidebarProvider>
+                <SideNav />
+                <SidebarInset>
+                  <AppHeader babyId={active?.baby._id ?? null} />
+                  <div className="block w-full">{children}</div>
+                </SidebarInset>
+              </SidebarProvider>
+            </FeedingSheetProvider>
+          </FeedingTimerProvider>
           <Toaster position="top-center" richColors />
         </Providers>
       </body>

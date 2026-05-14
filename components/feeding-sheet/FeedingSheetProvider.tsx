@@ -8,6 +8,8 @@ import type { SerializedFeeding } from "@/lib/api/serializedTypes";
 type CreatePreset = {
   time?: Date;
   volumeMl?: number;
+  startAt?: Date;
+  durationMin?: number;
 };
 
 type OpenCreate = (opts?: { dateISO?: string; preset?: CreatePreset }) => void;

@@ -18,6 +18,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { weightsKey } from "@/components/day-view/feedingsKey";
@@ -32,6 +33,7 @@ async function fetchWeights(): Promise<SerializedWeight[]> {
 export function WeightList({ tz, babyId }: { tz: string; babyId: string }) {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: weightsKey(babyId), queryFn: fetchWeights });
+  const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const [dateISO, setDateISO] = useState(format(new Date(), "yyyy-MM-dd"));
   const [grams, setGrams] = useState<number>(3400);
@@ -80,7 +82,7 @@ export function WeightList({ tz, babyId }: { tz: string; babyId: string }) {
       </ul>
 
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="bottom">
+        <SheetContent side={isMobile ? "bottom" : "right"}>
           <SheetHeader>
             <SheetTitle>Новое взвешивание</SheetTitle>
           </SheetHeader>

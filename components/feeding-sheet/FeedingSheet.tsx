@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   useMutation,
   useQuery,
@@ -38,7 +39,15 @@ import type {
 import { fromZonedTime, toZonedTime, format as fmtTz } from "date-fns-tz";
 
 type Mode =
-  | { kind: "create"; preset?: { time?: Date; volumeMl?: number } }
+  | {
+      kind: "create";
+      preset?: {
+        time?: Date;
+        volumeMl?: number;
+        startAt?: Date;
+        durationMin?: number;
+      };
+    }
   | { kind: "edit"; feeding: SerializedFeeding };
 
 type Props = {
@@ -107,9 +116,10 @@ export function FeedingSheet({
         medicationDoseDrops: f.medicationDoseDrops,
       };
     }
+    const presetStartAt = mode.preset?.startAt;
     return {
-      startAt: roundTo5Min(mode.preset?.time ?? new Date()),
-      durationMin: 15,
+      startAt: presetStartAt ?? roundTo5Min(mode.preset?.time ?? new Date()),
+      durationMin: mode.preset?.durationMin ?? 15,
       volumeMl: mode.preset?.volumeMl ?? 0,
       medicationId: null as string | null,
       medicationDoseDrops: null as number | null,
@@ -126,6 +136,7 @@ export function FeedingSheet({
     initial.medicationDoseDrops,
   );
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const isMobile = useIsMobile();
   // Field-level errors are computed at submit time (not during render) to keep
   // this component pure for React 19's strict rules.
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -251,7 +262,7 @@ export function FeedingSheet({
       ? new Date(startAt.getTime() + durationMin * 60 * 1000)
       : null;
 
-  const durationError = durationMin > 60 ? "Не более 60 минут" : null;
+  const durationError = durationMin > 180 ? "Не более 180 минут" : null;
   const volumeError =
     volumeMl <= 0
       ? "Объём обязателен"
@@ -301,7 +312,10 @@ export function FeedingSheet({
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="max-h-[90vh] overflow-y-auto">
+        <SheetContent
+          side={isMobile ? "bottom" : "right"}
+          className="max-h-[90vh] overflow-y-auto sm:max-h-full"
+        >
           <SheetHeader>
             <SheetTitle>
               {mode.kind === "edit" ? "Редактировать кормление" : "Новое кормление"}
@@ -374,7 +388,7 @@ export function FeedingSheet({
                 id="duration"
                 type="number"
                 min={0}
-                max={60}
+                max={180}
                 value={durationMin}
                 onChange={(e) => setDurationMin(Number(e.target.value))}
               />

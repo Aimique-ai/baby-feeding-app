@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const SIXTY_MIN_MS = 60 * 60 * 1000;
+const MAX_FEEDING_DURATION_MS = 180 * 60 * 1000;
 
 const objectIdString = z
   .string()
@@ -25,9 +25,9 @@ const endAfterStart = (v: { startAt?: Date; endAt?: Date | null }) => {
   return v.endAt.getTime() > v.startAt.getTime();
 };
 
-const durationWithinHour = (v: { startAt?: Date; endAt?: Date | null }) => {
+const durationWithinMax = (v: { startAt?: Date; endAt?: Date | null }) => {
   if (!v.endAt || !v.startAt) return true;
-  return v.endAt.getTime() - v.startAt.getTime() <= SIXTY_MIN_MS;
+  return v.endAt.getTime() - v.startAt.getTime() <= MAX_FEEDING_DURATION_MS;
 };
 
 const medicationInvariantFull = (v: {
@@ -64,8 +64,8 @@ export const feedingSchema = z
     message: "endAt must be after startAt",
     path: ["endAt"],
   })
-  .refine(durationWithinHour, {
-    message: "duration must be ≤ 60 minutes",
+  .refine(durationWithinMax, {
+    message: "duration must be ≤ 180 minutes",
     path: ["endAt"],
   })
   .refine(medicationInvariantFull, {
@@ -84,8 +84,8 @@ export const feedingPatchSchema = z
     message: "endAt must be after startAt",
     path: ["endAt"],
   })
-  .refine(durationWithinHour, {
-    message: "duration must be ≤ 60 minutes",
+  .refine(durationWithinMax, {
+    message: "duration must be ≤ 180 minutes",
     path: ["endAt"],
   })
   .refine(medicationInvariantPatch, {

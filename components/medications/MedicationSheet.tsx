@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { SerializedMedication } from "@/lib/api/serializedTypes";
 import { medicationsKey } from "@/components/day-view/feedingsKey";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type State =
   | null
@@ -30,6 +31,7 @@ type Props = {
 
 export function MedicationSheet({ state, onOpenChange, babyId }: Props) {
   const qc = useQueryClient();
+  const isMobile = useIsMobile();
   const editing = state?.kind === "edit" ? state.medication : null;
 
   const derivedName = editing?.name ?? "";
@@ -129,7 +131,7 @@ export function MedicationSheet({ state, onOpenChange, babyId }: Props) {
 
   return (
     <Sheet open={state !== null} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom">
+      <SheetContent side={isMobile ? "bottom" : "right"}>
         <SheetHeader>
           <SheetTitle>
             {editing ? "Редактировать лекарство" : "Новое лекарство"}
