@@ -22,6 +22,7 @@ export type SerializedBaby = {
   birthDate: string;
   birthWeightGrams: number;
   feedingsPerDay: number;
+  sex: "male" | "female";
   archivedAt: string | null;
 };
 

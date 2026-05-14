@@ -4,6 +4,8 @@ export const feedingsKey = (babyId: string, dateISO: string) =>
 export const babyKey = (babyId: string) => ["baby", babyId] as const;
 export const weightsKey = (babyId: string) =>
   ["weights", babyId] as const;
+export const weightsAnalyticsKey = (babyId: string) =>
+  ["weights", "analytics", babyId] as const;
 export const medicationsKey = (babyId: string) =>
   ["medications", babyId] as const;
 

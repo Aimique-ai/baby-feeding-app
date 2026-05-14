@@ -7,6 +7,12 @@ const BabySchema = new Schema(
     birthDate: { type: Date, required: true },
     birthWeightGrams: { type: Number, required: true },
     feedingsPerDay: { type: Number, required: true, default: 8 },
+    sex: {
+      type: String,
+      enum: ["male", "female"],
+      required: true,
+      default: "male",
+    },
     archivedAt: { type: Date, default: null },
   },
   { timestamps: true },
