@@ -11,6 +11,7 @@ import {
   type Palette,
 } from "@/lib/palette";
 import { Button } from "@/components/ui/button";
+import { H4, Muted } from "@/components/ui/typography";
 
 const MODES = [
   { value: "light", label: "Светлая", Icon: Sun },
@@ -29,10 +30,8 @@ export function SettingsForm() {
   return (
     <div className="space-y-10">
       <section>
-        <h2 className="mb-1 text-base font-medium">Палитра</h2>
-        <p className="mb-4 text-sm text-muted-foreground">
-          Основной цвет акцента в интерфейсе.
-        </p>
+        <H4 className="mb-1">Палитра</H4>
+        <Muted className="mb-4">Основной цвет акцента в интерфейсе.</Muted>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {PALETTES.map((p) => (
             <PaletteCard
@@ -46,10 +45,8 @@ export function SettingsForm() {
       </section>
 
       <section>
-        <h2 className="mb-1 text-base font-medium">Режим</h2>
-        <p className="mb-4 text-sm text-muted-foreground">
-          Светлая, тёмная или по системе.
-        </p>
+        <H4 className="mb-1">Режим</H4>
+        <Muted className="mb-4">Светлая, тёмная или по системе.</Muted>
         <div className="flex flex-wrap gap-2">
           {MODES.map(({ value, label, Icon }) => {
             const active = mounted && theme === value;

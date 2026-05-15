@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatInTimeZone } from "date-fns-tz";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { H3, Muted } from "@/components/ui/typography";
 import { babiesKey, archivedBabiesKey } from "@/components/day-view/feedingsKey";
 import type { SerializedBaby } from "@/lib/api/serializedTypes";
 import { getBrowserTz } from "@/lib/time/browserTz";
@@ -48,9 +49,9 @@ export function ArchivedBabyList({ babies: initialData, tz }: Props) {
 
   return (
     <div className="mx-auto max-w-screen-sm px-4 py-4 space-y-4">
-      <h1 className="text-lg font-semibold">Архив детей</h1>
+      <H3>Архив детей</H3>
       {list.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Архив пуст.</p>
+        <Muted>Архив пуст.</Muted>
       ) : (
         <ul className="space-y-2">
           {list.map((baby) => (

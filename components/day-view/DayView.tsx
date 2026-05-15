@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Muted } from "@/components/ui/typography";
 import { fmtMl, roundMl } from "@/lib/format/ml";
 import { fmtHm, fmtDateLong } from "@/lib/format/time";
 import { babyKey, feedingsKey, weightsKey, medicationsKey } from "./feedingsKey";
@@ -341,9 +342,9 @@ export function DayView({
         <Progress value={progressPct} aria-label={`Прогресс ${progressPct}%`} />
 
         {mode === "live" && next && (
-          <p className="text-sm text-muted-foreground">
+          <Muted>
             Следующее: {fmtHm(next.time, effectiveTz)} · {fmtMl(next.volumeMl)}
-          </p>
+          </Muted>
         )}
         {mode === "historical" && (
           <p

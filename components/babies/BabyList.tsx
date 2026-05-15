@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { differenceInCalendarDays } from "date-fns";
 import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 import { Button } from "@/components/ui/button";
+import { Muted } from "@/components/ui/typography";
 import {
   Dialog,
   DialogContent,
@@ -155,7 +156,7 @@ export function BabyList({ babies: initialData, activeBabyId, tz }: Props) {
 
       {list.length === 0 ? (
         <div className="flex flex-col items-center gap-4 py-12">
-          <p className="text-sm text-muted-foreground">Нет детей.</p>
+          <Muted>Нет детей.</Muted>
           <Button size="lg" onClick={() => { setCreateError(null); setCreateOpen(true); }}>
             Создать ребёнка
           </Button>

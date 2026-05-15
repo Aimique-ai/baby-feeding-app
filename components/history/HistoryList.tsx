@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { fmtMl } from "@/lib/format/ml";
+import { Muted } from "@/components/ui/typography";
 import { getBrowserTz, tzHeaders } from "@/lib/time/browserTz";
 
 type DayItem = {
@@ -116,9 +117,7 @@ export function HistoryList({ tz }: { tz: string }) {
       </ul>
       <div ref={sentinelRef} aria-hidden className="h-8" />
       {q.isFetchingNextPage && (
-        <p className="text-center text-sm text-muted-foreground">
-          Загрузка…
-        </p>
+        <Muted className="text-center">Загрузка…</Muted>
       )}
       {!q.hasNextPage && items.length > 0 && (
         <p className="text-center text-xs text-muted-foreground">

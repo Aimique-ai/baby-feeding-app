@@ -27,6 +27,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { FormError } from "@/components/ui/typography";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -362,9 +363,7 @@ export function FeedingSheet({
                   setStartAt(parseLocalInput(e.target.value, effectiveTz))
                 }
               />
-              {submitError && (
-                <p className="text-xs text-destructive">{submitError}</p>
-              )}
+              {submitError && <FormError>{submitError}</FormError>}
             </div>
 
             <div className="space-y-2">
@@ -396,9 +395,7 @@ export function FeedingSheet({
                 value={durationMin}
                 onChange={(e) => setDurationMin(Number(e.target.value))}
               />
-              {durationError && (
-                <p className="text-xs text-destructive">{durationError}</p>
-              )}
+              {durationError && <FormError>{durationError}</FormError>}
             </div>
 
             <div className="space-y-2">
@@ -411,9 +408,7 @@ export function FeedingSheet({
                 max={200}
                 step={5}
               />
-              {volumeError && (
-                <p className="text-xs text-destructive">{volumeError}</p>
-              )}
+              {volumeError && <FormError>{volumeError}</FormError>}
             </div>
 
             {showMedSection && (

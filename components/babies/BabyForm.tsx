@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { FormError } from "@/components/ui/typography";
 import { getBrowserTz } from "@/lib/time/browserTz";
 
 type Props = {
@@ -111,9 +112,7 @@ export function BabyForm({ onSubmit, isPending, submitError, tz }: Props) {
           onChange={(e) => setFeedingsPerDay(Number(e.target.value))}
         />
       </div>
-      {submitError && (
-        <p className="text-xs text-destructive">{submitError}</p>
-      )}
+      {submitError && <FormError>{submitError}</FormError>}
       <Button
         type="button"
         className="w-full"
