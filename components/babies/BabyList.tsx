@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { differenceInCalendarDays } from "date-fns";
+import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -24,6 +26,7 @@ import {
   archivedBabiesKey,
 } from "@/components/day-view/feedingsKey";
 import type { SerializedBaby } from "@/lib/api/serializedTypes";
+import { getBrowserTz, tzHeaders } from "@/lib/time/browserTz";
 
 async function fetchBabies(): Promise<SerializedBaby[]> {
   const r = await fetch("/api/babies", { cache: "no-store" });
@@ -34,9 +37,11 @@ async function fetchBabies(): Promise<SerializedBaby[]> {
 type Props = {
   babies: SerializedBaby[];
   activeBabyId: string | null;
+  tz: string;
 };
 
-export function BabyList({ babies: initialData, activeBabyId }: Props) {
+export function BabyList({ babies: initialData, activeBabyId, tz }: Props) {
+  const effectiveTz = getBrowserTz(tz);
   const router = useRouter();
   const qc = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
@@ -53,13 +58,14 @@ export function BabyList({ babies: initialData, activeBabyId }: Props) {
   const createMutation = useMutation({
     mutationFn: async (data: {
       name: string;
-      birthDate: string;
+      birthDate: Date;
       birthWeightGrams: number;
       feedingsPerDay: number;
+      sex: "male" | "female";
     }) => {
       const r = await fetch("/api/babies", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...tzHeaders(effectiveTz) },
         body: JSON.stringify(data),
       });
       if (r.status === 409) {
@@ -159,9 +165,12 @@ export function BabyList({ babies: initialData, activeBabyId }: Props) {
         <ul className="space-y-2">
           {list.map((baby) => {
             const isActive = baby._id === activeBabyId;
-            const birthMs = new Date(baby.birthDate).getTime();
-            const nowMs = new Date().getTime();
-            const dol = Math.floor((nowMs - birthMs) / (24 * 3600 * 1000));
+            const birthLocal = toZonedTime(new Date(baby.birthDate), effectiveTz);
+            const nowLocal = toZonedTime(new Date(), effectiveTz);
+            const ageDays = Math.max(
+              0,
+              differenceInCalendarDays(nowLocal, birthLocal),
+            );
             return (
               <li
                 key={baby._id}
@@ -178,7 +187,7 @@ export function BabyList({ babies: initialData, activeBabyId }: Props) {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {new Date(baby.birthDate).toLocaleDateString("ru-RU")} · день {dol}
+                    {formatInTimeZone(new Date(baby.birthDate), effectiveTz, "dd.MM.yyyy")} · день {ageDays}
                   </p>
                 </div>
                 <div className="flex items-center gap-1">
@@ -240,6 +249,7 @@ export function BabyList({ babies: initialData, activeBabyId }: Props) {
             onSubmit={(data) => createMutation.mutate(data)}
             isPending={createMutation.isPending}
             submitError={createError}
+            tz={effectiveTz}
           />
         </DialogContent>
       </Dialog>

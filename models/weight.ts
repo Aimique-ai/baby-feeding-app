@@ -14,7 +14,7 @@ const WeightSchema = new Schema(
   { timestamps: { createdAt: true, updatedAt: false } },
 );
 
-WeightSchema.index({ babyId: 1, date: -1 });
+WeightSchema.index({ babyId: 1, date: 1 }, { unique: true });
 
 export type Weight = InferSchemaType<typeof WeightSchema> & {
   _id: Types.ObjectId;

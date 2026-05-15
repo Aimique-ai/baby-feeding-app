@@ -1,10 +1,12 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { formatInTimeZone } from "date-fns-tz";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { babiesKey, archivedBabiesKey } from "@/components/day-view/feedingsKey";
 import type { SerializedBaby } from "@/lib/api/serializedTypes";
+import { getBrowserTz } from "@/lib/time/browserTz";
 
 async function fetchArchivedBabies(): Promise<SerializedBaby[]> {
   const r = await fetch("/api/babies?includeArchived=true", {
@@ -16,9 +18,11 @@ async function fetchArchivedBabies(): Promise<SerializedBaby[]> {
 
 type Props = {
   babies: SerializedBaby[];
+  tz: string;
 };
 
-export function ArchivedBabyList({ babies: initialData }: Props) {
+export function ArchivedBabyList({ babies: initialData, tz }: Props) {
+  const effectiveTz = getBrowserTz(tz);
   const qc = useQueryClient();
   const q = useQuery({
     queryKey: archivedBabiesKey,
@@ -57,7 +61,7 @@ export function ArchivedBabyList({ babies: initialData }: Props) {
               <div>
                 <p className="font-medium">{baby.name}</p>
                 <p className="text-xs text-muted-foreground">
-                  {new Date(baby.birthDate).toLocaleDateString("ru-RU")}
+                  {formatInTimeZone(new Date(baby.birthDate), effectiveTz, "dd.MM.yyyy")}
                 </p>
               </div>
               <Button

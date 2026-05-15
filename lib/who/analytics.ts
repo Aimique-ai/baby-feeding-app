@@ -1,13 +1,13 @@
 import "server-only";
-import { differenceInCalendarDays } from "date-fns";
+import { addDays, differenceInCalendarDays } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import type {
   SerializedBaby,
   SerializedWeight,
 } from "@/lib/api/serializedTypes";
 import {
-  lookupEarlyVelocity,
-  lookupVelocityLMS,
+  lookupCompletedEarlyVelocity,
+  lookupCompletedMonthlyVelocityLMS,
   lookupWfaLMS,
   type EarlyVelocityHit,
 } from "./lookup";
@@ -26,10 +26,7 @@ export type {
   WeightsAnalytics,
 } from "./analyticsTypes";
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-const WHO_MONTHLY_WINDOW = 28;
 const EARLY_MAX_AGE_DAYS = 60;
-const EARLY_MAX_INTERVAL = 21;
 
 type Sample = { t: number; w: number };
 
@@ -99,33 +96,12 @@ export function buildAnalytics(
     let daysSincePrev: number | null = null;
     let deltaSincePrev: number | null = null;
     let gramsPerDay: number | null = null;
-    let earlyVelocity: AnalyticsVelocity | null = null;
     if (prev) {
       const days = Math.max(1, differenceInCalendarDays(local, prev.date));
       const delta = w.weightGrams - prev.weightGrams;
       daysSincePrev = days;
       deltaSincePrev = delta;
       gramsPerDay = delta / days;
-
-      // ВОЗ-оценка по early-таблице — только когда возраст и интервал подходят.
-      if (ageDays <= EARLY_MAX_AGE_DAYS && days <= EARLY_MAX_INTERVAL) {
-        const early = lookupEarlyVelocity(
-          baby.sex,
-          baby.birthWeightGrams,
-          ageDays,
-        );
-        if (early) {
-          earlyVelocity = {
-            source: "who-early",
-            intervalLabel: early.intervalLabel,
-            intervalDays: days,
-            z: null,
-            percentile: null,
-            earlyClass: classifyEarly(delta, early),
-            earlyRef: early,
-          };
-        }
-      }
     }
 
     prev = { date: local, weightGrams: w.weightGrams };
@@ -140,57 +116,82 @@ export function buildAnalytics(
       daysSincePrev,
       deltaSincePrev,
       gramsPerDay,
-      earlyVelocity,
     };
   });
 
-  // Monthly velocity: только если ageDaysNow ≥ 28 и есть точка хотя бы 28 дн назад.
+  const latest = points[points.length - 1] ?? null;
+  const dateAtAgeDay = (ageDays: number) => addDays(birthLocal, ageDays);
+  const isoAtAgeDay = (ageDays: number) => dateAtAgeDay(ageDays).toISOString();
+
+  let earlyVelocity: AnalyticsVelocity | null = null;
+  if (latest && latest.ageDays <= EARLY_MAX_AGE_DAYS) {
+    const early = lookupCompletedEarlyVelocity(
+      baby.sex,
+      baby.birthWeightGrams,
+      latest.ageDays,
+    );
+    if (early) {
+      const startT = dateAtAgeDay(early.startDays).getTime();
+      const endT = dateAtAgeDay(early.endDays).getTime();
+      const startW = interpolate(samples, startT);
+      const endW = interpolate(samples, endT);
+      if (startW !== null && endW !== null) {
+        const delta = endW - startW;
+        earlyVelocity = {
+          source: "who-early",
+          intervalLabel: early.intervalLabel,
+          intervalDays: early.endDays - early.startDays,
+          fromDate: isoAtAgeDay(early.startDays),
+          toDate: isoAtAgeDay(early.endDays),
+          fromWeightGrams: Math.round(startW),
+          toWeightGrams: Math.round(endW),
+          deltaGrams: Math.round(delta),
+          z: null,
+          percentile: null,
+          earlyClass: classifyEarly(delta, early),
+          earlyRef: early,
+        };
+      }
+    }
+  }
+
+  // Monthly velocity: только по последнему завершённому WHO 1-month интервалу.
   let monthlyVelocity: MonthlyVelocity | null = null;
   let percentileTrend: PercentileTrend | null = null;
 
-  if (points.length >= 1 && ageDaysNow >= WHO_MONTHLY_WINDOW) {
-    const latest = points[points.length - 1];
-    const latestLocal = toZonedTime(new Date(latest.date), tz);
-    const targetT = latestLocal.getTime() - WHO_MONTHLY_WINDOW * DAY_MS;
+  if (latest) {
+    const wv = lookupCompletedMonthlyVelocityLMS(baby.sex, latest.ageDays);
+    if (wv) {
+      const startT = dateAtAgeDay(wv.startDays).getTime();
+      const endT = dateAtAgeDay(wv.endDays).getTime();
+      const startW = interpolate(samples, startT);
+      const endW = interpolate(samples, endT);
+      if (startW !== null && endW !== null) {
+        const delta = endW - startW;
+        const zV = zFromMeasurement(delta, wv.lms);
+        const pV = percentileFromZ(zV);
+        monthlyVelocity = {
+          fromDate: isoAtAgeDay(wv.startDays),
+          toDate: isoAtAgeDay(wv.endDays),
+          fromWeightGrams: Math.round(startW),
+          toWeightGrams: Math.round(endW),
+          deltaGrams: Math.round(delta),
+          intervalLabel: wv.intervalLabel,
+          intervalDays: wv.intervalDays,
+          z: zV,
+          percentile: pV,
+        };
 
-    // Берём только если targetT >= birthT (т.е. 28 дней назад уже после рождения)
-    if (targetT >= birthLocal.getTime()) {
-      const wAtTarget = interpolate(samples, targetT);
-      if (wAtTarget !== null) {
-        const delta = latest.weightGrams - wAtTarget;
-        // Выбираем ВОЗ-окно ~1мес, по возрасту latest.
-        const wv = lookupVelocityLMS(baby.sex, WHO_MONTHLY_WINDOW, latest.ageDays);
-        if (wv) {
-          const zV = zFromMeasurement(delta, wv.lms);
-          const pV = percentileFromZ(zV);
-          monthlyVelocity = {
-            fromDate: new Date(targetT).toISOString(),
-            toDate: latest.date,
-            fromWeightGrams: Math.round(wAtTarget),
-            toWeightGrams: latest.weightGrams,
-            deltaGrams: Math.round(delta),
-            intervalLabel: wv.intervalLabel,
-            z: zV,
-            percentile: pV,
-          };
-        }
-      }
-
-      // Тренд перцентиля: интерполируем вес 28 дн назад → считаем перцентиль на тот возраст.
-      const ageAtTarget = latest.ageDays - WHO_MONTHLY_WINDOW;
-      if (ageAtTarget >= 0) {
-        const wAtTarget = interpolate(samples, targetT);
-        if (wAtTarget !== null) {
-          const oldLMS = lookupWfaLMS(baby.sex, ageAtTarget);
-          const oldZ = zFromMeasurement(wAtTarget / 1000, oldLMS);
-          const oldP = percentileFromZ(oldZ);
-          percentileTrend = {
-            fromPercentile: oldP,
-            toPercentile: latest.percentile,
-            fromDate: new Date(targetT).toISOString(),
-            toDate: latest.date,
-          };
-        }
+        const oldLMS = lookupWfaLMS(baby.sex, wv.startDays);
+        const newLMS = lookupWfaLMS(baby.sex, wv.endDays);
+        const oldZ = zFromMeasurement(startW / 1000, oldLMS);
+        const newZ = zFromMeasurement(endW / 1000, newLMS);
+        percentileTrend = {
+          fromPercentile: percentileFromZ(oldZ),
+          toPercentile: percentileFromZ(newZ),
+          fromDate: isoAtAgeDay(wv.startDays),
+          toDate: isoAtAgeDay(wv.endDays),
+        };
       }
     }
   }
@@ -201,6 +202,7 @@ export function buildAnalytics(
     sex: baby.sex,
     ageDaysNow,
     points,
+    earlyVelocity,
     monthlyVelocity,
     percentileTrend,
   };

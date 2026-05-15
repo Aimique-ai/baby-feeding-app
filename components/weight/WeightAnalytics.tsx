@@ -34,6 +34,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { weightsAnalyticsKey } from "@/components/day-view/feedingsKey";
+import { getBrowserTz, tzHeaders } from "@/lib/time/browserTz";
 import type {
   AnalyticsPoint,
   AnalyticsVelocity,
@@ -73,8 +74,11 @@ function InfoHint({ text }: { text: string }) {
 
 type BadgeVariant = "default" | "secondary" | "destructive" | "outline";
 
-async function fetchAnalytics(): Promise<WeightsAnalytics> {
-  const r = await fetch("/api/weights/analytics", { cache: "no-store" });
+async function fetchAnalytics(tz: string): Promise<WeightsAnalytics> {
+  const r = await fetch("/api/weights/analytics", {
+    cache: "no-store",
+    headers: tzHeaders(tz),
+  });
   if (!r.ok) throw new Error("analytics fetch failed");
   return r.json();
 }
@@ -129,9 +133,10 @@ export function WeightAnalytics({
   babyId: string;
   tz: string;
 }) {
+  const effectiveTz = getBrowserTz(tz);
   const q = useQuery({
-    queryKey: weightsAnalyticsKey(babyId),
-    queryFn: fetchAnalytics,
+    queryKey: weightsAnalyticsKey(babyId, effectiveTz),
+    queryFn: () => fetchAnalytics(effectiveTz),
   });
 
   const analytics = q.data;
@@ -139,10 +144,10 @@ export function WeightAnalytics({
   const chartData = useMemo(() => {
     if (!analytics) return [];
     return analytics.points.map((p) => ({
-      date: formatInTimeZone(new Date(p.date), tz, "dd.MM"),
+      date: formatInTimeZone(new Date(p.date), effectiveTz, "dd.MM"),
       weightGrams: p.weightGrams,
     }));
-  }, [analytics, tz]);
+  }, [analytics, effectiveTz]);
 
   if (q.isLoading || !analytics) {
     return (
@@ -229,7 +234,11 @@ export function WeightAnalytics({
       </div>
 
       {inAdaptation ? (
-        <AdaptationCard latest={latest} birthWeight={analytics.birthWeightGrams} />
+        <AdaptationCard
+          latest={latest}
+          birthWeight={analytics.birthWeightGrams}
+          earlyVelocity={analytics.earlyVelocity}
+        />
       ) : null}
 
       {showMonthlyVelocity && analytics.monthlyVelocity ? (
@@ -291,7 +300,7 @@ export function WeightAnalytics({
                   return (
                     <TableRow key={p._id}>
                       <TableCell className="tabular-nums">
-                        {formatInTimeZone(new Date(p.date), tz, "dd.MM")}
+                        {formatInTimeZone(new Date(p.date), effectiveTz, "dd.MM")}
                       </TableCell>
                       <TableCell className="text-right tabular-nums text-muted-foreground">
                         {p.ageDays} дн
@@ -373,7 +382,7 @@ export function WeightAnalytics({
           >
             <LineChart
               data={analytics.points.map((p) => ({
-                date: formatInTimeZone(new Date(p.date), tz, "dd.MM"),
+                date: formatInTimeZone(new Date(p.date), effectiveTz, "dd.MM"),
                 percentile: Math.round(p.percentile),
               }))}
               margin={{ left: 4, right: 12, top: 8 }}
@@ -423,9 +432,11 @@ export function WeightAnalytics({
 function AdaptationCard({
   latest,
   birthWeight,
+  earlyVelocity,
 }: {
   latest: AnalyticsPoint;
   birthWeight: number;
+  earlyVelocity: AnalyticsVelocity | null;
 }) {
   const pct = (latest.weightGrams - birthWeight) / birthWeight;
   const pctLabel = `${pct >= 0 ? "+" : ""}${(pct * 100).toFixed(1)}%`;
@@ -445,8 +456,7 @@ function AdaptationCard({
     variant = "destructive";
   }
 
-  // ВОЗ early-velocity, если был расчёт от прошлого замера:
-  const ev = latest.earlyVelocity;
+  const ev = earlyVelocity;
 
   return (
     <Card>
@@ -467,7 +477,8 @@ function AdaptationCard({
             <Badge variant={earlyVariant(ev.earlyClass)}>
               {earlyLabel(ev.earlyClass)}
             </Badge>{" "}
-            · медиана прибавки {ev.earlyRef.p50} г, P5 {ev.earlyRef.p5} г
+            · прибавка {fmtSigned(ev.deltaGrams)}, медиана {ev.earlyRef.p50} г,
+            P5 {ev.earlyRef.p5} г
           </div>
         ) : null}
       </CardContent>
@@ -499,12 +510,12 @@ function MonthlyVelocityCard({
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium">
-          Темп набора за последние 28 дней (по ВОЗ)
+          Темп за завершённый интервал WHO
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-1">
         <div className="text-2xl font-semibold tabular-nums">
-          +{v.deltaGrams} г{" "}
+          {fmtSigned(v.deltaGrams)}{" "}
           <span className="text-sm font-normal text-muted-foreground">
             ({v.fromWeightGrams} → {v.toWeightGrams})
           </span>

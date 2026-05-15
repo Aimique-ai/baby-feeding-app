@@ -5,6 +5,7 @@ import { DayView } from "./DayView";
 import { feedingsKey } from "./feedingsKey";
 import { useFeedingSheet } from "@/components/feeding-sheet/FeedingSheetProvider";
 import type { SerializedFeeding } from "@/lib/api/serializedTypes";
+import { getBrowserTz } from "@/lib/time/browserTz";
 
 type Props = {
   mode: "live" | "historical";
@@ -17,6 +18,7 @@ type Props = {
 export function DayViewWithSheet(props: Props) {
   const qc = useQueryClient();
   const { openCreate, openEdit } = useFeedingSheet();
+  const effectiveTz = getBrowserTz(props.tz);
 
   return (
     <DayView
@@ -26,7 +28,7 @@ export function DayViewWithSheet(props: Props) {
       }
       onEditFeeding={(feedingId) => {
         const list = qc.getQueryData<SerializedFeeding[]>(
-          feedingsKey(props.babyId, props.dateISO),
+          feedingsKey(props.babyId, props.dateISO, effectiveTz),
         );
         const feeding = list?.find((f) => f._id === feedingId);
         if (!feeding) return;

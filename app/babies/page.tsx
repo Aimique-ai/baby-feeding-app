@@ -2,6 +2,7 @@ import { dbConnect } from "@/lib/mongodb";
 import { BabyModel } from "@/models/baby";
 import { serializeBaby, resolveActiveBaby } from "@/lib/api/activeBaby";
 import { BabyList } from "@/components/babies/BabyList";
+import { getTzFromCookie } from "@/lib/api/tz";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,11 +17,13 @@ export default async function BabiesPage() {
   ).map(serializeBaby);
 
   const active = await resolveActiveBaby();
+  const tz = await getTzFromCookie();
 
   return (
     <BabyList
       babies={babies}
       activeBabyId={active?.baby._id ?? null}
+      tz={tz}
     />
   );
 }

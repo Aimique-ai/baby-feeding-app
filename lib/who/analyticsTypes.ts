@@ -24,6 +24,11 @@ export type AnalyticsVelocity = {
   source: AnalyticsVelocitySource;
   intervalLabel: string;
   intervalDays: number;
+  fromDate: string;
+  toDate: string;
+  fromWeightGrams: number;
+  toWeightGrams: number;
+  deltaGrams: number;
   z: number | null;
   percentile: number | null;
   earlyClass?: AnalyticsEarlyClass;
@@ -41,18 +46,17 @@ export type AnalyticsPoint = {
   daysSincePrev: number | null;
   deltaSincePrev: number | null;
   gramsPerDay: number | null;
-  // ВОЗ-оценка по early-таблице, только если возраст и интервал подходят:
-  earlyVelocity: AnalyticsVelocity | null;
 };
 
-/** Агрегированная WHO-оценка темпа за последние 28 дней (если возраст ≥ 28 дн). */
+/** Агрегированная WHO-оценка темпа за последний завершённый месячный интервал. */
 export type MonthlyVelocity = {
-  fromDate: string; // ISO, ~28 дней назад
-  toDate: string; // ISO, последняя точка
+  fromDate: string; // ISO начала завершённого WHO-интервала
+  toDate: string; // ISO конца завершённого WHO-интервала
   fromWeightGrams: number; // интерполированный
   toWeightGrams: number;
   deltaGrams: number;
   intervalLabel: string; // напр. "0–4 wks", "4 wks–2 mo"
+  intervalDays: number;
   z: number;
   percentile: number;
 };
@@ -71,6 +75,7 @@ export type WeightsAnalytics = {
   sex: "male" | "female";
   ageDaysNow: number;
   points: AnalyticsPoint[];
+  earlyVelocity: AnalyticsVelocity | null;
   monthlyVelocity: MonthlyVelocity | null;
   percentileTrend: PercentileTrend | null;
 };

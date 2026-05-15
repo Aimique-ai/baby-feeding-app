@@ -6,16 +6,16 @@ import { WeightModel } from "@/models/weight";
 import { dayMetrics } from "@/lib/planning/metrics";
 import { computeTarget } from "@/lib/planning/target";
 import {
+  addDaysISO,
   dayOfLife,
   endOfLocalDay,
   localDateISO,
   startOfLocalDay,
 } from "@/lib/planning/dayBoundary";
 import type { Feeding } from "@/lib/planning/types";
-import { getTzFromCookie } from "@/lib/api/tz";
+import { getTzFromRequest } from "@/lib/api/tz";
 import { serverError } from "@/lib/api/respond";
 import { resolveActiveBaby } from "@/lib/api/activeBaby";
-import { addDays, format } from "date-fns";
 
 export const runtime = "nodejs";
 
@@ -23,17 +23,15 @@ const DEFAULT_LIMIT = 30;
 const MAX_LIMIT = 90;
 
 function shiftIso(iso: string, days: number): string {
-  const [y, m, d] = iso.split("-").map(Number);
-  const dt = new Date(Date.UTC(y, m - 1, d));
-  return format(addDays(dt, days), "yyyy-MM-dd");
+  return addDaysISO(iso, days);
 }
 
 export async function GET(req: NextRequest) {
   try {
-    const tz = await getTzFromCookie();
+    const tz = await getTzFromRequest(req);
     const cursor =
       req.nextUrl.searchParams.get("cursor") ??
-      format(new Date(), "yyyy-MM-dd");
+      localDateISO(new Date(), tz);
     const limit = Math.min(
       MAX_LIMIT,
       Math.max(
@@ -68,10 +66,7 @@ export async function GET(req: NextRequest) {
     // Build the requested window of `limit` days going back from cursor.
     const days: string[] = [];
     let d = cursor;
-    const birthLocal = startOfLocalDay(
-      format(babyBirthDate, "yyyy-MM-dd"),
-      tz,
-    );
+    const birthLocal = startOfLocalDay(localDateISO(babyBirthDate, tz), tz);
     for (let i = 0; i < limit; i++) {
       const dayStart = startOfLocalDay(d, tz);
       if (dayStart.getTime() < birthLocal.getTime()) break;

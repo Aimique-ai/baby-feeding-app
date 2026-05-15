@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { fmtMl } from "@/lib/format/ml";
+import { getBrowserTz, tzHeaders } from "@/lib/time/browserTz";
 
 type DayItem = {
   dateISO: string;
@@ -23,13 +24,15 @@ type Page = {
 
 async function fetchPage({
   pageParam,
+  tz,
 }: {
   pageParam: string | null;
+  tz: string;
 }): Promise<Page> {
   const url = pageParam
     ? `/api/history?cursor=${pageParam}`
     : `/api/history`;
-  const r = await fetch(url, { cache: "no-store" });
+  const r = await fetch(url, { cache: "no-store", headers: tzHeaders(tz) });
   if (!r.ok) throw new Error("history fetch failed");
   return r.json();
 }
@@ -39,10 +42,11 @@ function fmtAvgDuration(ms: number | null): string {
   return `${Math.round(ms / 60000)} мин`;
 }
 
-export function HistoryList() {
+export function HistoryList({ tz }: { tz: string }) {
+  const effectiveTz = getBrowserTz(tz);
   const q = useInfiniteQuery({
-    queryKey: ["history"],
-    queryFn: fetchPage,
+    queryKey: ["history", effectiveTz],
+    queryFn: ({ pageParam }) => fetchPage({ pageParam, tz: effectiveTz }),
     initialPageParam: null as string | null,
     getNextPageParam: (last) => last.nextCursor,
   });

@@ -38,7 +38,7 @@ export default async function HistoryDayPage({
     qc.setQueryData(babyKey(active.baby._id), active.baby);
     await Promise.all([
       qc.prefetchQuery({
-        queryKey: feedingsKey(active.baby._id, dateISO),
+        queryKey: feedingsKey(active.baby._id, dateISO, tz),
         queryFn: () => fetchFeedingsForDay(dateISO, tz, active.baby._id),
       }),
       qc.prefetchQuery({

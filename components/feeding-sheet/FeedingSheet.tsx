@@ -36,6 +36,7 @@ import type {
   SerializedFeeding,
   SerializedMedication,
 } from "@/lib/api/serializedTypes";
+import { getBrowserTz, tzHeaders } from "@/lib/time/browserTz";
 import { fromZonedTime, toZonedTime, format as fmtTz } from "date-fns-tz";
 
 type Mode =
@@ -98,6 +99,7 @@ export function FeedingSheet({
   tz,
   babyId,
 }: Props) {
+  const effectiveTz = getBrowserTz(tz);
   const initial = (() => {
     if (mode.kind === "edit") {
       const f = mode.feeding;
@@ -180,18 +182,18 @@ export function FeedingSheet({
     mutationFn: async (body) => {
       const r = await fetch("/api/feedings", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...tzHeaders(effectiveTz) },
         body: JSON.stringify(body),
       });
       if (!r.ok) throw new Error(await r.text());
       return r.json();
     },
     onMutate: async (body) => {
-      const key = feedingsKey(babyId, dateISO);
+      const key = feedingsKey(babyId, dateISO, effectiveTz);
       await qc.cancelQueries({ queryKey: key });
       const prev = qc.getQueryData<SerializedFeeding[]>(key) ?? [];
       const optimistic: SerializedFeeding = {
-        _id: `temp-${Date.now()}`,
+        _id: `temp-${body.startAt.getTime()}-${prev.length}`,
         babyId,
         startAt: body.startAt.toISOString(),
         endAt: body.endAt ? body.endAt.toISOString() : null,
@@ -205,11 +207,13 @@ export function FeedingSheet({
       return { prev };
     },
     onError: (_e, _v, ctx) => {
-      if (ctx?.prev) qc.setQueryData(feedingsKey(babyId, dateISO), ctx.prev);
+      if (ctx?.prev) {
+        qc.setQueryData(feedingsKey(babyId, dateISO, effectiveTz), ctx.prev);
+      }
       toast.error("Не удалось сохранить");
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: feedingsKey(babyId, dateISO) });
+      qc.invalidateQueries({ queryKey: feedingsKey(babyId, dateISO, effectiveTz) });
       toast.success("Сохранено");
       onOpenChange(false);
     },
@@ -220,14 +224,14 @@ export function FeedingSheet({
       if (mode.kind !== "edit") throw new Error("not edit mode");
       const r = await fetch(`/api/feedings/${mode.feeding._id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...tzHeaders(effectiveTz) },
         body: JSON.stringify(body),
       });
       if (!r.ok) throw new Error(await r.text());
       return r.json();
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: feedingsKey(babyId, dateISO) });
+      qc.invalidateQueries({ queryKey: feedingsKey(babyId, dateISO, effectiveTz) });
       toast.success("Сохранено");
       onOpenChange(false);
     },
@@ -244,7 +248,7 @@ export function FeedingSheet({
       return r.json();
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: feedingsKey(babyId, dateISO) });
+      qc.invalidateQueries({ queryKey: feedingsKey(babyId, dateISO, effectiveTz) });
       toast.success("Удалено");
       setConfirmDelete(false);
       onOpenChange(false);
@@ -353,9 +357,9 @@ export function FeedingSheet({
               <Input
                 id="startAt"
                 type="datetime-local"
-                value={fmtLocalForInput(startAt, tz)}
+                value={fmtLocalForInput(startAt, effectiveTz)}
                 onChange={(e) =>
-                  setStartAt(parseLocalInput(e.target.value, tz))
+                  setStartAt(parseLocalInput(e.target.value, effectiveTz))
                 }
               />
               {submitError && (

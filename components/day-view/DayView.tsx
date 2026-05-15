@@ -33,6 +33,7 @@ import {
 } from "@/lib/planning/dayBoundary";
 import type { Slot } from "@/lib/planning/types";
 import { WeighInBanner } from "./WeighInBanner";
+import { getBrowserTz, tzHeaders } from "@/lib/time/browserTz";
 
 type Mode = "live" | "historical";
 
@@ -53,9 +54,13 @@ type Props = {
   onEditFeeding?: (feedingId: string) => void;
 };
 
-async function fetchFeedings(dateISO: string): Promise<SerializedFeeding[]> {
+async function fetchFeedings(
+  dateISO: string,
+  tz: string,
+): Promise<SerializedFeeding[]> {
   const r = await fetch(`/api/feedings?date=${dateISO}`, {
     cache: "no-store",
+    headers: tzHeaders(tz),
   });
   if (!r.ok) throw new Error("feedings fetch failed");
   return r.json();
@@ -152,11 +157,12 @@ export function DayView({
   onAddFeeding,
   onEditFeeding,
 }: Props) {
+  const effectiveTz = getBrowserTz(tz);
   const [planOpen, setPlanOpen] = useState(false);
 
   const feedingsQ = useQuery({
-    queryKey: feedingsKey(babyId, dateISO),
-    queryFn: () => fetchFeedings(dateISO),
+    queryKey: feedingsKey(babyId, dateISO, effectiveTz),
+    queryFn: () => fetchFeedings(dateISO, effectiveTz),
   });
   const babyQ = useQuery({
     queryKey: babyKey(babyId),
@@ -188,8 +194,8 @@ export function DayView({
     );
     const baby = deserializeBaby(babyQ.data);
     const weights = weightsQ.data.map(deserializeWeight);
-    const target = computeTarget(dateISO, baby, weights, tz);
-    const dayStart = startOfLocalDay(dateISO, tz);
+    const target = computeTarget(dateISO, baby, weights, effectiveTz);
+    const dayStart = startOfLocalDay(dateISO, effectiveTz);
     const anchor = prevDayAnchor ? new Date(prevDayAnchor) : null;
 
     const startPlan = computeStartPlan(
@@ -207,7 +213,7 @@ export function DayView({
             },
           ]
         : [],
-      tz,
+      effectiveTz,
     );
 
     const result = runPipeline({
@@ -215,7 +221,7 @@ export function DayView({
       target,
       startOfDay: dayStart,
       dateISO,
-      tz,
+      tz: effectiveTz,
       prevDayAnchor: anchor,
       feedingsPerDay: baby.feedingsPerDay,
     });
@@ -248,7 +254,7 @@ export function DayView({
       (a, b) => a.time.getTime() - b.time.getTime(),
     );
 
-    const dol = dayOfLife(baby.birthDate, dayStart, tz);
+    const dol = dayOfLife(baby.birthDate, dayStart, effectiveTz);
     const eligibleWeights = weights.filter(
       (w) => w.date.getTime() <= dayStart.getTime(),
     );
@@ -284,7 +290,7 @@ export function DayView({
     weightsQ.data,
     medicationsQ.data,
     dateISO,
-    tz,
+    effectiveTz,
     prevDayAnchor,
   ]);
 
@@ -320,7 +326,7 @@ export function DayView({
         />
       )}
       <header className="space-y-2">
-        <DayNav dateISO={dateISO} tz={tz} />
+        <DayNav dateISO={dateISO} tz={effectiveTz} />
         <div className="text-center text-xs text-muted-foreground">
           день {dol} · {currentWeightGrams} г
         </div>
@@ -336,7 +342,7 @@ export function DayView({
 
         {mode === "live" && next && (
           <p className="text-sm text-muted-foreground">
-            Следующее: {fmtHm(next.time, tz)} · {fmtMl(next.volumeMl)}
+            Следующее: {fmtHm(next.time, effectiveTz)} · {fmtMl(next.volumeMl)}
           </p>
         )}
         {mode === "historical" && (
@@ -378,7 +384,7 @@ export function DayView({
                 key={i}
                 className="flex justify-between rounded border px-2 py-1"
               >
-                <span>{fmtHm(s.time, tz)}</span>
+                <span>{fmtHm(s.time, effectiveTz)}</span>
                 <span className="text-muted-foreground">
                   {fmtMl(s.volumeMl)}
                 </span>
@@ -418,10 +424,10 @@ export function DayView({
               }
               aria-label={
                 it.kind === "fact" && it.medicationId
-                  ? `${fmtHm(it.time, tz)} ${
+                  ? `${fmtHm(it.time, effectiveTz)} ${
                       it.volumeMl != null ? fmtMl(it.volumeMl) : ""
                     } ${medMap.get(it.medicationId)?.name ?? "(архив)"} ${it.medicationDoseDrops} капель`
-                  : `${fmtHm(it.time, tz)} ${
+                  : `${fmtHm(it.time, effectiveTz)} ${
                       it.kind === "fact"
                         ? it.volumeMl != null
                           ? fmtMl(it.volumeMl)
@@ -430,7 +436,7 @@ export function DayView({
                     }`
               }
             >
-              <span className="tabular-nums">{fmtHm(it.time, tz)}</span>
+              <span className="tabular-nums">{fmtHm(it.time, effectiveTz)}</span>
               <div className="flex flex-col items-end gap-0.5">
                 <span className="text-sm tabular-nums">
                   {it.kind === "fact"

@@ -17,7 +17,7 @@ of `lib/mongodb.ts`, models, or anything that transitively pulls them.
 
 The cache holds **raw entities**, never derived plan output.
 
-- Feedings list: `['feedings', dateISO]` → `Feeding[]`
+- Feedings list: `['feedings', dateISO, tz]` → `Feeding[]`
 - Weights list: `['weights']` → `Weight[]`
 - Baby: `['baby']` → `Baby`
 
@@ -33,10 +33,20 @@ the cache. Reasons:
 
 ## Time
 
-The server gets the user's IANA timezone from the `tz` cookie. On first paint
-(no cookie yet) the server falls back to `Europe/Kyiv`. A small client effect
-writes the cookie via `Intl.DateTimeFormat().resolvedOptions().timeZone` so
-subsequent navigations are exact.
+The server gets the user's IANA timezone from the `tz` cookie for SSR. On first
+paint (no cookie yet) the server falls back to `Europe/Kyiv`; a small client
+effect writes the cookie via `Intl.DateTimeFormat().resolvedOptions().timeZone`
+and calls `router.refresh()` so subsequent server renders use the browser zone.
+
+Client-originated API requests whose meaning depends on timezone send
+`x-time-zone`. Route handlers prefer a valid `x-time-zone` header, then a valid
+`tz` cookie, then `Europe/Kyiv`.
+
+Calendar days are always modeled as `dateISO + IANA tz`. Use
+`localDateISO(date, tz)` for "today" and for deriving a local day from an
+instant. Do not use `format(new Date(), "yyyy-MM-dd")` or
+`toLocaleDateString()` for application calendar days without an explicit
+timezone.
 
 `lib/time/dayRange.ts` is the only module that converts (`dateISO`, `tz`) to
 UTC range bounds. Do not roll your own.

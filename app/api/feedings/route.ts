@@ -6,7 +6,7 @@ import { FeedingModel } from "@/models/feeding";
 import { MedicationModel } from "@/models/medication";
 import { feedingSchema } from "@/lib/schemas/feeding";
 import { dayRangeUtc } from "@/lib/time/dayRange";
-import { getTzFromCookie } from "@/lib/api/tz";
+import { getTzFromRequest } from "@/lib/api/tz";
 import { badRequest, serverError } from "@/lib/api/respond";
 import { serializeFeeding } from "@/lib/api/feedings";
 import { resolveActiveBaby } from "@/lib/api/activeBaby";
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
         { status: 400 },
       );
 
-    const tz = await getTzFromCookie();
+    const tz = await getTzFromRequest(req);
     const { gte, lt } = dayRangeUtc(dateISO, tz);
 
     await dbConnect();

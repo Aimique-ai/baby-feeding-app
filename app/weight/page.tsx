@@ -30,7 +30,7 @@ export default async function WeightPage() {
       queryFn: () => fetchWeights(active.baby._id),
     });
     await qc.prefetchQuery({
-      queryKey: weightsAnalyticsKey(active.baby._id),
+      queryKey: weightsAnalyticsKey(active.baby._id, tz),
       queryFn: async () => {
         await dbConnect();
         const docs = await WeightModel.find({

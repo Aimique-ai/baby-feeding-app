@@ -50,6 +50,8 @@ export function lookupWfaLMS(sex: Sex, ageDays: number): LMS {
 export type VelocityHit = {
   windowKey: "1mo" | "2mo" | "3mo" | "4mo" | "6mo";
   intervalLabel: string;
+  startDays: number;
+  endDays: number;
   intervalDays: number; // длина окна в днях
   lms: LMS;
 };
@@ -95,6 +97,27 @@ export function lookupVelocityLMS(
   return {
     windowKey: bestWin,
     intervalLabel: hit.intervalKey.split(":")[1] ?? hit.intervalKey,
+    startDays: hit.startDays,
+    endDays: hit.endDays,
+    intervalDays: hit.endDays - hit.startDays,
+    lms: { L: hit.L, M: hit.M, S: hit.S },
+  };
+}
+
+export function lookupCompletedMonthlyVelocityLMS(
+  sex: Sex,
+  ageDaysAtEnd: number,
+): VelocityHit | null {
+  const rows = bySex(wv["1mo"], sex);
+  const hit = rows
+    .filter((r) => ageDaysAtEnd >= r.endDays)
+    .sort((a, b) => b.endDays - a.endDays)[0];
+  if (!hit) return null;
+  return {
+    windowKey: "1mo",
+    intervalLabel: hit.intervalKey.split(":")[1] ?? hit.intervalKey,
+    startDays: hit.startDays,
+    endDays: hit.endDays,
     intervalDays: hit.endDays - hit.startDays,
     lms: { L: hit.L, M: hit.M, S: hit.S },
   };
@@ -117,6 +140,8 @@ export function birthWeightGroup(birthWeightGrams: number): string {
  */
 export type EarlyVelocityHit = {
   intervalLabel: string;
+  startDays: number;
+  endDays: number;
   birthWeightGroup: string;
   p50: number;
   p25: number;
@@ -139,6 +164,33 @@ export function lookupEarlyVelocity(
   if (!v) return null;
   return {
     intervalLabel: `${hit.startDays}–${hit.endDays} дн`,
+    startDays: hit.startDays,
+    endDays: hit.endDays,
+    birthWeightGroup: group,
+    p50: v.p50,
+    p25: v.p25,
+    p10: v.p10,
+    p5: v.p5,
+  };
+}
+
+export function lookupCompletedEarlyVelocity(
+  sex: Sex,
+  birthWeightGrams: number,
+  ageDaysAtEnd: number,
+): EarlyVelocityHit | null {
+  const rows = bySex(wvEarly, sex);
+  const hit = rows
+    .filter((r) => ageDaysAtEnd >= r.endDays)
+    .sort((a, b) => b.endDays - a.endDays)[0];
+  if (!hit) return null;
+  const group = birthWeightGroup(birthWeightGrams);
+  const v = hit.byBirthWeight[group];
+  if (!v) return null;
+  return {
+    intervalLabel: `${hit.startDays}–${hit.endDays} дн`,
+    startDays: hit.startDays,
+    endDays: hit.endDays,
     birthWeightGroup: group,
     p50: v.p50,
     p25: v.p25,

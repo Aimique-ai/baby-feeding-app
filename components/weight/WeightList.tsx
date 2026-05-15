@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { format } from "date-fns";
-import { fromZonedTime } from "date-fns-tz";
 import {
   Sheet,
   SheetClose,
@@ -21,6 +19,8 @@ import {
   weightsAnalyticsKey,
   weightsKey,
 } from "@/components/day-view/feedingsKey";
+import { localDateISO } from "@/lib/planning/dayBoundary";
+import { getBrowserTz, tzHeaders } from "@/lib/time/browserTz";
 import { WeightAnalytics } from "./WeightAnalytics";
 
 export function WeightList({
@@ -32,19 +32,20 @@ export function WeightList({
 }) {
   const qc = useQueryClient();
   const isMobile = useIsMobile();
+  const effectiveTz = getBrowserTz(tz);
   const [open, setOpen] = useState(false);
-  const [dateISO, setDateISO] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [dateISO, setDateISO] = useState(() =>
+    localDateISO(new Date(), effectiveTz),
+  );
   const [grams, setGrams] = useState<number>(3400);
 
   const create = useMutation({
     mutationFn: async () => {
-      // Local midnight in the user's IANA tz, not UTC midnight.
-      const localMidnight = fromZonedTime(`${dateISO}T00:00:00`, tz);
       const r = await fetch("/api/weights", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...tzHeaders(effectiveTz) },
         body: JSON.stringify({
-          date: localMidnight,
+          dateISO,
           weightGrams: grams,
         }),
       });
@@ -53,7 +54,7 @@ export function WeightList({
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: weightsKey(babyId) });
-      qc.invalidateQueries({ queryKey: weightsAnalyticsKey(babyId) });
+      qc.invalidateQueries({ queryKey: weightsAnalyticsKey(babyId, effectiveTz) });
       toast.success("Вес добавлен");
       setOpen(false);
     },
@@ -67,7 +68,7 @@ export function WeightList({
         <Button onClick={() => setOpen(true)}>Добавить</Button>
       </header>
 
-      <WeightAnalytics babyId={babyId} tz={tz} />
+      <WeightAnalytics babyId={babyId} tz={effectiveTz} />
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side={isMobile ? "bottom" : "right"}>

@@ -4,6 +4,7 @@ import * as React from "react";
 import { FeedingSheet } from "./FeedingSheet";
 import { localDateISO } from "@/lib/planning/dayBoundary";
 import type { SerializedFeeding } from "@/lib/api/serializedTypes";
+import { getBrowserTz } from "@/lib/time/browserTz";
 
 type CreatePreset = {
   time?: Date;
@@ -33,6 +34,7 @@ type Props = {
 };
 
 export function FeedingSheetProvider({ babyId, tz, children }: Props) {
+  const effectiveTz = getBrowserTz(tz);
   const [open, setOpen] = React.useState(false);
   const [state, setState] = React.useState<SheetState | null>(null);
   const [sheetKey, setSheetKey] = React.useState(0);
@@ -42,13 +44,13 @@ export function FeedingSheetProvider({ babyId, tz, children }: Props) {
       if (!babyId) return;
       setState({
         kind: "create",
-        dateISO: opts?.dateISO ?? localDateISO(new Date(), tz),
+        dateISO: opts?.dateISO ?? localDateISO(new Date(), effectiveTz),
         preset: opts?.preset,
       });
       setSheetKey((k) => k + 1);
       setOpen(true);
     },
-    [babyId, tz],
+    [babyId, effectiveTz],
   );
 
   const openEdit = React.useCallback<OpenEdit>(
@@ -56,13 +58,14 @@ export function FeedingSheetProvider({ babyId, tz, children }: Props) {
       if (!babyId) return;
       setState({
         kind: "edit",
-        dateISO: opts.dateISO ?? localDateISO(new Date(opts.feeding.startAt), tz),
+        dateISO:
+          opts.dateISO ?? localDateISO(new Date(opts.feeding.startAt), effectiveTz),
         feeding: opts.feeding,
       });
       setSheetKey((k) => k + 1);
       setOpen(true);
     },
-    [babyId, tz],
+    [babyId, effectiveTz],
   );
 
   const ctx = React.useMemo<Ctx>(
@@ -84,7 +87,7 @@ export function FeedingSheetProvider({ babyId, tz, children }: Props) {
               : { kind: "edit", feeding: state.feeding }
           }
           dateISO={state.dateISO}
-          tz={tz}
+          tz={effectiveTz}
           babyId={babyId}
         />
       )}

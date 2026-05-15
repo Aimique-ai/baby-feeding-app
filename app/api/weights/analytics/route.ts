@@ -1,16 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { Types } from "mongoose";
 import { dbConnect } from "@/lib/mongodb";
 import { WeightModel } from "@/models/weight";
 import { serializeWeight } from "@/lib/api/feedings";
 import { resolveActiveBaby } from "@/lib/api/activeBaby";
-import { getTzFromCookie } from "@/lib/api/tz";
+import { getTzFromRequest } from "@/lib/api/tz";
 import { buildAnalytics } from "@/lib/who/analytics";
 import { serverError } from "@/lib/api/respond";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const active = await resolveActiveBaby();
     if (!active)
@@ -18,7 +18,7 @@ export async function GET() {
         { ok: false, error: "no_active_baby" },
         { status: 400 },
       );
-    const tz = await getTzFromCookie();
+    const tz = await getTzFromRequest(req);
     await dbConnect();
     const docs = await WeightModel.find({
       babyId: new Types.ObjectId(active.baby._id),
