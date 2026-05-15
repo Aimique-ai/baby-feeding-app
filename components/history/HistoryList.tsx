@@ -70,9 +70,8 @@ export function HistoryList({ tz }: { tz: string }) {
   const items = q.data?.pages.flatMap((p) => p.items) ?? [];
 
   return (
-    <div className="mx-auto max-w-screen-sm px-4 py-4">
-      <h1 className="mb-4 text-lg font-semibold">История</h1>
-      <ul className="space-y-2">
+    <div>
+      <ul className="mt-4 space-y-2">
         {items.map((it) => {
           const deficitClass =
             it.deficit > 0

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { resolveActiveBaby } from "@/lib/api/activeBaby";
-import { HistoryList } from "@/components/history/HistoryList";
+import { FeedingTargetChart } from "@/components/history/FeedingTargetChart";
 import { HistoryTabs } from "@/components/history/HistoryTabs";
 import { BabyCookieSeeder } from "@/components/BabyCookieSeeder";
 import { getTzFromCookie } from "@/lib/api/tz";
@@ -8,7 +8,7 @@ import { getTzFromCookie } from "@/lib/api/tz";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export default async function HistoryPage() {
+export default async function HistoryAnalyticsPage() {
   const active = await resolveActiveBaby();
   if (!active) redirect("/babies");
   const tz = await getTzFromCookie();
@@ -20,7 +20,9 @@ export default async function HistoryPage() {
       )}
       <div className="mx-auto max-w-screen-sm px-4 py-4">
         <HistoryTabs />
-        <HistoryList tz={tz} />
+        <div className="mt-4">
+          <FeedingTargetChart babyId={active.baby._id} tz={tz} />
+        </div>
       </div>
     </>
   );

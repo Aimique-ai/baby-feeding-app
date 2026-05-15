@@ -63,8 +63,7 @@ export function WeightList({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-4 space-y-4">
-      <header className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold">Вес</h1>
+      <header className="flex items-center justify-end">
         <Button onClick={() => setOpen(true)}>Добавить</Button>
       </header>
 

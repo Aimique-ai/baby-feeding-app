@@ -56,8 +56,7 @@ export function MedicationList({ babyId }: { babyId: string }) {
 
   return (
     <div className="mx-auto max-w-screen-sm px-4 py-4 space-y-4">
-      <header className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold">Лекарства</h1>
+      <header className="flex items-center justify-end">
         <Button onClick={() => setSheet({ kind: "create" })}>Добавить</Button>
       </header>
       <ul className="space-y-1">

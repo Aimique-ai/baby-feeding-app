@@ -139,8 +139,7 @@ export function BabyList({ babies: initialData, activeBabyId, tz }: Props) {
 
   return (
     <div className="mx-auto max-w-screen-sm px-4 py-4 space-y-4">
-      <header className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold">Дети</h1>
+      <header className="flex items-center justify-end">
         <div className="flex items-center gap-2">
           <Link
             href="/babies/archive"
