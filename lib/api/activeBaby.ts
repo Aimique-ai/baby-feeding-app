@@ -14,6 +14,7 @@ type BabyDocLike = {
   birthWeightGrams: number;
   feedingsPerDay: number;
   sex?: "male" | "female";
+  currentFormulaId?: { toString(): string } | null;
   archivedAt: Date | null;
 };
 
@@ -25,6 +26,9 @@ export function serializeBaby(doc: BabyDocLike): SerializedBaby {
     birthWeightGrams: doc.birthWeightGrams,
     feedingsPerDay: doc.feedingsPerDay,
     sex: doc.sex ?? "male",
+    currentFormulaId: doc.currentFormulaId
+      ? doc.currentFormulaId.toString()
+      : null,
     archivedAt: doc.archivedAt ? doc.archivedAt.toISOString() : null,
   };
 }

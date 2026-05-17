@@ -7,6 +7,7 @@ import { BabyModel } from "@/models/baby";
 import { babyPatchSchema } from "@/lib/schemas/baby";
 import { badRequest, notFound, serverError } from "@/lib/api/respond";
 import { serializeBaby } from "@/lib/api/activeBaby";
+import { formulaExists } from "@/lib/api/assertFormulaExists";
 
 export const runtime = "nodejs";
 
@@ -24,6 +25,12 @@ export async function PATCH(
     const body = await req.json();
     const parsed = babyPatchSchema.parse(body);
     await dbConnect();
+    if (
+      "currentFormulaId" in parsed &&
+      !(await formulaExists(parsed.currentFormulaId))
+    ) {
+      return notFound("formula");
+    }
     const updated = await BabyModel.findByIdAndUpdate(id, parsed, {
       new: true,
     }).lean();

@@ -23,8 +23,12 @@ import {
   type SerializedMedication,
   type SerializedWeight,
 } from "@/lib/api/serializedTypes";
-import { computeTarget } from "@/lib/planning/target";
-import { computeStartPlan } from "@/lib/planning/startPlan";
+import type { SerializedBabyWithFormula } from "@/lib/api/serializeBabyWithFormula";
+import {
+  computeFeedingGuidance,
+  DEFAULT_FORMULA_DENSITY,
+} from "@/lib/planning/target";
+import type { FormulaDensity } from "@/lib/planning/types";
 import { runPipeline } from "@/lib/planning/pipeline";
 import {
   addDaysISO,
@@ -165,9 +169,10 @@ export function DayView({
     queryKey: feedingsKey(babyId, dateISO, effectiveTz),
     queryFn: () => fetchFeedings(dateISO, effectiveTz),
   });
-  const babyQ = useQuery({
+  const babyQ = useQuery<SerializedBabyWithFormula>({
     queryKey: babyKey(babyId),
-    queryFn: () => fetch("/api/baby", { cache: "no-store" }).then((r) => r.json()),
+    queryFn: () =>
+      fetch("/api/baby", { cache: "no-store" }).then((r) => r.json()),
   });
   const weightsQ = useQuery({
     queryKey: weightsKey(babyId),
@@ -194,28 +199,24 @@ export function DayView({
       medicationsQ.data.map((m) => [m._id, { name: m.name }]),
     );
     const baby = deserializeBaby(babyQ.data);
+    const serializedFormula = babyQ.data.formula;
     const weights = weightsQ.data.map(deserializeWeight);
-    const target = computeTarget(dateISO, baby, weights, effectiveTz);
+    const formulaDensity: FormulaDensity = serializedFormula
+      ? {
+          kcalPer100ml: serializedFormula.kcalPer100mlReady,
+          proteinGPer100kcal: serializedFormula.proteinGPer100kcal,
+        }
+      : DEFAULT_FORMULA_DENSITY;
+    const guidance = computeFeedingGuidance(
+      dateISO,
+      baby,
+      weights,
+      effectiveTz,
+      formulaDensity,
+    );
+    const target = guidance.dailyMl;
     const dayStart = startOfLocalDay(dateISO, effectiveTz);
     const anchor = prevDayAnchor ? new Date(prevDayAnchor) : null;
-
-    const startPlan = computeStartPlan(
-      dateISO,
-      target,
-      anchor
-        ? [
-            {
-              _id: "anchor",
-              startAt: anchor,
-              endAt: null,
-              volumeMl: null,
-              isTopUp: false,
-              parentFeedingId: null,
-            },
-          ]
-        : [],
-      effectiveTz,
-    );
 
     const result = runPipeline({
       facts,
@@ -224,7 +225,7 @@ export function DayView({
       dateISO,
       tz: effectiveTz,
       prevDayAnchor: anchor,
-      feedingsPerDay: baby.feedingsPerDay,
+      feedingsPerDay: guidance.feedCount,
     });
 
     const factIds = new Set(facts.map((f) => f._id));
@@ -275,15 +276,17 @@ export function DayView({
       : 0;
 
     return {
+      guidance,
       target,
       consumed: result.consumed,
       tail: result.tail as Slot[],
-      startPlan,
       timeline,
       dol,
       currentWeightGrams: currentWeight,
       daysSinceLastWeight,
       medMap,
+      formulaName: serializedFormula?.name ?? null,
+      feedingsPerDay: baby.feedingsPerDay,
     };
   }, [
     feedingsQ.data,
@@ -300,14 +303,16 @@ export function DayView({
   }
 
   const {
+    guidance,
     target,
     consumed,
-    startPlan,
     timeline,
     dol,
     currentWeightGrams,
     daysSinceLastWeight,
     medMap,
+    formulaName,
+    feedingsPerDay,
   } = derived;
 
   const progressPct = Math.min(
@@ -329,14 +334,15 @@ export function DayView({
       <header className="space-y-2">
         <DayNav dateISO={dateISO} tz={effectiveTz} />
         <div className="text-center text-xs text-muted-foreground">
-          день {dol} · {currentWeightGrams} г
+          день {dol} · {currentWeightGrams} г ·{" "}
+          {formulaName ?? "смесь не выбрана"}
         </div>
         <div className="flex items-baseline gap-3">
           <div className="text-3xl font-semibold tabular-nums">
             {fmtMl(consumed)}
           </div>
           <div className="text-sm text-muted-foreground">
-            из {fmtMl(target)}
+            из {guidance.dailyMlRange[0]}–{fmtMl(guidance.dailyMlRange[1])}
           </div>
         </div>
         <Progress value={progressPct} aria-label={`Прогресс ${progressPct}%`} />
@@ -366,34 +372,57 @@ export function DayView({
         )}
       </header>
 
-      <Collapsible open={planOpen} onOpenChange={setPlanOpen}>
-        <CollapsibleTrigger asChild>
-          <Button variant="ghost" size="sm" className="gap-1">
-            <ChevronDown
-              className={
-                "size-4 transition-transform " + (planOpen ? "rotate-180" : "")
-              }
-              aria-hidden
-            />
-            Идеальный план дня
-          </Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent className="mt-2">
-          <ul className="grid grid-cols-2 gap-1 text-sm tabular-nums">
-            {startPlan.map((s, i) => (
-              <li
-                key={i}
-                className="flex justify-between rounded border px-2 py-1"
-              >
-                <span>{fmtHm(s.time, effectiveTz)}</span>
-                <span className="text-muted-foreground">
-                  {fmtMl(s.volumeMl)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </CollapsibleContent>
-      </Collapsible>
+      <section className="space-y-2 rounded-md border p-3">
+        <h2 className="text-sm font-semibold">Рекомендация</h2>
+        <div className="flex items-baseline gap-3 tabular-nums">
+          <span className="text-lg font-semibold">
+            {guidance.mlPerFeedRange[0]}–{fmtMl(guidance.mlPerFeedRange[1])}
+          </span>
+          <span className="text-sm text-muted-foreground">
+            за {guidance.feedCountRange[0]}–{guidance.feedCountRange[1]}{" "}
+            кормлений
+          </span>
+        </div>
+        <Muted>
+          Ребёнок берёт сколько нужно — кормление можно завершать по сигналам
+          насыщения.
+        </Muted>
+        {guidance.feedCount !== feedingsPerDay && (
+          <p className="text-xs text-muted-foreground">
+            Для этого возраста рекомендуем {guidance.feedCountRange[0]}–
+            {guidance.feedCountRange[1]} кормлений (у вас задано {feedingsPerDay}
+            ). План построен на {guidance.feedCount}.
+          </p>
+        )}
+        {guidance.flags.some((f) => f.code === "ml_per_kg_high") && (
+          <p className="text-xs text-amber-600">
+            Суточный объём выше практического коридора.
+          </p>
+        )}
+      </section>
+
+      {guidance.protein && (
+        <Collapsible open={planOpen} onOpenChange={setPlanOpen}>
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" size="sm" className="gap-1">
+              <ChevronDown
+                className={
+                  "size-4 transition-transform " +
+                  (planOpen ? "rotate-180" : "")
+                }
+                aria-hidden
+              />
+              Белок
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-2">
+            <p className="text-xs text-muted-foreground tabular-nums">
+              {guidance.protein.gPerKgDay.toFixed(1)} г/кг в сутки —
+              контрольный показатель, не цель по объёму.
+            </p>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
 
       <ul role="list" className="space-y-1">
         {timeline.map((it) => (

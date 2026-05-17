@@ -16,6 +16,7 @@ import type { Feeding } from "@/lib/planning/types";
 import { getTzFromRequest } from "@/lib/api/tz";
 import { serverError } from "@/lib/api/respond";
 import { resolveActiveBaby } from "@/lib/api/activeBaby";
+import { resolveFormulaDensity } from "@/lib/api/resolveFormulaDensity";
 
 export const runtime = "nodejs";
 
@@ -56,6 +57,9 @@ export async function GET(req: NextRequest) {
     const babyBirthDate = new Date(active.baby.birthDate);
 
     await dbConnect();
+    const formulaDensity = await resolveFormulaDensity(
+      active.baby.currentFormulaId,
+    );
     const weights = await WeightModel.find({ babyId })
       .select("date weightGrams")
       .lean();
@@ -134,6 +138,7 @@ export async function GET(req: NextRequest) {
         },
         weightsPlan,
         tz,
+        formulaDensity,
       );
       const m = dayMetrics(facts, target);
       items.push({

@@ -1,15 +1,15 @@
 {
-  "dumpedAt": "2026-05-14T11:43:48.942Z",
+  "dumpedAt": "2026-05-16T06:14:10.096Z",
   "database": "test",
   "collections": [
     {
       "name": "weights",
-      "count": 5,
+      "count": 6,
       "file": "/Users/macbookpro/Documents/Work/personal/leon-app/docs/db-dump/weights.json"
     },
     {
       "name": "feedings",
-      "count": 121,
+      "count": 136,
       "file": "/Users/macbookpro/Documents/Work/personal/leon-app/docs/db-dump/feedings.json"
     },
     {

@@ -23,6 +23,20 @@ export type SerializedBaby = {
   birthWeightGrams: number;
   feedingsPerDay: number;
   sex: "male" | "female";
+  currentFormulaId: string | null;
+  archivedAt: string | null;
+};
+
+export type SerializedFormula = {
+  _id: string;
+  name: string;
+  brand: string | null;
+  kcalPer100mlReady: number;
+  proteinGPer100kcal: number;
+  proteinGPer100mlReady: number | null;
+  stage: number;
+  kind: "standard";
+  isSystem: boolean;
   archivedAt: string | null;
 };
 
@@ -71,5 +85,9 @@ export function deserializeWeight(s: SerializedWeight): PlanWeight {
 export function deserializeMedication(
   s: SerializedMedication,
 ): SerializedMedication {
+  return s;
+}
+
+export function deserializeFormula(s: SerializedFormula): SerializedFormula {
   return s;
 }

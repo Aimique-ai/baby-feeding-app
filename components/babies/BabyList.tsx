@@ -21,7 +21,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useFeedingTimerOptional } from "@/components/feeding-sheet/FeedingTimerProvider";
-import { BabyForm } from "./BabyForm";
+import { BabyForm, type BabyFormPayload } from "./BabyForm";
 import {
   babiesKey,
   archivedBabiesKey,
@@ -57,13 +57,7 @@ export function BabyList({ babies: initialData, activeBabyId, tz }: Props) {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: {
-      name: string;
-      birthDate: Date;
-      birthWeightGrams: number;
-      feedingsPerDay: number;
-      sex: "male" | "female";
-    }) => {
+    mutationFn: async (data: BabyFormPayload) => {
       const r = await fetch("/api/babies", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...tzHeaders(effectiveTz) },

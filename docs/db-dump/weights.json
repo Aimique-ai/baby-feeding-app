@@ -38,5 +38,13 @@
     "weightGrams": 3845,
     "createdAt": "2026-05-14T09:05:37.566Z",
     "__v": 0
+  },
+  {
+    "_id": "6a05decaf3fe2660ba8b63cb",
+    "babyId": "69fee163dbb812b2c87059e0",
+    "date": "2026-04-26T21:00:00.000Z",
+    "weightGrams": 3250,
+    "createdAt": "2026-05-14T14:40:10.104Z",
+    "__v": 0
   }
 ]

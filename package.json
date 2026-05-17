@@ -11,7 +11,9 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "seed": "tsx --env-file=.env.local scripts/seed.ts",
+    "seed:formulas": "tsx --env-file=.env.local scripts/seed-formulas.ts",
     "migrate:baby-id": "tsx --env-file=.env.local scripts/migrate-baby-id.ts",
+    "backfill:baby-formula": "tsx --env-file=.env.local scripts/backfill-baby-formula.ts",
     "format": "prettier --write ."
   },
   "dependencies": {

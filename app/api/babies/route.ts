@@ -3,8 +3,9 @@ import { ZodError } from "zod";
 import { dbConnect } from "@/lib/mongodb";
 import { BabyModel } from "@/models/baby";
 import { babySchema } from "@/lib/schemas/baby";
-import { badRequest, serverError } from "@/lib/api/respond";
+import { badRequest, notFound, serverError } from "@/lib/api/respond";
 import { serializeBaby } from "@/lib/api/activeBaby";
+import { formulaExists } from "@/lib/api/assertFormulaExists";
 
 export const runtime = "nodejs";
 
@@ -32,6 +33,9 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const parsed = babySchema.parse(body);
     await dbConnect();
+    if (!(await formulaExists(parsed.currentFormulaId))) {
+      return notFound("formula");
+    }
     const created = await BabyModel.create(parsed);
     return NextResponse.json(
       serializeBaby(

@@ -13,6 +13,11 @@ const BabySchema = new Schema(
       required: true,
       default: "male",
     },
+    currentFormulaId: {
+      type: Schema.Types.ObjectId,
+      ref: "Formula",
+      default: null,
+    },
     archivedAt: { type: Date, default: null },
   },
   { timestamps: true },

@@ -8,6 +8,7 @@ import {
   fetchLastFeedingBefore,
 } from "@/lib/api/feedings";
 import { resolveActiveBaby } from "@/lib/api/activeBaby";
+import { serializeBabyWithFormula } from "@/lib/api/serializeBabyWithFormula";
 import {
   babyKey,
   feedingsKey,
@@ -34,8 +35,10 @@ export default async function HistoryDayPage({
   const tz = await getTzFromCookie();
   const dayStart = startOfLocalDay(dateISO, tz);
 
+  const babyWithFormula = await serializeBabyWithFormula(active.baby);
+
   const { state } = await prefetchOnServer(async (qc) => {
-    qc.setQueryData(babyKey(active.baby._id), active.baby);
+    qc.setQueryData(babyKey(active.baby._id), babyWithFormula);
     await Promise.all([
       qc.prefetchQuery({
         queryKey: feedingsKey(active.baby._id, dateISO, tz),
