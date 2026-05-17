@@ -153,6 +153,32 @@ function DayNav({ dateISO, tz }: { dateISO: string; tz: string }) {
   );
 }
 
+function historicalTargetStatus(
+  consumed: number,
+  dailyMlRange: [number, number],
+): { className: string; text: string } {
+  const [low, high] = dailyMlRange;
+
+  if (consumed < low) {
+    return {
+      className: "text-amber-600",
+      text: `Ниже дневного ориентира на ${fmtMl(low - consumed)}`,
+    };
+  }
+
+  if (consumed > high) {
+    return {
+      className: "text-amber-600",
+      text: `Выше дневного ориентира на ${fmtMl(consumed - high)}`,
+    };
+  }
+
+  return {
+    className: "text-muted-foreground",
+    text: "В дневном ориентире",
+  };
+}
+
 export function DayView({
   mode,
   dateISO,
@@ -321,7 +347,10 @@ export function DayView({
   );
 
   const next = nextPlanned(timeline);
-  const deficit = target - consumed;
+  const historicalStatus = historicalTargetStatus(
+    consumed,
+    guidance.dailyMlRange,
+  );
 
   return (
     <div className="mx-auto max-w-screen-sm px-4 py-4 space-y-6">
@@ -342,7 +371,7 @@ export function DayView({
             {fmtMl(consumed)}
           </div>
           <div className="text-sm text-muted-foreground">
-            из {guidance.dailyMlRange[0]}–{fmtMl(guidance.dailyMlRange[1])}
+            из {fmtMl(target)}
           </div>
         </div>
         <Progress value={progressPct} aria-label={`Прогресс ${progressPct}%`} />
@@ -353,21 +382,8 @@ export function DayView({
           </Muted>
         )}
         {mode === "historical" && (
-          <p
-            className={
-              "text-sm " +
-              (deficit > 0
-                ? "text-destructive"
-                : deficit < 0
-                  ? "text-emerald-600"
-                  : "text-muted-foreground")
-            }
-          >
-            {deficit > 0
-              ? `Недостача: ${fmtMl(deficit)}`
-              : deficit < 0
-                ? `Перекорм: ${fmtMl(-deficit)}`
-                : "Цель достигнута"}
+          <p className={"text-sm " + historicalStatus.className}>
+            {historicalStatus.text}
           </p>
         )}
       </header>
