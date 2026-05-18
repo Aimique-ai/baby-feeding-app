@@ -115,6 +115,7 @@ export function FeedingSheet({
               )
             : 15,
         volumeMl: f.volumeMl ?? 0,
+        isTopUp: f.isTopUp,
         medicationId: f.medicationId,
         medicationDoseDrops: f.medicationDoseDrops,
       };
@@ -124,6 +125,7 @@ export function FeedingSheet({
       startAt: presetStartAt ?? roundTo5Min(mode.preset?.time ?? new Date()),
       durationMin: mode.preset?.durationMin ?? 15,
       volumeMl: mode.preset?.volumeMl ?? 0,
+      isTopUp: false,
       medicationId: null as string | null,
       medicationDoseDrops: null as number | null,
     };
@@ -132,6 +134,7 @@ export function FeedingSheet({
   const [startAt, setStartAt] = useState<Date>(initial.startAt);
   const [durationMin, setDurationMin] = useState<number>(initial.durationMin);
   const [volumeMl, setVolumeMl] = useState<number>(initial.volumeMl);
+  const [isTopUp, setIsTopUp] = useState<boolean>(initial.isTopUp);
   const [medicationId, setMedicationId] = useState<string | null>(
     initial.medicationId,
   );
@@ -170,6 +173,7 @@ export function FeedingSheet({
     startAt: Date;
     endAt: Date | null;
     volumeMl: number;
+    isTopUp: boolean;
     medicationId: string | null;
     medicationDoseDrops: number | null;
   };
@@ -199,8 +203,7 @@ export function FeedingSheet({
         startAt: body.startAt.toISOString(),
         endAt: body.endAt ? body.endAt.toISOString() : null,
         volumeMl: body.volumeMl,
-        isTopUp: false,
-        parentFeedingId: null,
+        isTopUp: body.isTopUp,
         medicationId: body.medicationId,
         medicationDoseDrops: body.medicationDoseDrops,
       };
@@ -304,6 +307,7 @@ export function FeedingSheet({
       startAt,
       endAt,
       volumeMl,
+      isTopUp,
       medicationId,
       medicationDoseDrops: medDoseDrops,
     };
@@ -409,6 +413,26 @@ export function FeedingSheet({
                 step={5}
               />
               {volumeError && <FormError>{volumeError}</FormError>}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Тип</Label>
+              <ToggleGroup
+                type="single"
+                variant="outline"
+                className="w-full"
+                value={isTopUp ? "topup" : "main"}
+                onValueChange={(v) => {
+                  if (v === "main" || v === "topup") setIsTopUp(v === "topup");
+                }}
+              >
+                <ToggleGroupItem value="main" className="flex-1">
+                  Основное
+                </ToggleGroupItem>
+                <ToggleGroupItem value="topup" className="flex-1">
+                  Докорм
+                </ToggleGroupItem>
+              </ToggleGroup>
             </div>
 
             {showMedSection && (

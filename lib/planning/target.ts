@@ -2,7 +2,7 @@ import type { Baby, FeedingTarget, FormulaDensity, TargetFlag, Weight } from "./
 import { dayOfLife, startOfLocalDay } from "./dayBoundary";
 import { ageMonthsFromDays, targetKcalPerKg } from "./energyCurve";
 import { neonatalDailyMl } from "./neonatal";
-import { feedCountCenter, feedCountRange } from "./feedCount";
+import { feedCountRange } from "./feedCount";
 import { ceil10, floor10, round5, round10 } from "@/lib/format/ml";
 
 /** Дефолт энергоплотности при отсутствии данных (PRD §3). */
@@ -127,7 +127,8 @@ export function computeFeedingGuidance(
   ];
 
   const range = feedCountRange(ageDays);
-  const feedCount = feedCountCenter(baby.feedingsPerDay, range);
+  // Рекомендуемый центр числа кормлений — округлённый центр возрастного range.
+  const feedCount = Math.round((range[0] + range[1]) / 2);
 
   const mlPerFeedRange: [number, number] = [
     round5(dailyMl / range[1]),

@@ -11,7 +11,6 @@ export type SerializedFeeding = {
   endAt: string | null;
   volumeMl: number | null;
   isTopUp: boolean;
-  parentFeedingId: string | null;
   medicationId: string | null;
   medicationDoseDrops: number | null;
 };
@@ -21,7 +20,6 @@ export type SerializedBaby = {
   name: string;
   birthDate: string;
   birthWeightGrams: number;
-  feedingsPerDay: number;
   sex: "male" | "female";
   currentFormulaId: string | null;
   archivedAt: string | null;
@@ -63,7 +61,6 @@ export function deserializeFeeding(s: SerializedFeeding): PlanFeeding {
     endAt: s.endAt ? new Date(s.endAt) : null,
     volumeMl: s.volumeMl,
     isTopUp: s.isTopUp,
-    parentFeedingId: s.parentFeedingId,
   };
 }
 
@@ -71,7 +68,6 @@ export function deserializeBaby(s: SerializedBaby): PlanBaby {
   return {
     birthDate: new Date(s.birthDate),
     birthWeightGrams: s.birthWeightGrams,
-    feedingsPerDay: s.feedingsPerDay,
   };
 }
 

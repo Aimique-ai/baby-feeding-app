@@ -20,7 +20,6 @@ const TZ = "Europe/Kyiv";
 // 00:00 Kyiv on 2026-04-25
 const BIRTH_DATE = fromZonedTime("2026-04-25T00:00:00", TZ);
 const BIRTH_WEIGHT_GRAMS = 3400;
-const FEEDINGS_PER_DAY = 8;
 
 /**
  * Convert a Kyiv-local "YYYY-MM-DDTHH:mm" wall-clock into a UTC Date.
@@ -30,8 +29,8 @@ function k(localISO: string): Date {
 }
 
 type FeedSpec = {
-  ref?: string; // optional id-string for top-up parent linking
-  parent?: string; // ref of parent feeding (makes this a top-up)
+  ref?: string; // historical id-string; kept so HISTORY entries stay readable
+  parent?: string; // ref of parent feeding (presence makes this a top-up)
   startAt: string; // Kyiv local
   endAt?: string; // Kyiv local, optional
   volumeMl: number | null;
@@ -41,8 +40,8 @@ type FeedSpec = {
  * History 1–8 May (May = Kyiv UTC+3).
  *
  * Конвенция: «след. 03:00» из источника — это плановая отметка, не запись.
- * В БД сохраняем только фактические кормления и докормы. Каждый докорм
- * привязан к родительскому feeding через parentFeedingId.
+ * В БД сохраняем только фактические кормления и докормы. Докорм — отдельная
+ * запись с флагом isTopUp; привязки к родительскому кормлению нет.
  */
 const HISTORY: FeedSpec[] = [
   // ── 1 мая (7 день)
@@ -178,13 +177,7 @@ const HISTORY: FeedSpec[] = [
 ];
 
 async function seedHistory(babyId: Types.ObjectId) {
-  // Build with deterministic ObjectIds so we can wire up parent references.
-  const refToId = new Map<string, Types.ObjectId>();
-  const docs = HISTORY.map((f) => {
-    const _id = new Types.ObjectId();
-    if (f.ref) refToId.set(f.ref, _id);
-    return { ...f, _id };
-  });
+  const docs = HISTORY.map((f) => ({ ...f, _id: new Types.ObjectId() }));
 
   const created = docs.map((f) => ({
     _id: f._id,
@@ -193,7 +186,6 @@ async function seedHistory(babyId: Types.ObjectId) {
     endAt: f.endAt ? k(f.endAt) : null,
     volumeMl: f.volumeMl,
     isTopUp: !!f.parent,
-    parentFeedingId: f.parent ? (refToId.get(f.parent) ?? null) : null,
   }));
 
   // Skip-if-already-seeded: compare counts in the seeded window (1 May .. last
@@ -240,7 +232,6 @@ async function main() {
       name: BABY_NAME,
       birthDate: BIRTH_DATE,
       birthWeightGrams: BIRTH_WEIGHT_GRAMS,
-      feedingsPerDay: FEEDINGS_PER_DAY,
     });
     console.log(`seed: created baby "${BABY_NAME}"`);
   }

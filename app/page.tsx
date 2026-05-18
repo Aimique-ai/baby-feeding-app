@@ -57,7 +57,7 @@ export default async function TodayPage() {
         dateISO={dateISO}
         tz={tz}
         babyId={active.baby._id}
-        prevDayAnchor={prev?.startAt ?? null}
+        prevMainAnchor={prev?.startAt ?? null}
       />
     </HydrationBoundary>
   );

@@ -16,7 +16,6 @@ type FeedingDocLike = {
   endAt: Date | null;
   volumeMl: number | null;
   isTopUp: boolean;
-  parentFeedingId: { toString(): string } | null;
   medicationId: { toString(): string } | null;
   medicationDoseDrops: number | null;
 };
@@ -29,9 +28,6 @@ export function serializeFeeding(doc: FeedingDocLike): SerializedFeeding {
     endAt: doc.endAt ? doc.endAt.toISOString() : null,
     volumeMl: doc.volumeMl ?? null,
     isTopUp: !!doc.isTopUp,
-    parentFeedingId: doc.parentFeedingId
-      ? doc.parentFeedingId.toString()
-      : null,
     medicationId: doc.medicationId ? doc.medicationId.toString() : null,
     medicationDoseDrops: doc.medicationDoseDrops ?? null,
   };
@@ -73,6 +69,10 @@ export async function fetchFeedingsForDay(
   );
 }
 
+/**
+ * Last MAIN feeding (isTopUp != true) strictly before `iso`.
+ * Top-ups never become the anchor for the next day (Principle #6).
+ */
 export async function fetchLastFeedingBefore(
   iso: Date,
   babyId: string,
@@ -81,6 +81,7 @@ export async function fetchLastFeedingBefore(
   const doc = await FeedingModel.findOne({
     babyId: new Types.ObjectId(babyId),
     startAt: { $lt: iso },
+    isTopUp: { $ne: true },
   })
     .sort({ startAt: -1 })
     .lean();

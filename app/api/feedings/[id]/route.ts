@@ -25,14 +25,9 @@ export async function PATCH(
     const active = await resolveActiveBaby();
     if (!active) return notFound("feeding");
     const body = await req.json();
-    const parsedRaw = feedingPatchSchema.parse(body);
-    // PRD §4 (locked): strip isTopUp/parentFeedingId from PATCH so they cannot
-    // be flipped on existing records (historical data remains immutable on
-    // those axes).
-    const { isTopUp: _ignoredIsTopUp, parentFeedingId: _ignoredParent, ...parsed } =
-      parsedRaw;
-    void _ignoredIsTopUp;
-    void _ignoredParent;
+    // isTopUp редактируется свободно (feed-plan-rewrite §3) — флаг докорма
+    // больше не иммутабелен на существующих записях.
+    const parsed = feedingPatchSchema.parse(body);
     await dbConnect();
     const doc = await FeedingModel.findById(id).lean();
     if (
@@ -92,11 +87,6 @@ export async function DELETE(
     )
       return notFound("feeding");
     await FeedingModel.findByIdAndDelete(id);
-    // PRD §3.3: nullify parentFeedingId on children → orphaned but independent
-    await FeedingModel.updateMany(
-      { parentFeedingId: doc._id },
-      { $set: { parentFeedingId: null } },
-    );
     return NextResponse.json({ ok: true });
   } catch (err) {
     return serverError(err);

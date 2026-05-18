@@ -110,7 +110,6 @@ export async function GET(req: NextRequest) {
           endAt: doc.endAt,
           volumeMl: doc.volumeMl,
           isTopUp: doc.isTopUp,
-          parentFeedingId: null,
         });
       }
     }
@@ -134,7 +133,6 @@ export async function GET(req: NextRequest) {
         {
           birthDate: babyBirthDate,
           birthWeightGrams: active.baby.birthWeightGrams,
-          feedingsPerDay: active.baby.feedingsPerDay,
         },
         weightsPlan,
         tz,

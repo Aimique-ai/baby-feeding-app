@@ -6,9 +6,10 @@
     "birthWeightGrams": 3400,
     "feedingsPerDay": 8,
     "createdAt": "2026-05-09T07:25:23.358Z",
-    "updatedAt": "2026-05-14T15:01:36.163Z",
+    "updatedAt": "2026-05-16T17:44:23.759Z",
     "__v": 0,
-    "sex": "male"
+    "sex": "male",
+    "currentFormulaId": "6a08acd0439149f76c87fcd2"
   },
   {
     "_id": "6a04368641fec893ce68b3f2",
@@ -18,9 +19,10 @@
     "feedingsPerDay": 8,
     "archivedAt": null,
     "createdAt": "2026-05-13T08:29:58.034Z",
-    "updatedAt": "2026-05-14T15:01:36.163Z",
+    "updatedAt": "2026-05-16T17:44:23.759Z",
     "__v": 0,
-    "sex": "male"
+    "sex": "male",
+    "currentFormulaId": "6a08acd0439149f76c87fcd2"
   },
   {
     "_id": "6a04a326e32e02cf3452c5a4",
@@ -30,8 +32,9 @@
     "feedingsPerDay": 8,
     "archivedAt": null,
     "createdAt": "2026-05-13T16:13:26.410Z",
-    "updatedAt": "2026-05-14T15:01:36.163Z",
+    "updatedAt": "2026-05-16T17:44:23.759Z",
     "__v": 0,
-    "sex": "male"
+    "sex": "male",
+    "currentFormulaId": "6a08acd0439149f76c87fcd2"
   }
 ]

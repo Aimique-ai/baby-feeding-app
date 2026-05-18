@@ -12,7 +12,6 @@ export type Feeding = {
   endAt: Date | null;
   volumeMl: number | null;
   isTopUp: boolean;
-  parentFeedingId: string | null;
 };
 
 export type Weight = {
@@ -23,7 +22,6 @@ export type Weight = {
 export type Baby = {
   birthDate: Date;
   birthWeightGrams: number;
-  feedingsPerDay: number;
 };
 
 /**
@@ -60,8 +58,39 @@ export type FeedingTarget = {
 
 /**
  * Слот плана. Единая форма: момент времени + предписанный объём.
- * Объём всегда равен idealPortion = target / feedingsPerDay.
- * Время может быть сдвинуто на ±0..30 минут относительно (lastStart + 3h)
- * единственного next-slot shift (см. `shift.ts`).
+ * Раскладка строится `placeSlots` (см. `remainderPlan.ts`): K слотов в
+ * позициях anchor + step·i, где step = remainingHours/(K+1). Объёмы слотов
+ * дают точную сумму = remainingMl при гарантии неотрицательности.
  */
 export type Slot = { time: Date; volumeMl: number };
+
+/**
+ * Причина выбранного K — диагностика, отражает только состояние (a)∩(b).
+ *   "intersect"     — найден валидный K внутри жёсткого пересечения (a)∩(b)
+ *   "clamped-high"  — недобор: (a) целиком выше (b), K клампится к верхней границе (b)
+ *   "clamped-low"   — переедание: (a) целиком ниже (b), K клампится к нижней границе (b)
+ *   "best-effort"   — окно (a) вырождено внутри (b): идеального K нет, выбран K из
+ *                     (b) с порцией минимально далёкой от нормы (a) — компромисс
+ */
+export type FeedCountReason =
+  | "intersect"
+  | "clamped-high"
+  | "clamped-low"
+  | "best-effort";
+
+export type FeedCountSolution = {
+  k: number; // выбранное число оставшихся слотов, целое >= 0
+  reason: FeedCountReason;
+};
+
+/**
+ * План остатка дня — результат `planRemainder`.
+ * Источник истины по объёмам — массив `slots`; `slotVolumeMl` справочный.
+ */
+export type RemainderPlan = {
+  k: number;
+  reason: FeedCountReason;
+  slotVolumeMl: number; // round5(remainingMl/K) — номинал; 0 если K=0
+  stepHours: number; // stepHoursFor(K, remainingHours); 0 если K=0
+  slots: Slot[]; // фактическая раскладка с точной суммой объёмов
+};

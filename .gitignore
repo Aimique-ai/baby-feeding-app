@@ -42,3 +42,6 @@ next-env.d.ts
 
 # DB dumps (contains real data)
 docs/db-dump/
+
+# Claude Code scheduler lock (machine-local)
+.claude/scheduled_tasks.lock

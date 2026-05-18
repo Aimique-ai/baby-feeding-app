@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { FormError, Muted } from "@/components/ui/typography";
+import { FormError } from "@/components/ui/typography";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,7 +28,6 @@ export type BabyFormPayload = {
   name: string;
   birthDate: Date;
   birthWeightGrams: number;
-  feedingsPerDay: number;
   sex: "male" | "female";
   currentFormulaId: string | null;
 };
@@ -66,9 +65,6 @@ export function BabyForm({ onSubmit, isPending, submitError, tz, baby }: Props) 
   const [birthWeightGrams, setBirthWeightGrams] = useState<number>(
     baby?.birthWeightGrams ?? 3400,
   );
-  const [feedingsPerDay, setFeedingsPerDay] = useState<number>(
-    baby?.feedingsPerDay ?? 8,
-  );
   const [sex, setSex] = useState<"male" | "female">(baby?.sex ?? "male");
   const [formulaId, setFormulaId] = useState<string | null>(
     baby?.currentFormulaId ?? null,
@@ -89,11 +85,7 @@ export function BabyForm({ onSubmit, isPending, submitError, tz, baby }: Props) 
       : pickDefaultFormulaId(formulas);
 
   const invalid =
-    name.trim().length < 1 ||
-    !birthDate ||
-    birthWeightGrams <= 0 ||
-    feedingsPerDay < 1 ||
-    feedingsPerDay > 24;
+    name.trim().length < 1 || !birthDate || birthWeightGrams <= 0;
 
   const formulaChanged =
     isEdit && effectiveFormulaId !== (baby?.currentFormulaId ?? null);
@@ -103,7 +95,6 @@ export function BabyForm({ onSubmit, isPending, submitError, tz, baby }: Props) 
       name: name.trim(),
       birthDate: fromZonedTime(birthDate, effectiveTz),
       birthWeightGrams,
-      feedingsPerDay,
       sex,
       currentFormulaId: effectiveFormulaId,
     });
@@ -188,22 +179,6 @@ export function BabyForm({ onSubmit, isPending, submitError, tz, baby }: Props) 
             </option>
           ))}
         </select>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="baby-feedings">Желаемое число кормлений</Label>
-        <Input
-          id="baby-feedings"
-          type="number"
-          min={1}
-          max={24}
-          inputMode="numeric"
-          value={feedingsPerDay}
-          onChange={(e) => setFeedingsPerDay(Number(e.target.value))}
-        />
-        <Muted>
-          Используется, если попадает в рекомендованный для возраста диапазон;
-          иначе приложение возьмёт возрастную рекомендацию.
-        </Muted>
       </div>
       {submitError && <FormError>{submitError}</FormError>}
       <Button

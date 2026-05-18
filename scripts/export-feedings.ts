@@ -31,7 +31,6 @@ type FeedingDoc = {
   endAt: Date | null;
   volumeMl: number | null;
   isTopUp: boolean;
-  parentFeedingId: Types.ObjectId | null;
 };
 
 function fmtTime(d: Date): string {
@@ -73,22 +72,11 @@ async function main() {
     byDay.set(k, arr);
   }
 
-  // Build parent → top-ups index
-  const topUpsByParent = new Map<string, FeedingDoc[]>();
-  for (const f of all) {
-    if (f.isTopUp && f.parentFeedingId) {
-      const k = f.parentFeedingId.toString();
-      const arr = topUpsByParent.get(k) ?? [];
-      arr.push(f);
-      topUpsByParent.set(k, arr);
-    }
-  }
-
   const out: string[] = [];
   const days = Array.from(byDay.keys()).sort();
 
   for (const dKey of days) {
-    const feedings = (byDay.get(dKey) ?? []).filter((f) => !f.isTopUp);
+    const feedings = byDay.get(dKey) ?? [];
     feedings.sort((a, b) => a.startAt.getTime() - b.startAt.getTime());
 
     // Day number from birth (day 1 = birthDate)
@@ -119,18 +107,12 @@ async function main() {
       const end = f.endAt ? fmtTime(f.endAt) : null;
       const dur = f.endAt ? durationMin(f.startAt, f.endAt) : null;
       const timeStr = end ? `**${start}–${end}** (${dur} мин)` : `${start}`;
-      let line = `${i + 1}. ${timeStr} — **${f.volumeMl ?? "?"} мл**`;
+      const marker = f.isTopUp ? " · докорм" : "";
+      const line = `${i + 1}. ${timeStr} — **${f.volumeMl ?? "?"} мл**${marker}`;
       if (f.volumeMl != null) totalMl += f.volumeMl;
       if (dur != null) {
         durSum += dur;
         durCount += 1;
-      }
-
-      const topUps = topUpsByParent.get(f._id.toString()) ?? [];
-      topUps.sort((a, b) => a.startAt.getTime() - b.startAt.getTime());
-      for (const t of topUps) {
-        line += ` + **${t.volumeMl ?? "?"} мл** (${fmtTime(t.startAt)})`;
-        if (t.volumeMl != null) totalMl += t.volumeMl;
       }
       out.push(line);
     });

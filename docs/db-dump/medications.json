@@ -38,5 +38,25 @@
     "updatedAt": "2026-05-13T08:28:17.524Z",
     "__v": 0,
     "babyId": "69fee163dbb812b2c87059e0"
+  },
+  {
+    "_id": "6a0974f5fa954e8d80b70a65",
+    "babyId": "69fee163dbb812b2c87059e0",
+    "name": "D3",
+    "defaultDoseDrops": 1,
+    "deletedAt": null,
+    "createdAt": "2026-05-17T07:57:41.726Z",
+    "updatedAt": "2026-05-17T07:57:41.726Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a09a67be7768d133215a442",
+    "babyId": "69fee163dbb812b2c87059e0",
+    "name": "Kebene (Simethicon)",
+    "defaultDoseDrops": 20,
+    "deletedAt": null,
+    "createdAt": "2026-05-17T11:28:59.781Z",
+    "updatedAt": "2026-05-17T11:29:13.152Z",
+    "__v": 0
   }
 ]

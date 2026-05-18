@@ -62,12 +62,10 @@ export async function POST(req: NextRequest) {
     const parsed = feedingSchema.parse(body);
     await dbConnect();
 
-    // PRD §4 (locked, single-shift algo): never author isTopUp/parentFeedingId
-    // on writes — historical rows may have them but new records are always main.
+    // isTopUp приходит из валидированного body — докорм создаётся как
+    // самостоятельная запись (feed-plan-rewrite §3, Principle #6).
     const data = {
       ...parsed,
-      isTopUp: false,
-      parentFeedingId: null,
       babyId: new Types.ObjectId(active.baby._id),
     };
 

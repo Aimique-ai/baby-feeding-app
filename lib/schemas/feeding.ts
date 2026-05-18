@@ -12,7 +12,6 @@ const baseFeedingShape = {
   endAt: z.coerce.date().nullable().optional(),
   volumeMl: z.number().min(0).max(200),
   isTopUp: z.boolean().default(false),
-  parentFeedingId: objectIdString.nullable().optional(),
   medicationId: objectIdString.nullable().optional(),
   medicationDoseDrops: z.number().int().min(1).max(100).nullable().optional(),
 } as const;

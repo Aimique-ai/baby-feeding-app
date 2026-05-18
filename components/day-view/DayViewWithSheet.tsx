@@ -12,7 +12,7 @@ type Props = {
   dateISO: string;
   tz: string;
   babyId: string;
-  prevDayAnchor: string | null;
+  prevMainAnchor: string | null;
 };
 
 export function DayViewWithSheet(props: Props) {

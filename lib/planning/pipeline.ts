@@ -1,29 +1,26 @@
 import { startOfLocalDay } from "./dayBoundary";
-import type { Feeding, Slot } from "./types";
-import { buildTail } from "./tail";
-import { computeShiftMinutes } from "./shift";
+import { planRemainder } from "./remainderPlan";
+import type { Feeding, RemainderPlan } from "./types";
 
 export type PipelineResult = {
   consumed: number;
-  lastStart: Date;
-  tail: Slot[];
+  mainsToday: number;
+  anchor: Date; // время последнего основного кормления / fallback
+  plan: RemainderPlan;
 };
 
 /**
- * PRD §4.3 (locked) — single next-slot shift algorithm.
+ * feed-plan-rewrite §3.5 — единый проход по фактам + один вызов planRemainder.
  *
- * One pass over sorted facts:
- *  - Historical top-up rows (isTopUp:true) are summed into `consumed` but do
- *    NOT advance `lastStart`, do NOT increment `mainsToday`, and do NOT
- *    contribute to the shift computation.
- *  - Each main feeding advances `lastStart` and, if its `startAt >= dayStart`,
- *    increments `mainsToday`. We capture `lastShiftMin` from the last main
- *    using `computeShiftMinutes` with `prevStartAt = previous main's startAt`.
+ * Один проход по отсортированным фактам:
+ *  - consumed += volumeMl ?? 0 для ВСЕХ записей (включая isTopUp);
+ *  - isTopUp → НЕ инкрементит mainsToday, НЕ двигает anchor;
+ *  - основное кормление → mainsToday += 1 если startAt >= dayStart;
+ *    anchor = startAt;
+ *  - если основных сегодня нет → anchor = prevMainAnchor ?? startOfDay.
  *
- * After the loop:
- *  - If `mainsToday === 0`, set `lastShiftMin = 0` (no fact volume to compute
- *    deviation from — `prevDayAnchor` has no volume).
- *  - Tail is built from `lastStart + 3h + lastShiftMin`.
+ * `prevMainAnchor` — последнее ОСНОВНОЕ кормление до startOfDay (докорм
+ * прошлого дня не может стать якорем — Principle #6).
  */
 export function runPipeline(args: {
   facts: Feeding[];
@@ -31,84 +28,45 @@ export function runPipeline(args: {
   startOfDay: Date;
   dateISO: string;
   tz: string;
-  feedingsPerDay: number;
-  /**
-   * startAt последнего кормления любого типа до 00:00 локального D.
-   */
-  prevDayAnchor?: Date | null;
+  range: [number, number];
+  prevMainAnchor?: Date | null;
 }): PipelineResult {
-  const {
-    facts,
-    target,
-    startOfDay,
-    dateISO,
-    tz,
-    feedingsPerDay,
-    prevDayAnchor,
-  } = args;
+  const { facts, target, startOfDay, dateISO, tz, range, prevMainAnchor } =
+    args;
 
   const sorted = [...facts].sort(
     (a, b) => a.startAt.getTime() - b.startAt.getTime(),
   );
 
   const dayStart = startOfLocalDay(dateISO, tz);
-  const idealPortion = target / feedingsPerDay;
 
   let consumed = 0;
-  let lastStart: Date = prevDayAnchor ?? startOfDay;
   let mainsToday = 0;
-  let lastShiftMin = 0;
-  // Tracks the prev main's startAt, used as `prevStartAt` for the next main's
-  // shift computation. Initially seeded from prevDayAnchor when present.
-  let prevMainStart: Date | null = prevDayAnchor ?? null;
+  let lastMainStart: Date | null = null;
 
   for (const f of sorted) {
-    const v = f.volumeMl ?? 0;
+    consumed += f.volumeMl ?? 0;
+    if (f.isTopUp) continue;
 
-    if (f.isTopUp) {
-      // Historical top-up record. Sum, but do not advance lastStart or counters.
-      consumed += v;
-      continue;
-    }
-
-    // Main feeding.
-    consumed += v;
-
-    // Compute shift using the *previous* main's startAt as prev.
-    if (prevMainStart == null) {
-      // No prior main exists at all (no anchor, no earlier facts today):
-      // shift formula has no meaningful `prev`. Leave shift as 0.
-      lastShiftMin = 0;
-    } else {
-      lastShiftMin = computeShiftMinutes({
-        factVolumeMl: v,
-        idealPortion,
-        factStartAt: f.startAt,
-        prevStartAt: prevMainStart,
-      });
-    }
-
-    prevMainStart = f.startAt;
-    lastStart = f.startAt;
+    // Основное кормление.
+    lastMainStart = f.startAt;
     if (f.startAt.getTime() >= dayStart.getTime()) {
       mainsToday += 1;
     }
   }
 
-  // No main facts processed today → no fact volume to base shift on.
-  if (mainsToday === 0) {
-    lastShiftMin = 0;
-  }
+  const anchor =
+    lastMainStart ?? prevMainAnchor ?? startOfDay;
 
-  const tail = buildTail({
-    lastStart,
-    lastShiftMin,
+  const plan = planRemainder({
+    target,
+    consumed,
+    mainsToday,
+    anchor,
     dateISO,
     tz,
-    target,
-    feedingsPerDay,
-    alreadyToday: mainsToday,
+    range,
   });
 
-  return { consumed, lastStart, tail };
+  return { consumed, mainsToday, anchor, plan };
 }

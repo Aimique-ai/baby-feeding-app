@@ -36,7 +36,6 @@ import {
   localDateISO,
   startOfLocalDay,
 } from "@/lib/planning/dayBoundary";
-import type { Slot } from "@/lib/planning/types";
 import { WeighInBanner } from "./WeighInBanner";
 import { getBrowserTz, tzHeaders } from "@/lib/time/browserTz";
 
@@ -48,10 +47,10 @@ type Props = {
   tz: string;
   babyId: string;
   /**
-   * Last feeding *before* startOfLocalDay(dateISO, tz), used as anchor for
-   * both the start plan and the pipeline's first tailBefore.
+   * Last MAIN feeding *before* startOfLocalDay(dateISO, tz), used as the
+   * pipeline anchor when there are no main feedings today.
    */
-  prevDayAnchor?: string | null;
+  prevMainAnchor?: string | null;
   onAddFeeding?: (preset?: {
     time?: Date;
     volumeMl?: number;
@@ -91,7 +90,6 @@ type TimelineItem =
       time: Date;
       volumeMl: number | null;
       isTopUp: boolean;
-      orphan: boolean;
       medicationId: string | null;
       medicationDoseDrops: number | null;
     }
@@ -184,7 +182,7 @@ export function DayView({
   dateISO,
   tz,
   babyId,
-  prevDayAnchor,
+  prevMainAnchor,
   onAddFeeding,
   onEditFeeding,
 }: Props) {
@@ -242,7 +240,7 @@ export function DayView({
     );
     const target = guidance.dailyMl;
     const dayStart = startOfLocalDay(dateISO, effectiveTz);
-    const anchor = prevDayAnchor ? new Date(prevDayAnchor) : null;
+    const anchor = prevMainAnchor ? new Date(prevMainAnchor) : null;
 
     const result = runPipeline({
       facts,
@@ -250,11 +248,10 @@ export function DayView({
       startOfDay: dayStart,
       dateISO,
       tz: effectiveTz,
-      prevDayAnchor: anchor,
-      feedingsPerDay: guidance.feedCount,
+      prevMainAnchor: anchor,
+      range: guidance.feedCountRange,
     });
 
-    const factIds = new Set(facts.map((f) => f._id));
     const factsView: TimelineItem[] = facts.map((f) => {
       const raw = rawFeedingsById.get(f._id);
       return {
@@ -263,15 +260,11 @@ export function DayView({
         time: f.startAt,
         volumeMl: f.volumeMl,
         isTopUp: f.isTopUp,
-        orphan:
-          f.isTopUp &&
-          f.parentFeedingId != null &&
-          !factIds.has(f.parentFeedingId),
         medicationId: raw?.medicationId ?? null,
         medicationDoseDrops: raw?.medicationDoseDrops ?? null,
       };
     });
-    const planView: TimelineItem[] = result.tail.map((s, i) => ({
+    const planView: TimelineItem[] = result.plan.slots.map((s, i) => ({
       kind: "plan",
       id: `plan-${i}`,
       time: s.time,
@@ -305,14 +298,12 @@ export function DayView({
       guidance,
       target,
       consumed: result.consumed,
-      tail: result.tail as Slot[],
       timeline,
       dol,
       currentWeightGrams: currentWeight,
       daysSinceLastWeight,
       medMap,
       formulaName: serializedFormula?.name ?? null,
-      feedingsPerDay: baby.feedingsPerDay,
     };
   }, [
     feedingsQ.data,
@@ -321,7 +312,7 @@ export function DayView({
     medicationsQ.data,
     dateISO,
     effectiveTz,
-    prevDayAnchor,
+    prevMainAnchor,
   ]);
 
   if (!derived) {
@@ -338,7 +329,6 @@ export function DayView({
     daysSinceLastWeight,
     medMap,
     formulaName,
-    feedingsPerDay,
   } = derived;
 
   const progressPct = Math.min(
@@ -403,13 +393,6 @@ export function DayView({
           Ребёнок берёт сколько нужно — кормление можно завершать по сигналам
           насыщения.
         </Muted>
-        {guidance.feedCount !== feedingsPerDay && (
-          <p className="text-xs text-muted-foreground">
-            Для этого возраста рекомендуем {guidance.feedCountRange[0]}–
-            {guidance.feedCountRange[1]} кормлений (у вас задано {feedingsPerDay}
-            ). План построен на {guidance.feedCount}.
-          </p>
-        )}
         {guidance.flags.some((f) => f.code === "ml_per_kg_high") && (
           <p className="text-xs text-amber-600">
             Суточный объём выше практического коридора.
@@ -490,9 +473,7 @@ export function DayView({
                       ? fmtMl(it.volumeMl)
                       : "по режиму"
                     : fmtMl(it.volumeMl)}
-                  {it.kind === "fact" && it.isTopUp && !it.orphan
-                    ? " · докорм"
-                    : ""}
+                  {it.kind === "fact" && it.isTopUp ? " · докорм" : ""}
                 </span>
                 {it.kind === "fact" && it.medicationId && (
                   <span className="text-xs text-muted-foreground">

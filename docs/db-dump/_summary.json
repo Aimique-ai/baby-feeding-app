@@ -1,21 +1,26 @@
 {
-  "dumpedAt": "2026-05-16T06:14:10.096Z",
+  "dumpedAt": "2026-05-18T10:05:17.842Z",
   "database": "test",
   "collections": [
     {
       "name": "weights",
-      "count": 6,
+      "count": 7,
       "file": "/Users/macbookpro/Documents/Work/personal/leon-app/docs/db-dump/weights.json"
     },
     {
       "name": "feedings",
-      "count": 136,
+      "count": 154,
       "file": "/Users/macbookpro/Documents/Work/personal/leon-app/docs/db-dump/feedings.json"
     },
     {
       "name": "medications",
-      "count": 4,
+      "count": 6,
       "file": "/Users/macbookpro/Documents/Work/personal/leon-app/docs/db-dump/medications.json"
+    },
+    {
+      "name": "formulas",
+      "count": 1,
+      "file": "/Users/macbookpro/Documents/Work/personal/leon-app/docs/db-dump/formulas.json"
     },
     {
       "name": "babies",

@@ -63,7 +63,7 @@ export default async function HistoryDayPage({
         dateISO={dateISO}
         tz={tz}
         babyId={active.baby._id}
-        prevDayAnchor={prev?.startAt ?? null}
+        prevMainAnchor={prev?.startAt ?? null}
       />
     </HydrationBoundary>
   );

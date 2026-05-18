@@ -12,11 +12,6 @@ const FeedingSchema = new Schema(
     endAt: { type: Date, default: null },
     volumeMl: { type: Number, default: null },
     isTopUp: { type: Boolean, required: true, default: false },
-    parentFeedingId: {
-      type: Schema.Types.ObjectId,
-      ref: "Feeding",
-      default: null,
-    },
     medicationId: {
       type: Schema.Types.ObjectId,
       ref: "Medication",
@@ -28,7 +23,6 @@ const FeedingSchema = new Schema(
 );
 
 FeedingSchema.index({ babyId: 1, startAt: 1 });
-FeedingSchema.index({ parentFeedingId: 1 });
 
 export type Feeding = InferSchemaType<typeof FeedingSchema> & {
   _id: Types.ObjectId;

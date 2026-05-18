@@ -15,6 +15,11 @@ export function round5(v: number): number {
   return Math.round(v / 5) * 5;
 }
 
+/** Округление вниз к кратному 5 (для распределения объёмов слотов). */
+export function floor5(v: number): number {
+  return Math.floor(v / 5) * 5;
+}
+
 /** Округление к ближайшему кратному 10 (для dailyMl). */
 export function round10(v: number): number {
   return Math.round(v / 10) * 10;
