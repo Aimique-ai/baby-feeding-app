@@ -1,115 +1,119 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { useQuery } from "@tanstack/react-query";
+import { formatInTimeZone } from "date-fns-tz";
 import { Button } from "@/components/ui/button";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  weightsAnalyticsKey,
-  weightsKey,
-} from "@/components/day-view/feedingsKey";
-import { localDateISO } from "@/lib/planning/dayBoundary";
-import { getBrowserTz, tzHeaders } from "@/lib/time/browserTz";
-import { WeightAnalytics } from "./WeightAnalytics";
+import { Muted } from "@/components/ui/typography";
+import { weightsKey } from "@/components/day-view/feedingsKey";
+import type { SerializedWeight } from "@/lib/api/serializedTypes";
+import { dayOfLife } from "@/lib/planning/dayBoundary";
+import { getBrowserTz } from "@/lib/time/browserTz";
+import { WeightSheet, type WeightSheetMode } from "./WeightSheet";
+
+async function fetchWeights(): Promise<SerializedWeight[]> {
+  const r = await fetch("/api/weights", { cache: "no-store" });
+  if (!r.ok) throw new Error("weights fetch failed");
+  return r.json();
+}
 
 export function WeightList({
   tz,
   babyId,
+  birthDate,
 }: {
   tz: string;
   babyId: string;
+  birthDate: string;
 }) {
-  const qc = useQueryClient();
-  const isMobile = useIsMobile();
   const effectiveTz = getBrowserTz(tz);
-  const [open, setOpen] = useState(false);
-  const [dateISO, setDateISO] = useState(() =>
-    localDateISO(new Date(), effectiveTz),
-  );
-  const [grams, setGrams] = useState<number>(3400);
-
-  const create = useMutation({
-    mutationFn: async () => {
-      const r = await fetch("/api/weights", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...tzHeaders(effectiveTz) },
-        body: JSON.stringify({
-          dateISO,
-          weightGrams: grams,
-        }),
-      });
-      if (!r.ok) throw new Error(await r.text());
-      return r.json();
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: weightsKey(babyId) });
-      qc.invalidateQueries({ queryKey: weightsAnalyticsKey(babyId, effectiveTz) });
-      toast.success("Вес добавлен");
-      setOpen(false);
-    },
-    onError: () => toast.error("Не удалось сохранить"),
+  const q = useQuery({
+    queryKey: weightsKey(babyId),
+    queryFn: fetchWeights,
   });
+  const [sheetMode, setSheetMode] = useState<WeightSheetMode | null>(null);
+
+  // /api/weights отдаёт список, отсортированный по дате убыванию.
+  const weights = q.data ?? [];
+  const birth = new Date(birthDate);
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-4 space-y-4">
+    <div className="space-y-4">
       <header className="flex items-center justify-end">
-        <Button onClick={() => setOpen(true)}>Добавить</Button>
+        <Button onClick={() => setSheetMode({ kind: "create" })}>
+          Добавить
+        </Button>
       </header>
 
-      <WeightAnalytics babyId={babyId} tz={effectiveTz} />
+      {q.isLoading ? (
+        <Muted className="text-center">Загрузка…</Muted>
+      ) : weights.length === 0 ? (
+        <Muted className="text-center">Добавь первое взвешивание</Muted>
+      ) : (
+        <ul className="space-y-2">
+          {weights.map((w, i) => {
+            const dateLabel = formatInTimeZone(
+              new Date(w.date),
+              effectiveTz,
+              "dd.MM.yyyy",
+            );
+            const dol = dayOfLife(birth, new Date(w.date), effectiveTz);
+            // Следующий элемент — хронологически предыдущее взвешивание.
+            const delta =
+              i + 1 < weights.length
+                ? w.weightGrams - weights[i + 1].weightGrams
+                : null;
+            const deltaClass =
+              delta == null || delta === 0
+                ? "text-muted-foreground"
+                : delta > 0
+                  ? "text-emerald-600"
+                  : "text-destructive";
+            return (
+              <li key={w._id}>
+                <button
+                  type="button"
+                  onClick={() => setSheetMode({ kind: "edit", weight: w })}
+                  aria-label={`Взвешивание ${dateLabel}, ${w.weightGrams} г`}
+                  className="block w-full rounded-md border px-3 py-2 text-left hover:bg-accent"
+                >
+                  <div className="flex items-baseline justify-between">
+                    <span className="font-medium">{dateLabel}</span>
+                    <span className="text-xs text-muted-foreground">
+                      день {dol}
+                    </span>
+                  </div>
+                  <div className="mt-1 flex items-baseline justify-between text-sm tabular-nums">
+                    <span>{w.weightGrams} г</span>
+                    <span className={deltaClass}>
+                      {delta == null
+                        ? "—"
+                        : delta > 0
+                          ? `+${delta} г`
+                          : delta < 0
+                            ? `−${Math.abs(delta)} г`
+                            : "0"}
+                    </span>
+                  </div>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
 
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side={isMobile ? "bottom" : "right"}>
-          <SheetHeader>
-            <SheetTitle>Новое взвешивание</SheetTitle>
-          </SheetHeader>
-          <div className="space-y-4 px-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="wdate">Дата</Label>
-              <Input
-                id="wdate"
-                type="date"
-                value={dateISO}
-                onChange={(e) => setDateISO(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="wgrams">Граммы</Label>
-              <Input
-                id="wgrams"
-                type="number"
-                min={1}
-                max={50000}
-                inputMode="numeric"
-                value={grams}
-                onChange={(e) => setGrams(Number(e.target.value))}
-              />
-            </div>
-          </div>
-          <SheetFooter className="gap-2">
-            <SheetClose asChild>
-              <Button variant="ghost">Отмена</Button>
-            </SheetClose>
-            <Button
-              onClick={() => create.mutate()}
-              disabled={create.isPending || grams <= 0}
-            >
-              Сохранить
-            </Button>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
+      {sheetMode && (
+        <WeightSheet
+          key={sheetMode.kind === "edit" ? sheetMode.weight._id : "create"}
+          open
+          onOpenChange={(v) => {
+            if (!v) setSheetMode(null);
+          }}
+          mode={sheetMode}
+          tz={effectiveTz}
+          babyId={babyId}
+        />
+      )}
     </div>
   );
 }

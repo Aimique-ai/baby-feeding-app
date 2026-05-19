@@ -1,6 +1,13 @@
 import { z } from "zod";
+import {
+  FEEDING_DURATION_MAX_MIN,
+  FEEDING_VOLUME_MAX,
+  FEEDING_VOLUME_MIN,
+  MED_DOSE_MAX,
+  MED_DOSE_MIN,
+} from "@/lib/schemas/constants";
 
-const MAX_FEEDING_DURATION_MS = 180 * 60 * 1000;
+const MAX_FEEDING_DURATION_MS = FEEDING_DURATION_MAX_MIN * 60 * 1000;
 
 const objectIdString = z
   .string()
@@ -10,10 +17,16 @@ const baseFeedingShape = {
   babyId: objectIdString.optional(),
   startAt: z.coerce.date(),
   endAt: z.coerce.date().nullable().optional(),
-  volumeMl: z.number().min(0).max(200),
+  volumeMl: z.number().min(FEEDING_VOLUME_MIN).max(FEEDING_VOLUME_MAX),
   isTopUp: z.boolean().default(false),
   medicationId: objectIdString.nullable().optional(),
-  medicationDoseDrops: z.number().int().min(1).max(100).nullable().optional(),
+  medicationDoseDrops: z
+    .number()
+    .int()
+    .min(MED_DOSE_MIN)
+    .max(MED_DOSE_MAX)
+    .nullable()
+    .optional(),
 } as const;
 
 const startAtNotFuture = (v: { startAt?: Date }) =>

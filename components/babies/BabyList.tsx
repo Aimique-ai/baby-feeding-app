@@ -21,7 +21,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useFeedingTimerOptional } from "@/components/feeding-sheet/FeedingTimerProvider";
-import { BabyForm, type BabyFormPayload } from "./BabyForm";
+import { BabyForm } from "./BabyForm";
+import type { BabyFormPayload } from "@/lib/schemas/forms/babyForm";
 import {
   babiesKey,
   archivedBabiesKey,
@@ -47,6 +48,7 @@ export function BabyList({ babies: initialData, activeBabyId, tz }: Props) {
   const qc = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [createSeq, setCreateSeq] = useState(0);
   const timer = useFeedingTimerOptional();
   const timerRunning = timer?.isRunning ?? false;
 
@@ -142,7 +144,7 @@ export function BabyList({ babies: initialData, activeBabyId, tz }: Props) {
           >
             Архив →
           </Link>
-          <Button onClick={() => { setCreateError(null); setCreateOpen(true); }}>
+          <Button onClick={() => { setCreateError(null); setCreateOpen(true); setCreateSeq((s) => s + 1); }}>
             + Создать
           </Button>
         </div>
@@ -151,7 +153,7 @@ export function BabyList({ babies: initialData, activeBabyId, tz }: Props) {
       {list.length === 0 ? (
         <div className="flex flex-col items-center gap-4 py-12">
           <Muted>Нет детей.</Muted>
-          <Button size="lg" onClick={() => { setCreateError(null); setCreateOpen(true); }}>
+          <Button size="lg" onClick={() => { setCreateError(null); setCreateOpen(true); setCreateSeq((s) => s + 1); }}>
             Создать ребёнка
           </Button>
         </div>
@@ -240,6 +242,7 @@ export function BabyList({ babies: initialData, activeBabyId, tz }: Props) {
             <DialogTitle>Новый ребёнок</DialogTitle>
           </DialogHeader>
           <BabyForm
+            key={createSeq}
             onSubmit={(data) => createMutation.mutate(data)}
             isPending={createMutation.isPending}
             submitError={createError}
