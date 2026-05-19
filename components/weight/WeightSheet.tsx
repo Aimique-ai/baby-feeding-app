@@ -60,7 +60,7 @@ type Props = {
   babyId: string;
 };
 
-type WeightApiBody = { dateISO: string; weightGrams: number };
+type WeightApiBody = ReturnType<typeof toWeightApiBody>;
 
 // Ошибка с пометкой 409 — взвешивание на эту дату уже существует.
 class DuplicateDateError extends Error {}

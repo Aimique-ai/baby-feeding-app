@@ -43,7 +43,7 @@ type Props = {
   babyId: string;
 };
 
-type MedicationApiBody = { name: string; defaultDoseDrops: number };
+type MedicationApiBody = ReturnType<typeof toMedicationApiBody>;
 
 export function MedicationSheet({ state, onOpenChange, babyId }: Props) {
   const qc = useQueryClient();
