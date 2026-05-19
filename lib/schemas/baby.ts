@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { Types } from "mongoose";
+import { BIRTH_WEIGHT_MAX, BIRTH_WEIGHT_MIN } from "@/lib/schemas/constants";
 
 /** ObjectId существующей смеси или null. Существование проверяется в route handler. */
 const currentFormulaId = z
@@ -14,7 +15,11 @@ const currentFormulaId = z
 export const babySchema = z.object({
   name: z.string().min(1),
   birthDate: z.coerce.date(),
-  birthWeightGrams: z.number().int().positive(),
+  birthWeightGrams: z
+    .number()
+    .int()
+    .min(BIRTH_WEIGHT_MIN)
+    .max(BIRTH_WEIGHT_MAX),
   sex: z.enum(["male", "female"]),
   currentFormulaId,
 });
