@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   useMutation,
@@ -27,11 +29,17 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { FormError } from "@/components/ui/typography";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { NumberStepper } from "@/components/ui/number-stepper";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { feedingsKey, medicationsKey } from "@/components/day-view/feedingsKey";
 import type {
   SerializedFeeding,
@@ -39,6 +47,13 @@ import type {
 } from "@/lib/api/serializedTypes";
 import { getBrowserTz, tzHeaders } from "@/lib/time/browserTz";
 import { fromZonedTime, toZonedTime, format as fmtTz } from "date-fns-tz";
+import {
+  feedingFormSchema,
+  toFeedingApiBody,
+  type FeedingApiBody,
+  type FeedingFormOut,
+  type FeedingFormValues,
+} from "@/lib/schemas/forms/feedingForm";
 
 type Mode =
   | {
@@ -101,23 +116,24 @@ export function FeedingSheet({
   babyId,
 }: Props) {
   const effectiveTz = getBrowserTz(tz);
-  const initial = (() => {
+  const initial: FeedingFormValues = (() => {
     if (mode.kind === "edit") {
       const f = mode.feeding;
       return {
         startAt: new Date(f.startAt),
-        durationMin:
-          f.endAt
-            ? Math.round(
-                (new Date(f.endAt).getTime() -
-                  new Date(f.startAt).getTime()) /
-                  60000,
-              )
-            : 15,
+        // Если у кормления нет endAt — длительность пустая ("") , чтобы
+        // редактирование без правки длительности не дописывало endAt.
+        durationMin: f.endAt
+          ? Math.round(
+              (new Date(f.endAt).getTime() -
+                new Date(f.startAt).getTime()) /
+                60000,
+            )
+          : "",
         volumeMl: f.volumeMl ?? 0,
         isTopUp: f.isTopUp,
         medicationId: f.medicationId,
-        medicationDoseDrops: f.medicationDoseDrops,
+        medDoseDrops: f.medicationDoseDrops,
       };
     }
     const presetStartAt = mode.preset?.startAt;
@@ -126,28 +142,22 @@ export function FeedingSheet({
       durationMin: mode.preset?.durationMin ?? 15,
       volumeMl: mode.preset?.volumeMl ?? 0,
       isTopUp: false,
-      medicationId: null as string | null,
-      medicationDoseDrops: null as number | null,
+      medicationId: null,
+      medDoseDrops: null,
     };
   })();
 
-  const [startAt, setStartAt] = useState<Date>(initial.startAt);
-  const [durationMin, setDurationMin] = useState<number>(initial.durationMin);
-  const [volumeMl, setVolumeMl] = useState<number>(initial.volumeMl);
-  const [isTopUp, setIsTopUp] = useState<boolean>(initial.isTopUp);
-  const [medicationId, setMedicationId] = useState<string | null>(
-    initial.medicationId,
-  );
-  const [medDoseDrops, setMedDoseDrops] = useState<number | null>(
-    initial.medicationDoseDrops,
-  );
+  const form = useForm<FeedingFormValues, unknown, FeedingFormOut>({
+    resolver: zodResolver(feedingFormSchema),
+    defaultValues: initial,
+  });
+
   const [confirmDelete, setConfirmDelete] = useState(false);
   const isMobile = useIsMobile();
-  // Field-level errors are computed at submit time (not during render) to keep
-  // this component pure for React 19's strict rules.
-  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const qc = useQueryClient();
+
+  const medicationId = form.watch("medicationId");
 
   const medsQ = useQuery({
     queryKey: medicationsKey(babyId),
@@ -169,19 +179,10 @@ export function FeedingSheet({
   const archivedMed =
     needArchivedFetch && archivedQ.data ? archivedQ.data : null;
 
-  type FeedingBody = {
-    startAt: Date;
-    endAt: Date | null;
-    volumeMl: number;
-    isTopUp: boolean;
-    medicationId: string | null;
-    medicationDoseDrops: number | null;
-  };
-
   const createMutation = useMutation<
     SerializedFeeding,
     Error,
-    FeedingBody,
+    FeedingApiBody,
     { prev: SerializedFeeding[] }
   >({
     mutationFn: async (body) => {
@@ -223,7 +224,7 @@ export function FeedingSheet({
     },
   });
 
-  const patchMutation = useMutation<SerializedFeeding, Error, FeedingBody>({
+  const patchMutation = useMutation<SerializedFeeding, Error, FeedingApiBody>({
     mutationFn: async (body) => {
       if (mode.kind !== "edit") throw new Error("not edit mode");
       const r = await fetch(`/api/feedings/${mode.feeding._id}`, {
@@ -265,52 +266,22 @@ export function FeedingSheet({
     patchMutation.isPending ||
     deleteMutation.isPending;
 
-  const endAt =
-    durationMin > 0
-      ? new Date(startAt.getTime() + durationMin * 60 * 1000)
-      : null;
-
-  const durationError = durationMin > 180 ? "Не более 180 минут" : null;
-  const volumeError =
-    volumeMl <= 0
-      ? "Объём обязателен"
-      : volumeMl > 200
-        ? "От 0 до 200 мл"
-        : null;
-  const staticError = durationError || volumeError;
-
   const showMedSection = activeMeds.length > 0 || archivedMed !== null;
 
   function selectMed(m: SerializedMedication) {
     if (m._id === medicationId) return;
-    setMedicationId(m._id);
-    setMedDoseDrops(m.defaultDoseDrops);
+    form.setValue("medicationId", m._id);
+    form.setValue("medDoseDrops", m.defaultDoseDrops);
   }
 
   function selectNoMed() {
     if (medicationId === null) return;
-    setMedicationId(null);
-    setMedDoseDrops(null);
+    form.setValue("medicationId", null);
+    form.setValue("medDoseDrops", null);
   }
 
-  function submit() {
-    if (staticError) {
-      setSubmitError(staticError);
-      return;
-    }
-    if (startAt.getTime() > Date.now()) {
-      setSubmitError("Время в будущем");
-      return;
-    }
-    setSubmitError(null);
-    const body: FeedingBody = {
-      startAt,
-      endAt,
-      volumeMl,
-      isTopUp,
-      medicationId,
-      medicationDoseDrops: medDoseDrops,
-    };
+  function onValid(v: FeedingFormOut) {
+    const body = toFeedingApiBody(v);
     if (mode.kind === "edit") {
       patchMutation.mutate(body);
     } else {
@@ -331,183 +302,255 @@ export function FeedingSheet({
             </SheetTitle>
           </SheetHeader>
 
-          <div className="space-y-5 px-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="startAt">Начало</Label>
-              <div className="flex flex-wrap gap-2">
-                {START_OFFSETS.map((off) => (
-                  <Button
-                    key={off}
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    onClick={() =>
-                      setStartAt(roundTo5Min(new Date(Date.now() + off * 60_000)))
-                    }
-                  >
-                    {off === 0 ? "Сейчас" : `${off}`}
-                  </Button>
-                ))}
-                {mode.kind === "create" && mode.preset?.time && (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setStartAt(mode.preset!.time!)}
-                  >
-                    По плану
-                  </Button>
-                )}
-              </div>
-              <Input
-                id="startAt"
-                type="datetime-local"
-                value={fmtLocalForInput(startAt, effectiveTz)}
-                onChange={(e) =>
-                  setStartAt(parseLocalInput(e.target.value, effectiveTz))
-                }
-              />
-              {submitError && <FormError>{submitError}</FormError>}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="duration">Длительность, мин</Label>
-              <ToggleGroup
-                type="single"
-                size="sm"
-                spacing={2}
-                value={
-                  DURATION_CHIPS.includes(durationMin)
-                    ? String(durationMin)
-                    : ""
-                }
-                onValueChange={(v) => {
-                  if (v) setDurationMin(Number(v));
-                }}
-              >
-                {DURATION_CHIPS.map((d) => (
-                  <ToggleGroupItem key={d} value={String(d)} aria-label={`${d} минут`}>
-                    {d}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
-              <Input
-                id="duration"
-                type="number"
-                min={0}
-                max={180}
-                value={durationMin}
-                onChange={(e) => setDurationMin(Number(e.target.value))}
-              />
-              {durationError && <FormError>{durationError}</FormError>}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="volume">Объём, мл</Label>
-              <NumberStepper
-                id="volume"
-                value={volumeMl}
-                onChange={setVolumeMl}
-                min={0}
-                max={200}
-                step={5}
-              />
-              {volumeError && <FormError>{volumeError}</FormError>}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Тип</Label>
-              <ToggleGroup
-                type="single"
-                variant="outline"
-                className="w-full"
-                value={isTopUp ? "topup" : "main"}
-                onValueChange={(v) => {
-                  if (v === "main" || v === "topup") setIsTopUp(v === "topup");
-                }}
-              >
-                <ToggleGroupItem value="main" className="flex-1">
-                  Основное
-                </ToggleGroupItem>
-                <ToggleGroupItem value="topup" className="flex-1">
-                  Докорм
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </div>
-
-            {showMedSection && (
-              <div className="space-y-2">
-                <Label>Лекарство</Label>
-                <ToggleGroup
-                  type="single"
-                  size="sm"
-                  spacing={2}
-                  value={medicationId ?? "none"}
-                  onValueChange={(v) => {
-                    if (!v) return;
-                    if (v === "none") {
-                      selectNoMed();
-                      return;
-                    }
-                    const med =
-                      activeMeds.find((m) => m._id === v) ??
-                      (archivedMed && archivedMed._id === v ? archivedMed : null);
-                    if (med) selectMed(med);
-                  }}
-                  className="flex-wrap"
-                >
-                  <ToggleGroupItem value="none">Без</ToggleGroupItem>
-                  {activeMeds.map((m) => (
-                    <ToggleGroupItem key={m._id} value={m._id}>
-                      {m.name}
-                    </ToggleGroupItem>
-                  ))}
-                  {archivedMed && (
-                    <ToggleGroupItem value={archivedMed._id}>
-                      {archivedMed.name} (архив)
-                    </ToggleGroupItem>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onValid)} className="contents">
+              <div className="space-y-5 px-4 py-2">
+                <FormField
+                  control={form.control}
+                  name="startAt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="startAt">Начало</FormLabel>
+                      <div className="flex flex-wrap gap-2">
+                        {START_OFFSETS.map((off) => (
+                          <Button
+                            key={off}
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={() =>
+                              field.onChange(
+                                roundTo5Min(
+                                  new Date(Date.now() + off * 60_000),
+                                ),
+                              )
+                            }
+                          >
+                            {off === 0 ? "Сейчас" : `${off}`}
+                          </Button>
+                        ))}
+                        {mode.kind === "create" && mode.preset?.time && (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => field.onChange(mode.preset!.time!)}
+                          >
+                            По плану
+                          </Button>
+                        )}
+                      </div>
+                      <FormControl>
+                        <Input
+                          id="startAt"
+                          type="datetime-local"
+                          value={fmtLocalForInput(field.value, effectiveTz)}
+                          onChange={(e) =>
+                            field.onChange(
+                              parseLocalInput(e.target.value, effectiveTz),
+                            )
+                          }
+                          onBlur={field.onBlur}
+                          name={field.name}
+                          ref={field.ref}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </ToggleGroup>
-                {medicationId !== null && medDoseDrops !== null && (
-                  <NumberStepper
-                    id="medDose"
-                    value={medDoseDrops}
-                    onChange={setMedDoseDrops}
-                    min={1}
-                    max={100}
-                    step={1}
-                    decrementLabel="Уменьшить на 1 каплю"
-                    incrementLabel="Увеличить на 1 каплю"
+                />
+
+                <FormField
+                  control={form.control}
+                  name="durationMin"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="duration">
+                        Длительность, мин
+                      </FormLabel>
+                      <ToggleGroup
+                        type="single"
+                        size="sm"
+                        spacing={2}
+                        value={
+                          field.value !== "" &&
+                          DURATION_CHIPS.includes(field.value)
+                            ? String(field.value)
+                            : ""
+                        }
+                        onValueChange={(v) => {
+                          if (v) field.onChange(Number(v));
+                        }}
+                      >
+                        {DURATION_CHIPS.map((d) => (
+                          <ToggleGroupItem
+                            key={d}
+                            value={String(d)}
+                            aria-label={`${d} минут`}
+                          >
+                            {d}
+                          </ToggleGroupItem>
+                        ))}
+                      </ToggleGroup>
+                      <FormControl>
+                        <Input
+                          id="duration"
+                          type="number"
+                          min={0}
+                          max={180}
+                          value={field.value}
+                          onChange={(e) =>
+                            field.onChange(
+                              e.target.value === ""
+                                ? ""
+                                : Number(e.target.value),
+                            )
+                          }
+                          onBlur={field.onBlur}
+                          name={field.name}
+                          ref={field.ref}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="volumeMl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="volume">Объём, мл</FormLabel>
+                      <FormControl>
+                        <NumberStepper
+                          id="volume"
+                          value={field.value}
+                          onChange={field.onChange}
+                          min={0}
+                          max={200}
+                          step={5}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="isTopUp"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Тип</FormLabel>
+                      <ToggleGroup
+                        type="single"
+                        variant="outline"
+                        className="w-full"
+                        value={field.value ? "topup" : "main"}
+                        onValueChange={(v) => {
+                          if (v === "main" || v === "topup")
+                            field.onChange(v === "topup");
+                        }}
+                      >
+                        <ToggleGroupItem value="main" className="flex-1">
+                          Основное
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="topup" className="flex-1">
+                          Докорм
+                        </ToggleGroupItem>
+                      </ToggleGroup>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {showMedSection && (
+                  <FormField
+                    control={form.control}
+                    name="medDoseDrops"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Лекарство</FormLabel>
+                        <ToggleGroup
+                          type="single"
+                          size="sm"
+                          spacing={2}
+                          value={medicationId ?? "none"}
+                          onValueChange={(v) => {
+                            if (!v) return;
+                            if (v === "none") {
+                              selectNoMed();
+                              return;
+                            }
+                            const med =
+                              activeMeds.find((m) => m._id === v) ??
+                              (archivedMed && archivedMed._id === v
+                                ? archivedMed
+                                : null);
+                            if (med) selectMed(med);
+                          }}
+                          className="flex-wrap"
+                        >
+                          <ToggleGroupItem value="none">Без</ToggleGroupItem>
+                          {activeMeds.map((m) => (
+                            <ToggleGroupItem key={m._id} value={m._id}>
+                              {m.name}
+                            </ToggleGroupItem>
+                          ))}
+                          {archivedMed && (
+                            <ToggleGroupItem value={archivedMed._id}>
+                              {archivedMed.name} (архив)
+                            </ToggleGroupItem>
+                          )}
+                        </ToggleGroup>
+                        {medicationId !== null && field.value !== null && (
+                          <FormControl>
+                            <NumberStepper
+                              id="medDose"
+                              value={field.value}
+                              // Доза при выбранном лекарстве обязательна:
+                              // очистка поля возвращает к минимуму (1 капля).
+                              onChange={(v) =>
+                                field.onChange(v === "" ? 1 : v)
+                              }
+                              min={1}
+                              max={100}
+                              step={1}
+                              decrementLabel="Уменьшить на 1 каплю"
+                              incrementLabel="Увеличить на 1 каплю"
+                            />
+                          </FormControl>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
                 )}
               </div>
-            )}
-          </div>
 
-          <SheetFooter className="gap-2">
-            {mode.kind === "edit" && (
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={() => setConfirmDelete(true)}
-                disabled={isPending}
-              >
-                Удалить
-              </Button>
-            )}
-            <SheetClose asChild>
-              <Button type="button" variant="ghost" disabled={isPending}>
-                Отмена
-              </Button>
-            </SheetClose>
-            <Button
-              type="button"
-              onClick={submit}
-              disabled={!!staticError || isPending}
-            >
-              Сохранить
-            </Button>
-          </SheetFooter>
+              <SheetFooter className="gap-2">
+                {mode.kind === "edit" && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => setConfirmDelete(true)}
+                    disabled={isPending}
+                  >
+                    Удалить
+                  </Button>
+                )}
+                <SheetClose asChild>
+                  <Button type="button" variant="ghost" disabled={isPending}>
+                    Отмена
+                  </Button>
+                </SheetClose>
+                <Button type="submit" disabled={isPending}>
+                  Сохранить
+                </Button>
+              </SheetFooter>
+            </form>
+          </Form>
         </SheetContent>
       </Sheet>
 
