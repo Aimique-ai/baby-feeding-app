@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -13,10 +14,23 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import type { SerializedMedication } from "@/lib/api/serializedTypes";
 import { medicationsKey } from "@/components/day-view/feedingsKey";
 import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  medicationFormSchema,
+  toMedicationApiBody,
+  type MedicationFormOut,
+  type MedicationFormValues,
+} from "@/lib/schemas/forms/medicationForm";
 
 type State =
   | null
@@ -29,37 +43,27 @@ type Props = {
   babyId: string;
 };
 
+type MedicationApiBody = { name: string; defaultDoseDrops: number };
+
 export function MedicationSheet({ state, onOpenChange, babyId }: Props) {
   const qc = useQueryClient();
   const isMobile = useIsMobile();
   const editing = state?.kind === "edit" ? state.medication : null;
 
-  const derivedName = editing?.name ?? "";
-  const derivedDose = editing?.defaultDoseDrops ?? 1;
-
-  const [name, setName] = useState(derivedName);
-  const [dose, setDose] = useState<number>(derivedDose);
-  const [lastStateKey, setLastStateKey] = useState<string>("null");
-
-  const stateKey =
-    state === null
-      ? "null"
-      : state.kind === "edit"
-        ? state.medication._id
-        : "create";
-
-  if (stateKey !== lastStateKey) {
-    setLastStateKey(stateKey);
-    setName(derivedName);
-    setDose(derivedDose);
-  }
+  const form = useForm<MedicationFormValues, unknown, MedicationFormOut>({
+    resolver: zodResolver(medicationFormSchema),
+    defaultValues: {
+      name: editing?.name ?? "",
+      dose: editing?.defaultDoseDrops ?? 1,
+    },
+  });
 
   const create = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (body: MedicationApiBody) => {
       const r = await fetch("/api/medications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), defaultDoseDrops: dose }),
+        body: JSON.stringify(body),
       });
       if (r.status === 409) {
         const data = (await r.json().catch(() => null)) as {
@@ -85,12 +89,12 @@ export function MedicationSheet({ state, onOpenChange, babyId }: Props) {
   });
 
   const patch = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (body: MedicationApiBody) => {
       if (!editing) throw new Error("not edit");
       const r = await fetch(`/api/medications/${editing._id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), defaultDoseDrops: dose }),
+        body: JSON.stringify(body),
       });
       if (r.status === 409) {
         const data = (await r.json().catch(() => null)) as {
@@ -116,17 +120,11 @@ export function MedicationSheet({ state, onOpenChange, babyId }: Props) {
   });
 
   const isPending = create.isPending || patch.isPending;
-  const trimmedName = name.trim();
-  const invalid =
-    trimmedName.length < 1 ||
-    trimmedName.length > 50 ||
-    !Number.isInteger(dose) ||
-    dose < 1 ||
-    dose > 100;
 
-  function submit() {
-    if (editing) patch.mutate();
-    else create.mutate();
+  function onValid(v: MedicationFormOut) {
+    const body = toMedicationApiBody(v);
+    if (editing) patch.mutate(body);
+    else create.mutate(body);
   }
 
   return (
@@ -137,40 +135,64 @@ export function MedicationSheet({ state, onOpenChange, babyId }: Props) {
             {editing ? "Редактировать лекарство" : "Новое лекарство"}
           </SheetTitle>
         </SheetHeader>
-        <div className="space-y-4 px-4 py-2">
-          <div className="space-y-2">
-            <Label htmlFor="medname">Название</Label>
-            <Input
-              id="medname"
-              type="text"
-              maxLength={50}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="meddose">Доза, капель</Label>
-            <Input
-              id="meddose"
-              type="number"
-              min={1}
-              max={100}
-              inputMode="numeric"
-              value={dose}
-              onChange={(e) => setDose(Number(e.target.value))}
-            />
-          </div>
-        </div>
-        <SheetFooter className="gap-2">
-          <SheetClose asChild>
-            <Button variant="ghost" disabled={isPending}>
-              Отмена
-            </Button>
-          </SheetClose>
-          <Button onClick={submit} disabled={invalid || isPending}>
-            Сохранить
-          </Button>
-        </SheetFooter>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onValid)} className="contents">
+            <div className="space-y-4 px-4 py-2">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Название</FormLabel>
+                    <FormControl>
+                      <Input type="text" maxLength={50} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="dose"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Доза, капель</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={100}
+                        inputMode="numeric"
+                        value={field.value}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value === ""
+                              ? ""
+                              : Number(e.target.value),
+                          )
+                        }
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <SheetFooter className="gap-2">
+              <SheetClose asChild>
+                <Button type="button" variant="ghost" disabled={isPending}>
+                  Отмена
+                </Button>
+              </SheetClose>
+              <Button type="submit" disabled={isPending}>
+                Сохранить
+              </Button>
+            </SheetFooter>
+          </form>
+        </Form>
       </SheetContent>
     </Sheet>
   );

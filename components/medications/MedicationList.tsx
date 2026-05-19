@@ -97,6 +97,13 @@ export function MedicationList({ babyId }: { babyId: string }) {
       </ul>
 
       <MedicationSheet
+        key={
+          sheet === null
+            ? "none"
+            : sheet.kind === "edit"
+              ? sheet.medication._id
+              : "create"
+        }
         state={sheet}
         onOpenChange={(open) => {
           if (!open) setSheet(null);
