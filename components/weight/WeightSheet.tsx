@@ -99,7 +99,10 @@ export function WeightSheet({ open, onOpenChange, mode, tz, babyId }: Props) {
 
   function onMutationError(err: unknown) {
     if (err instanceof DuplicateDateError) {
-      toast.error("Взвешивание на эту дату уже есть");
+      form.setError("dateISO", {
+        type: "server",
+        message: "Взвешивание на эту дату уже есть",
+      });
     } else {
       toast.error("Не удалось сохранить");
     }

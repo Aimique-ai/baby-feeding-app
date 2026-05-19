@@ -81,7 +81,10 @@ export function MedicationSheet({ state, onOpenChange, babyId }: Props) {
     },
     onError: (e: Error) => {
       if (e.message === "duplicate_name") {
-        toast.error("Уже существует");
+        form.setError("name", {
+          type: "server",
+          message: "Лекарство с таким названием уже существует",
+        });
       } else {
         toast.error("Не удалось сохранить");
       }
@@ -112,7 +115,10 @@ export function MedicationSheet({ state, onOpenChange, babyId }: Props) {
     },
     onError: (e: Error) => {
       if (e.message === "duplicate_name") {
-        toast.error("Уже существует");
+        form.setError("name", {
+          type: "server",
+          message: "Лекарство с таким названием уже существует",
+        });
       } else {
         toast.error("Не удалось сохранить");
       }
