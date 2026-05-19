@@ -7,8 +7,9 @@ import { cn } from "@/lib/utils";
 
 type Props = {
   id?: string;
-  value: number;
-  onChange: (v: number) => void;
+  /** Пустая строка — поле очищено пользователем (валидным числом ещё не стало). */
+  value: number | "";
+  onChange: (v: number | "") => void;
   min?: number;
   max?: number;
   step?: number;
@@ -29,6 +30,8 @@ export function NumberStepper({
   className,
 }: Props) {
   const clamp = (v: number) => Math.min(max, Math.max(min, v));
+  // При пустом поле кнопки −/+ отсчитывают от min: инкрементить нечего.
+  const base = value === "" ? min : value;
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <Button
@@ -36,7 +39,7 @@ export function NumberStepper({
         variant="secondary"
         size="sm"
         aria-label={decrementLabel ?? `Уменьшить на ${step}`}
-        onClick={() => onChange(clamp(value - step))}
+        onClick={() => onChange(clamp(base - step))}
       >
         −{step}
       </Button>
@@ -47,7 +50,9 @@ export function NumberStepper({
         min={Number.isFinite(min) ? min : undefined}
         max={Number.isFinite(max) ? max : undefined}
         value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
+        onChange={(e) =>
+          onChange(e.target.value === "" ? "" : Number(e.target.value))
+        }
         className="text-center"
       />
       <Button
@@ -55,7 +60,7 @@ export function NumberStepper({
         variant="secondary"
         size="sm"
         aria-label={incrementLabel ?? `Увеличить на ${step}`}
-        onClick={() => onChange(clamp(value + step))}
+        onClick={() => onChange(clamp(base + step))}
       >
         +{step}
       </Button>
