@@ -134,9 +134,28 @@ export function solveSlotCount(args: {
     };
   }
 
-  // Коридорного N нет — densest N со step ≤ intervalMax.
-  const n = Math.max(1, Math.ceil(horizonHours / intervalMax - 1));
-  return { n, stepHours: horizonHours / (n + 1), reason: "squeezed" };
+  // Коридорного N нет. Densest N со step ≤ intervalMax:
+  //   N = ceil(horizonHours / intervalMax − 1)
+  // Если candidateN < 1 — горизонт настолько мал, что даже один слот лёг бы
+  // НИЖЕ intervalMin (step = H/2 < intervalMin). Это «слот вне ритма» —
+  // нарушает Principle #1 (РИТМ жёсткий). Вместо впихивания слота в дыру
+  // отдаём пустой план: сегодняшний ритм исчерпан, ждём следующего факта /
+  // следующего тика ритма уже от нового якоря.
+  //
+  // Расхождение с feeding-rhythm.md §3.2 (план разрешал step < intervalMin
+  // как «один близкий слот корректнее пустоты»): на практике это даёт слот
+  // через ~1.5ч после полного кормления при закрытой суточной цели —
+  // содержательно вне ритма. Принцип «ритм жёсткий» приоритетнее, чем
+  // «не оставлять дыру».
+  const candidateN = Math.ceil(horizonHours / intervalMax - 1);
+  if (candidateN < 1) {
+    return { n: 0, stepHours: 0, reason: "empty" };
+  }
+  return {
+    n: candidateN,
+    stepHours: horizonHours / (candidateN + 1),
+    reason: "squeezed",
+  };
 }
 
 /**
@@ -244,7 +263,27 @@ export function planRemainder(args: {
     (horizonEnd.getTime() - startOfLayout.getTime()) / MS_PER_HOUR,
   );
 
+  const corridors = ageCorridors({ range, target });
+
+  // Завтрашний узел — НЕ через horizonNode/horizonEnd, а от tailAnchor +
+  // intervalTarget. Семантика: «следующее ожидаемое по ритму, оно уже
+  // завтра», считается от последнего ПОЛНОЦЕННОГО кормления (tailAnchor —
+  // main-like). Это убирает проекцию утреннего якоря на завтра: если день
+  // провис и последнее полноценное было в 22:30 — узел сдвигается на
+  // 22:30 + intervalTarget, а не остаётся прибитым к firstMainToday+24ч.
+  // Порция — portionMin (нижняя граница типичного объёма).
+  const projectedTomorrow = addMilliseconds(
+    tailAnchor,
+    corridors.intervalTarget * MS_PER_HOUR,
+  );
+  const tomorrowSlot: Slot | null =
+    localDateISO(projectedTomorrow, tz) !== dateISO
+      ? { time: projectedTomorrow, volumeMl: corridors.portionMin }
+      : null;
+
   // GUARD — поздний старт впритык к горизонту / перекусы съели остаток.
+  // Сегодняшних слотов нет, но tomorrowSlot (если он календарно завтра)
+  // сохраняется — он от tailAnchor, не от horizonEnd.
   if (horizonHours <= 0) {
     return {
       n: 0,
@@ -253,11 +292,10 @@ export function planRemainder(args: {
       horizonHours,
       slotVolumeMl: 0,
       slots: [],
-      tomorrowSlot: null,
+      tomorrowSlot,
     };
   }
 
-  const corridors = ageCorridors({ range, target });
   const { n, stepHours, reason } = solveSlotCount({
     horizonHours,
     intervalMin: corridors.intervalMin,
@@ -265,7 +303,7 @@ export function planRemainder(args: {
     intervalTarget: corridors.intervalTarget,
   });
 
-  const { today, horizonNode } = placeSlots({
+  const { today } = placeSlots({
     startOfLayout,
     n,
     stepHours,
@@ -273,11 +311,6 @@ export function planRemainder(args: {
     portionMin: corridors.portionMin,
     portionMax: corridors.portionMax,
   });
-
-  const tomorrowSlot =
-    horizonNode && localDateISO(horizonNode.time, tz) !== dateISO
-      ? horizonNode
-      : null;
 
   return {
     n,
