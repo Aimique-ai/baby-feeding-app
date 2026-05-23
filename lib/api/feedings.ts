@@ -33,8 +33,6 @@ export function serializeFeeding(doc: FeedingDocLike): SerializedFeeding {
   };
 }
 
-const toSerialized = serializeFeeding;
-
 type WeightDocLike = {
   _id: { toString(): string };
   babyId: { toString(): string };
@@ -64,30 +62,31 @@ export async function fetchFeedingsForDay(
   })
     .sort({ startAt: 1 })
     .lean();
-  return (docs as unknown as Parameters<typeof toSerialized>[0][]).map(
-    toSerialized,
+  return (docs as unknown as Parameters<typeof serializeFeeding>[0][]).map(
+    serializeFeeding,
   );
 }
 
 /**
- * Last MAIN feeding (isTopUp != true) strictly before `iso`.
- * Top-ups never become the anchor for the next day (Principle #6).
+ * Last 5 feedings of ANY type strictly before `iso`, newest first.
+ * The planning layer (`runPipeline`) classifies which of them is "main-like"
+ * — it knows `portionMin`, so `portionMin` never enters the Mongo query
+ * (Q-D2 variant 3).
  */
 export async function fetchLastFeedingBefore(
   iso: Date,
   babyId: string,
-): Promise<SerializedFeeding | null> {
+): Promise<SerializedFeeding[]> {
   await dbConnect();
-  const doc = await FeedingModel.findOne({
+  const docs = await FeedingModel.find({
     babyId: new Types.ObjectId(babyId),
     startAt: { $lt: iso },
-    isTopUp: { $ne: true },
   })
     .sort({ startAt: -1 })
+    .limit(5)
     .lean();
-  if (!doc) return null;
-  return toSerialized(
-    doc as unknown as Parameters<typeof toSerialized>[0],
+  return (docs as unknown as Parameters<typeof serializeFeeding>[0][]).map(
+    serializeFeeding,
   );
 }
 

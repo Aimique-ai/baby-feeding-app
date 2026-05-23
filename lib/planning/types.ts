@@ -58,39 +58,40 @@ export type FeedingTarget = {
 
 /**
  * Слот плана. Единая форма: момент времени + предписанный объём.
- * Раскладка строится `placeSlots` (см. `remainderPlan.ts`): K слотов в
- * позициях anchor + step·i, где step = remainingHours/(K+1). Объёмы слотов
- * дают точную сумму = remainingMl при гарантии неотрицательности.
+ * Раскладка строится по ритм-ориентированной модели (концепция §5):
+ * N слотов в позициях anchor + step·i, где step = H_остатка/(N+1).
+ * Все слоты имеют одинаковый объём (clamp-порция); сумма порций
+ * НЕ обязана точно совпадать с remainingMl — ритм первичен.
  */
 export type Slot = { time: Date; volumeMl: number };
 
 /**
- * Причина выбранного K — диагностика, отражает только состояние (a)∩(b).
- *   "intersect"     — найден валидный K внутри жёсткого пересечения (a)∩(b)
- *   "clamped-high"  — недобор: (a) целиком выше (b), K клампится к верхней границе (b)
- *   "clamped-low"   — переедание: (a) целиком ниже (b), K клампится к нижней границе (b)
- *   "best-effort"   — окно (a) вырождено внутри (b): идеального K нет, выбран K из
- *                     (b) с порцией минимально далёкой от нормы (a) — компромисс
+ * Причина выбранного числа слотов N — диагностика.
+ *   "in-corridor" — найден N, при котором step ∈ [интервал_мин, интервал_макс]
+ *   "squeezed"    — коридорного N нет; берём densest N со step ≤ интервал_макс:
+ *                   n = max(1, ceil(H/интервал_макс − 1)) — покрывает и малый
+ *                   горизонт, и случай узкого коридора с дискретным разрывом
+ *   "empty"       — N = 0: горизонт слишком мал для хотя бы одного слота
  */
-export type FeedCountReason =
-  | "intersect"
-  | "clamped-high"
-  | "clamped-low"
-  | "best-effort";
+export type SlotCountReason = "in-corridor" | "squeezed" | "empty";
 
-export type FeedCountSolution = {
-  k: number; // выбранное число оставшихся слотов, целое >= 0
-  reason: FeedCountReason;
+export type SlotCountSolution = {
+  n: number;
+  stepHours: number;
+  reason: SlotCountReason;
 };
 
 /**
  * План остатка дня — результат `planRemainder`.
- * Источник истины по объёмам — массив `slots`; `slotVolumeMl` справочный.
+ * `slots` содержит только СЕГОДНЯШНИЕ плановые слоты (длина n).
+ * `tomorrowSlot` — (N+1)-й узел ритма, если он календарно завтра (UI §8).
  */
 export type RemainderPlan = {
-  k: number;
-  reason: FeedCountReason;
-  slotVolumeMl: number; // round5(remainingMl/K) — номинал; 0 если K=0
-  stepHours: number; // stepHoursFor(K, remainingHours); 0 если K=0
-  slots: Slot[]; // фактическая раскладка с точной суммой объёмов
+  n: number;                 // число СЕГОДНЯШНИХ плановых слотов (= slots.length)
+  reason: SlotCountReason;
+  stepHours: number;         // H_остатка / (n+1); 0 при n = 0
+  horizonHours: number;      // H_остатка — диагностика
+  slotVolumeMl: number;      // clamp-порция; 0 при n = 0
+  slots: Slot[];             // СЕГОДНЯШНИЕ плановые слоты (длина n)
+  tomorrowSlot: Slot | null; // (N+1)-й узел, ТОЛЬКО если он календарно завтра
 };

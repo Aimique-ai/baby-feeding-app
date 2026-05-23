@@ -17,8 +17,9 @@ import { FeedingModel } from "../models/feeding";
 
 const BABY_NAME = "Леон";
 const TZ = "Europe/Kyiv";
-// 00:00 Kyiv on 2026-04-25
-const BIRTH_DATE = fromZonedTime("2026-04-25T00:00:00", TZ);
+// 14:30 Kyiv on 2026-04-25 — birthDate несёт ОСМЫСЛЕННОЕ время рождения
+// (концепция §7): якорь суток в день рождения = момент рождения, не полночь.
+const BIRTH_DATE = fromZonedTime("2026-04-25T14:30:00", TZ);
 const BIRTH_WEIGHT_GRAMS = 3400;
 
 /**

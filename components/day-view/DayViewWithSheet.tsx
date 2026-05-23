@@ -12,7 +12,7 @@ type Props = {
   dateISO: string;
   tz: string;
   babyId: string;
-  prevMainAnchor: string | null;
+  prevMainCandidates: SerializedFeeding[];
 };
 
 export function DayViewWithSheet(props: Props) {

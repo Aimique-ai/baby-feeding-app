@@ -45,7 +45,10 @@ export default async function TodayPage() {
     ]);
   });
 
-  const prev = await fetchLastFeedingBefore(dayStart, active.baby._id);
+  const prevMainCandidates = await fetchLastFeedingBefore(
+    dayStart,
+    active.baby._id,
+  );
 
   return (
     <HydrationBoundary state={state}>
@@ -57,7 +60,7 @@ export default async function TodayPage() {
         dateISO={dateISO}
         tz={tz}
         babyId={active.baby._id}
-        prevMainAnchor={prev?.startAt ?? null}
+        prevMainCandidates={prevMainCandidates}
       />
     </HydrationBoundary>
   );

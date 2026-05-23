@@ -46,11 +46,7 @@ type Props = {
   dateISO: string;
   tz: string;
   babyId: string;
-  /**
-   * Last MAIN feeding *before* startOfLocalDay(dateISO, tz), used as the
-   * pipeline anchor when there are no main feedings today.
-   */
-  prevMainAnchor?: string | null;
+  prevMainCandidates: SerializedFeeding[];
   onAddFeeding?: (preset?: {
     time?: Date;
     volumeMl?: number;
@@ -98,6 +94,7 @@ type TimelineItem =
       id: string;
       time: Date;
       volumeMl: number;
+      isTomorrow?: boolean;
     };
 
 function DayNav({ dateISO, tz }: { dateISO: string; tz: string }) {
@@ -182,7 +179,7 @@ export function DayView({
   dateISO,
   tz,
   babyId,
-  prevMainAnchor,
+  prevMainCandidates,
   onAddFeeding,
   onEditFeeding,
 }: Props) {
@@ -240,16 +237,16 @@ export function DayView({
     );
     const target = guidance.dailyMl;
     const dayStart = startOfLocalDay(dateISO, effectiveTz);
-    const anchor = prevMainAnchor ? new Date(prevMainAnchor) : null;
+    const prevMainCandidates_d = prevMainCandidates.map(deserializeFeeding);
 
     const result = runPipeline({
       facts,
       target,
-      startOfDay: dayStart,
       dateISO,
       tz: effectiveTz,
-      prevMainAnchor: anchor,
       range: guidance.feedCountRange,
+      birthDate: baby.birthDate,
+      prevMainCandidates: prevMainCandidates_d,
     });
 
     const factsView: TimelineItem[] = facts.map((f) => {
@@ -264,16 +261,31 @@ export function DayView({
         medicationDoseDrops: raw?.medicationDoseDrops ?? null,
       };
     });
-    const planView: TimelineItem[] = result.plan.slots.map((s, i) => ({
-      kind: "plan",
-      id: `plan-${i}`,
-      time: s.time,
-      volumeMl: s.volumeMl,
-    }));
+    // Плановые слоты — только для текущего дня. У прошедшего дня "будущих"
+    // кормлений нет: история показывает только факты.
+    const planView: TimelineItem[] =
+      mode === "live"
+        ? result.plan.slots.map((s, i) => ({
+            kind: "plan",
+            id: `plan-${i}`,
+            time: s.time,
+            volumeMl: s.volumeMl,
+          }))
+        : [];
 
     const timeline: TimelineItem[] = [...factsView, ...planView].sort(
       (a, b) => a.time.getTime() - b.time.getTime(),
     );
+
+    if (mode === "live" && result.plan.tomorrowSlot) {
+      timeline.push({
+        kind: "plan",
+        id: "plan-tomorrow",
+        time: result.plan.tomorrowSlot.time,
+        volumeMl: result.plan.tomorrowSlot.volumeMl,
+        isTomorrow: true,
+      });
+    }
 
     const dol = dayOfLife(baby.birthDate, dayStart, effectiveTz);
     const eligibleWeights = weights.filter(
@@ -312,7 +324,8 @@ export function DayView({
     medicationsQ.data,
     dateISO,
     effectiveTz,
-    prevMainAnchor,
+    mode,
+    prevMainCandidates,
   ]);
 
   if (!derived) {
@@ -449,7 +462,9 @@ export function DayView({
                 "flex w-full min-h-[44px] items-start justify-between rounded-md border px-3 py-2 text-left " +
                 (it.kind === "fact"
                   ? "border-foreground/20 bg-background"
-                  : "border-dashed text-muted-foreground")
+                  : it.isTomorrow
+                    ? "border-primary bg-primary/5 text-foreground"
+                    : "border-dashed text-muted-foreground")
               }
               aria-label={
                 it.kind === "fact" && it.medicationId

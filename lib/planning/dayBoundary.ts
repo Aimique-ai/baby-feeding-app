@@ -32,6 +32,14 @@ export function addDaysISO(dateISO: string, days: number): string {
 }
 
 /**
+ * True если календарный день dateISO совпадает с календарным днём birthDate в tz.
+ * Нужен для якоря суток (концепция §4). Чистый, без process timezone.
+ */
+export function isBirthday(birthDate: Date, dateISO: string, tz: string): boolean {
+  return localDateISO(birthDate, tz) === dateISO;
+}
+
+/**
  * Day-of-life per PRD §2.2: floor((today − birthDate) / 24h) + 1, by calendar
  * days in the local TZ. Day 1 is the day of birth.
  */
