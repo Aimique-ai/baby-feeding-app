@@ -15,6 +15,7 @@
     "migrate:baby-id": "tsx --env-file=.env.local scripts/migrate-baby-id.ts",
     "migrate:drop-legacy-fields": "tsx --env-file=.env.local scripts/migrate-drop-legacy-fields.ts",
     "backfill:baby-formula": "tsx --env-file=.env.local scripts/backfill-baby-formula.ts",
+    "worktree:new": "bash scripts/new-worktree.sh",
     "format": "prettier --write ."
   },
   "dependencies": {

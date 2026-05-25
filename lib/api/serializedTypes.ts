@@ -22,6 +22,7 @@ export type SerializedBaby = {
   birthWeightGrams: number;
   sex: "male" | "female";
   currentFormulaId: string | null;
+  preferredFeedCount: number | null;
   archivedAt: string | null;
 };
 

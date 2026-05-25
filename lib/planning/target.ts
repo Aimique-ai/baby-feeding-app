@@ -106,6 +106,7 @@ export function computeFeedingGuidance(
   weights: Weight[],
   tz: string,
   formula: FormulaDensity,
+  preferredFeedCount: number | null = null,
 ): FeedingTarget {
   const { ageDays, weightKg, mode } = resolveDayContext(
     dateISO,
@@ -128,7 +129,12 @@ export function computeFeedingGuidance(
 
   const range = feedCountRange(ageDays);
   // Рекомендуемый центр числа кормлений — округлённый центр возрастного range.
-  const feedCount = Math.round((range[0] + range[1]) / 2);
+  // preferredFeedCount (UX-override): clamp в диапазон; null → центр.
+  const center = Math.round((range[0] + range[1]) / 2);
+  const feedCount =
+    preferredFeedCount === null
+      ? center
+      : Math.min(range[1], Math.max(range[0], preferredFeedCount));
 
   const mlPerFeedRange: [number, number] = [
     round5(dailyMl / range[1]),

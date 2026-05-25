@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   Collapsible,
@@ -10,6 +10,12 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
 import { Muted } from "@/components/ui/typography";
 import { fmtMl, roundMl } from "@/lib/format/ml";
@@ -204,6 +210,22 @@ export function DayView({
     queryFn: fetchMedications,
   });
 
+  const qc = useQueryClient();
+  const updatePreferredFeedCount = useMutation({
+    mutationFn: async (value: number) => {
+      const r = await fetch(`/api/babies/${babyId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ preferredFeedCount: value }),
+      });
+      if (!r.ok) throw new Error("preferredFeedCount update failed");
+      return r.json();
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: babyKey(babyId) });
+    },
+  });
+
   const derived = useMemo(() => {
     if (
       !feedingsQ.data ||
@@ -228,12 +250,14 @@ export function DayView({
           proteinGPer100kcal: serializedFormula.proteinGPer100kcal,
         }
       : DEFAULT_FORMULA_DENSITY;
+    const storedPreferredFeedCount = babyQ.data.preferredFeedCount ?? null;
     const guidance = computeFeedingGuidance(
       dateISO,
       baby,
       weights,
       effectiveTz,
       formulaDensity,
+      storedPreferredFeedCount,
     );
     const target = guidance.dailyMl;
     const dayStart = startOfLocalDay(dateISO, effectiveTz);
@@ -306,6 +330,11 @@ export function DayView({
         )
       : 0;
 
+    const showPreferredFeedCountBanner =
+      mode === "live" &&
+      storedPreferredFeedCount !== null &&
+      storedPreferredFeedCount !== guidance.feedCount;
+
     return {
       guidance,
       target,
@@ -316,6 +345,8 @@ export function DayView({
       daysSinceLastWeight,
       medMap,
       formulaName: serializedFormula?.name ?? null,
+      storedPreferredFeedCount,
+      showPreferredFeedCountBanner,
     };
   }, [
     feedingsQ.data,
@@ -342,7 +373,16 @@ export function DayView({
     daysSinceLastWeight,
     medMap,
     formulaName,
+    storedPreferredFeedCount,
+    showPreferredFeedCountBanner,
   } = derived;
+
+  const feedCountOptions: number[] = [];
+  for (let n = guidance.feedCountRange[0]; n <= guidance.feedCountRange[1]; n++) {
+    feedCountOptions.push(n);
+  }
+  const isDegenerateRange =
+    guidance.feedCountRange[0] === guidance.feedCountRange[1];
 
   const progressPct = Math.min(
     100,
@@ -391,6 +431,29 @@ export function DayView({
         )}
       </header>
 
+      {showPreferredFeedCountBanner && (
+        <div className="rounded-md border border-amber-500 bg-amber-50 p-3 text-sm text-amber-900 space-y-2 dark:bg-amber-950 dark:text-amber-100">
+          <p>
+            Выбранное число кормлений ({storedPreferredFeedCount}) больше не
+            входит в возрастной диапазон [{guidance.feedCountRange[0]}–
+            {guidance.feedCountRange[1]}]. Сейчас применяется{" "}
+            {guidance.feedCount}.
+          </p>
+          {isDegenerateRange && (
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={updatePreferredFeedCount.isPending}
+              onClick={() =>
+                updatePreferredFeedCount.mutate(guidance.feedCountRange[0])
+              }
+            >
+              Применить {guidance.feedCountRange[0]}
+            </Button>
+          )}
+        </div>
+      )}
+
       <section className="space-y-2 rounded-md border p-3">
         <h2 className="text-sm font-semibold">Рекомендация</h2>
         <div className="flex items-baseline gap-3 tabular-nums">
@@ -413,28 +476,62 @@ export function DayView({
         )}
       </section>
 
-      {guidance.protein && (
-        <Collapsible open={planOpen} onOpenChange={setPlanOpen}>
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="sm" className="gap-1">
-              <ChevronDown
-                className={
-                  "size-4 transition-transform " +
-                  (planOpen ? "rotate-180" : "")
-                }
-                aria-hidden
-              />
-              Белок
-            </Button>
-          </CollapsibleTrigger>
+      <Collapsible open={planOpen} onOpenChange={setPlanOpen}>
+        <div className="flex items-center justify-between gap-2">
+          {guidance.protein ? (
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-1">
+                <ChevronDown
+                  className={
+                    "size-4 transition-transform " +
+                    (planOpen ? "rotate-180" : "")
+                  }
+                  aria-hidden
+                />
+                Белок
+              </Button>
+            </CollapsibleTrigger>
+          ) : (
+            <span />
+          )}
+          {mode === "live" && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1 tabular-nums"
+                  disabled={
+                    isDegenerateRange || updatePreferredFeedCount.isPending
+                  }
+                >
+                  План на старт дня: {guidance.feedCount}
+                  <ChevronDown className="size-4" aria-hidden />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {feedCountOptions.map((n) => (
+                  <DropdownMenuItem
+                    key={n}
+                    className="tabular-nums"
+                    onSelect={() => updatePreferredFeedCount.mutate(n)}
+                  >
+                    {n}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
+        {guidance.protein && (
           <CollapsibleContent className="mt-2">
             <p className="text-xs text-muted-foreground tabular-nums">
               {guidance.protein.gPerKgDay.toFixed(1)} г/кг в сутки —
               контрольный показатель, не цель по объёму.
             </p>
           </CollapsibleContent>
-        </Collapsible>
-      )}
+        )}
+      </Collapsible>
 
       <ul role="list" className="space-y-1">
         {timeline.map((it) => (
