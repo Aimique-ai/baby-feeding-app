@@ -88,14 +88,7 @@ type Props = {
   babyId: string;
 };
 
-const START_OFFSETS = [0, -5, -10, -15];
 const DEFAULT_CHIPS: readonly number[] = DEFAULT_DURATION_CHIPS;
-
-function roundTo5Min(d: Date): Date {
-  const ms = d.getTime();
-  const FIVE = 5 * 60 * 1000;
-  return new Date(Math.round(ms / FIVE) * FIVE);
-}
 
 // Extract Y-M-D from a Calendar-picked Date (always in device's local tz per
 // react-day-picker semantics). Using toZonedTime/format in effectiveTz would
@@ -371,43 +364,15 @@ export function FeedingSheet({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel htmlFor="startAt">Начало</FormLabel>
-                      <div className="flex flex-wrap gap-2">
-                        {START_OFFSETS.map((off) => (
-                          <Button
-                            key={off}
-                            type="button"
-                            variant="secondary"
-                            size="sm"
-                            onClick={() =>
-                              field.onChange(
-                                roundTo5Min(
-                                  new Date(Date.now() + off * 60_000),
-                                ),
-                              )
-                            }
-                          >
-                            {off === 0 ? "Сейчас" : `${off}`}
-                          </Button>
-                        ))}
-                        {mode.kind === "create" && mode.preset?.time && (
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => field.onChange(mode.preset!.time!)}
-                          >
-                            По плану
-                          </Button>
-                        )}
-                      </div>
                       <FormControl>
-                        <div className="flex gap-2">
+                        <div className="flex items-center gap-2">
                           <Popover>
                             <PopoverTrigger asChild>
                               <Button
                                 variant="outline"
                                 type="button"
-                                className="flex-1 justify-between font-normal"
+                                size="sm"
+                                className="justify-between gap-1 font-normal"
                               >
                                 {format(
                                   toZonedTime(field.value, effectiveTz),
@@ -444,6 +409,15 @@ export function FeedingSheet({
                               />
                             </PopoverContent>
                           </Popover>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            className="flex-1"
+                            onClick={() => field.onChange(new Date())}
+                          >
+                            Сейчас
+                          </Button>
                           <Input
                             id="startAt"
                             type="time"
@@ -464,7 +438,7 @@ export function FeedingSheet({
                               );
                             }}
                             onBlur={field.onBlur}
-                            className="w-32 appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+                            className="h-8 w-24 shrink-0 appearance-none rounded-md border border-input bg-background px-3 text-sm shadow-xs [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
                             aria-label="Время"
                           />
                         </div>
