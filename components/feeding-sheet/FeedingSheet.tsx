@@ -12,7 +12,6 @@ import {
 import { toast } from "sonner";
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetFooter,
   SheetHeader,
@@ -40,13 +39,26 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { feedingsKey, medicationsKey } from "@/components/day-view/feedingsKey";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Trash2, ChevronDown } from "lucide-react";
+import { ru } from "date-fns/locale/ru";
+import {
+  feedingsDurationChipsKey,
+  feedingsKey,
+  medicationsKey,
+} from "@/components/day-view/feedingsKey";
+import { DEFAULT_DURATION_CHIPS } from "@/lib/feeding/durationChips";
 import type {
   SerializedFeeding,
   SerializedMedication,
 } from "@/lib/api/serializedTypes";
 import { getBrowserTz, tzHeaders } from "@/lib/time/browserTz";
-import { fromZonedTime, toZonedTime, format as fmtTz } from "date-fns-tz";
+import { fromZonedTime, toZonedTime, format } from "date-fns-tz";
 import {
   feedingFormSchema,
   toFeedingApiBody,
@@ -76,8 +88,8 @@ type Props = {
   babyId: string;
 };
 
-const DURATION_CHIPS = [10, 12, 15, 20];
 const START_OFFSETS = [0, -5, -10, -15];
+const DEFAULT_CHIPS: readonly number[] = DEFAULT_DURATION_CHIPS;
 
 function roundTo5Min(d: Date): Date {
   const ms = d.getTime();
@@ -85,14 +97,14 @@ function roundTo5Min(d: Date): Date {
   return new Date(Math.round(ms / FIVE) * FIVE);
 }
 
-function fmtLocalForInput(d: Date, tz: string): string {
-  // YYYY-MM-DDTHH:mm in the user's IANA timezone, for <input type="datetime-local">
-  return fmtTz(toZonedTime(d, tz), "yyyy-MM-dd'T'HH:mm", { timeZone: tz });
-}
-
-function parseLocalInput(s: string, tz: string): Date {
-  // Treat the wall-clock string as `tz`, not as the device's local zone.
-  return fromZonedTime(s, tz);
+// Extract Y-M-D from a Calendar-picked Date (always in device's local tz per
+// react-day-picker semantics). Using toZonedTime/format in effectiveTz would
+// shift the day on midnight boundaries when device tz ≠ effective tz.
+function ymdFromLocalDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 async function fetchMedications(): Promise<SerializedMedication[]> {
@@ -105,6 +117,13 @@ async function fetchMedication(id: string): Promise<SerializedMedication> {
   const r = await fetch(`/api/medications/${id}`, { cache: "no-store" });
   if (!r.ok) throw new Error("medication fetch failed");
   return r.json();
+}
+
+async function fetchDurationChips(): Promise<number[]> {
+  const r = await fetch("/api/feedings/analytics/duration-chips");
+  if (!r.ok) return [...DEFAULT_CHIPS];
+  const j = (await r.json()) as { chips: number[] };
+  return j.chips;
 }
 
 export function FeedingSheet({
@@ -121,8 +140,6 @@ export function FeedingSheet({
       const f = mode.feeding;
       return {
         startAt: new Date(f.startAt),
-        // Если у кормления нет endAt — длительность пустая ("") , чтобы
-        // редактирование без правки длительности не дописывало endAt.
         durationMin: f.endAt
           ? Math.round(
               (new Date(f.endAt).getTime() -
@@ -138,7 +155,7 @@ export function FeedingSheet({
     }
     const presetStartAt = mode.preset?.startAt;
     return {
-      startAt: presetStartAt ?? roundTo5Min(mode.preset?.time ?? new Date()),
+      startAt: presetStartAt ?? mode.preset?.time ?? new Date(),
       durationMin: mode.preset?.durationMin ?? 15,
       volumeMl: mode.preset?.volumeMl ?? 0,
       isTopUp: false,
@@ -166,6 +183,15 @@ export function FeedingSheet({
     queryKey: medicationsKey(babyId),
     queryFn: fetchMedications,
   });
+
+  const chipsQ = useQuery({
+    queryKey: feedingsDurationChipsKey(babyId),
+    queryFn: fetchDurationChips,
+    staleTime: 5 * 60 * 1000,
+    enabled: open,
+    placeholderData: DEFAULT_CHIPS as number[],
+  });
+  const chips = chipsQ.data ?? DEFAULT_CHIPS;
 
   const activeMeds = medsQ.data ?? [];
   const selectedInActive =
@@ -222,6 +248,7 @@ export function FeedingSheet({
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: feedingsKey(babyId, dateISO, effectiveTz) });
+      qc.invalidateQueries({ queryKey: feedingsDurationChipsKey(babyId) });
       toast.success("Сохранено");
       onOpenChange(false);
     },
@@ -240,6 +267,7 @@ export function FeedingSheet({
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: feedingsKey(babyId, dateISO, effectiveTz) });
+      qc.invalidateQueries({ queryKey: feedingsDurationChipsKey(babyId) });
       toast.success("Сохранено");
       onOpenChange(false);
     },
@@ -257,6 +285,7 @@ export function FeedingSheet({
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: feedingsKey(babyId, dateISO, effectiveTz) });
+      qc.invalidateQueries({ queryKey: feedingsDurationChipsKey(babyId) });
       toast.success("Удалено");
       setConfirmDelete(false);
       onOpenChange(false);
@@ -310,6 +339,34 @@ export function FeedingSheet({
               <div className="space-y-5 px-4 py-2">
                 <FormField
                   control={form.control}
+                  name="isTopUp"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Тип</FormLabel>
+                      <ToggleGroup
+                        type="single"
+                        variant="outline"
+                        className="w-full"
+                        value={field.value ? "topup" : "main"}
+                        onValueChange={(v) => {
+                          if (v === "main" || v === "topup")
+                            field.onChange(v === "topup");
+                        }}
+                      >
+                        <ToggleGroupItem value="main" className="flex-1">
+                          Основное
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="topup" className="flex-1">
+                          Докорм
+                        </ToggleGroupItem>
+                      </ToggleGroup>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
                   name="startAt"
                   render={({ field }) => (
                     <FormItem>
@@ -344,19 +401,73 @@ export function FeedingSheet({
                         )}
                       </div>
                       <FormControl>
-                        <Input
-                          id="startAt"
-                          type="datetime-local"
-                          value={fmtLocalForInput(field.value, effectiveTz)}
-                          onChange={(e) =>
-                            field.onChange(
-                              parseLocalInput(e.target.value, effectiveTz),
-                            )
-                          }
-                          onBlur={field.onBlur}
-                          name={field.name}
-                          ref={field.ref}
-                        />
+                        <div className="flex gap-2">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                type="button"
+                                className="flex-1 justify-between font-normal"
+                              >
+                                {format(
+                                  toZonedTime(field.value, effectiveTz),
+                                  "d MMMM yyyy",
+                                  { timeZone: effectiveTz, locale: ru },
+                                )}
+                                <ChevronDown className="size-4 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={toZonedTime(field.value, effectiveTz)}
+                                captionLayout="dropdown"
+                                defaultMonth={toZonedTime(
+                                  field.value,
+                                  effectiveTz,
+                                )}
+                                onSelect={(d) => {
+                                  if (!d) return;
+                                  const ymd = ymdFromLocalDate(d);
+                                  const hhmm = format(
+                                    toZonedTime(field.value, effectiveTz),
+                                    "HH:mm",
+                                    { timeZone: effectiveTz },
+                                  );
+                                  field.onChange(
+                                    fromZonedTime(
+                                      `${ymd}T${hhmm}`,
+                                      effectiveTz,
+                                    ),
+                                  );
+                                }}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <Input
+                            id="startAt"
+                            type="time"
+                            value={format(
+                              toZonedTime(field.value, effectiveTz),
+                              "HH:mm",
+                              { timeZone: effectiveTz },
+                            )}
+                            onChange={(e) => {
+                              const hhmm = e.target.value || "00:00";
+                              const ymd = format(
+                                toZonedTime(field.value, effectiveTz),
+                                "yyyy-MM-dd",
+                                { timeZone: effectiveTz },
+                              );
+                              field.onChange(
+                                fromZonedTime(`${ymd}T${hhmm}`, effectiveTz),
+                              );
+                            }}
+                            onBlur={field.onBlur}
+                            className="w-32 appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+                            aria-label="Время"
+                          />
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -377,7 +488,7 @@ export function FeedingSheet({
                         spacing={2}
                         value={
                           field.value !== "" &&
-                          DURATION_CHIPS.includes(field.value)
+                          chips.includes(field.value)
                             ? String(field.value)
                             : ""
                         }
@@ -385,7 +496,7 @@ export function FeedingSheet({
                           if (v) field.onChange(Number(v));
                         }}
                       >
-                        {DURATION_CHIPS.map((d) => (
+                        {chips.map((d) => (
                           <ToggleGroupItem
                             key={d}
                             value={String(d)}
@@ -440,34 +551,6 @@ export function FeedingSheet({
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="isTopUp"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Тип</FormLabel>
-                      <ToggleGroup
-                        type="single"
-                        variant="outline"
-                        className="w-full"
-                        value={field.value ? "topup" : "main"}
-                        onValueChange={(v) => {
-                          if (v === "main" || v === "topup")
-                            field.onChange(v === "topup");
-                        }}
-                      >
-                        <ToggleGroupItem value="main" className="flex-1">
-                          Основное
-                        </ToggleGroupItem>
-                        <ToggleGroupItem value="topup" className="flex-1">
-                          Докорм
-                        </ToggleGroupItem>
-                      </ToggleGroup>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
                 {showMedSection && (
                   <FormField
                     control={form.control}
@@ -512,8 +595,6 @@ export function FeedingSheet({
                             <NumberStepper
                               id="medDose"
                               value={field.value}
-                              // Доза при выбранном лекарстве обязательна:
-                              // очистка поля возвращает к минимуму (1 капля).
                               onChange={(v) =>
                                 field.onChange(v === "" ? 1 : v)
                               }
@@ -532,25 +613,22 @@ export function FeedingSheet({
                 )}
               </div>
 
-              <SheetFooter className="gap-2">
+              <SheetFooter className="flex flex-row items-center justify-between gap-2">
+                <Button type="submit" disabled={isPending} className="flex-1">
+                  Сохранить
+                </Button>
                 {mode.kind === "edit" && (
                   <Button
                     type="button"
-                    variant="destructive"
+                    variant="ghost"
+                    size="icon"
                     onClick={() => setConfirmDelete(true)}
                     disabled={isPending}
+                    aria-label="Удалить"
                   >
-                    Удалить
+                    <Trash2 className="size-4" />
                   </Button>
                 )}
-                <SheetClose asChild>
-                  <Button type="button" variant="ghost" disabled={isPending}>
-                    Отмена
-                  </Button>
-                </SheetClose>
-                <Button type="submit" disabled={isPending}>
-                  Сохранить
-                </Button>
               </SheetFooter>
             </form>
           </Form>
