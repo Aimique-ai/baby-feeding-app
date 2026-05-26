@@ -14,26 +14,40 @@ import { FormulaModel } from "../models/formula";
 async function main() {
   await dbConnect();
 
-  const r = await FormulaModel.updateOne(
-    { name: "Nan Optipro 1", isSystem: true },
+  const presets = [
     {
-      $setOnInsert: {
-        brand: "Nestlé",
-        kcalPer100mlReady: 67,
-        proteinGPer100kcal: 1.8,
-        proteinGPer100mlReady: 1.2,
-        stage: 1,
-        kind: "standard",
-        isSystem: true,
-      },
+      name: "Nan Optipro 1",
+      brand: "Nestlé",
+      kcalPer100mlReady: 67,
+      proteinGPer100kcal: 1.8,
+      proteinGPer100mlReady: 1.2,
+      stage: 1,
+      kind: "standard" as const,
+      isSystem: true,
     },
-    { upsert: true },
-  );
+    {
+      name: "Nan Supreme Pro 1",
+      brand: "Nestlé",
+      kcalPer100mlReady: 67,
+      proteinGPer100kcal: 1.9,
+      proteinGPer100mlReady: 1.27,
+      stage: 1,
+      kind: "standard" as const,
+      isSystem: true,
+    },
+  ];
 
-  if (r.upsertedCount > 0) {
-    console.log("seed-formulas: created Nan Optipro 1");
-  } else {
-    console.log("seed-formulas: Nan Optipro 1 already present, no changes");
+  for (const preset of presets) {
+    const r = await FormulaModel.updateOne(
+      { name: preset.name, isSystem: true },
+      { $setOnInsert: preset },
+      { upsert: true },
+    );
+    if (r.upsertedCount > 0) {
+      console.log(`seed-formulas: created ${preset.name}`);
+    } else {
+      console.log(`seed-formulas: ${preset.name} already present, no changes`);
+    }
   }
 
   await mongoose.disconnect();
