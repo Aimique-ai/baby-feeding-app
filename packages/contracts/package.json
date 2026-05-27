@@ -1,0 +1,15 @@
+{
+  "name": "@leon/contracts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./serialized": "./src/serialized.ts",
+    "./headers": "./src/headers.ts"
+  },
+  "devDependencies": {
+    "@leon/typescript-config": "workspace:*",
+    "typescript": "^5"
+  }
+}

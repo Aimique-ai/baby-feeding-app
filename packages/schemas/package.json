@@ -1,0 +1,22 @@
+{
+  "name": "@leon/schemas",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./baby": "./src/baby.ts",
+    "./feeding": "./src/feeding.ts",
+    "./formula": "./src/formula.ts",
+    "./medication": "./src/medication.ts",
+    "./weight": "./src/weight.ts",
+    "./constants": "./src/constants.ts"
+  },
+  "dependencies": {
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@leon/typescript-config": "workspace:*",
+    "typescript": "^5"
+  }
+}

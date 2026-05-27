@@ -4,22 +4,21 @@
     "name": "Леон",
     "birthDate": "2026-04-24T21:00:00.000Z",
     "birthWeightGrams": 3400,
-    "feedingsPerDay": 8,
     "createdAt": "2026-05-09T07:25:23.358Z",
-    "updatedAt": "2026-05-16T17:44:23.759Z",
+    "updatedAt": "2026-05-25T16:06:56.947Z",
     "__v": 0,
     "sex": "male",
-    "currentFormulaId": "6a08acd0439149f76c87fcd2"
+    "currentFormulaId": "6a08acd0439149f76c87fcd2",
+    "preferredFeedCount": 7
   },
   {
     "_id": "6a04368641fec893ce68b3f2",
     "name": "Mr. Test",
     "birthDate": "2026-05-13T08:00:00.000Z",
     "birthWeightGrams": 3500,
-    "feedingsPerDay": 8,
-    "archivedAt": null,
+    "archivedAt": "2026-05-22T16:53:41.359Z",
     "createdAt": "2026-05-13T08:29:58.034Z",
-    "updatedAt": "2026-05-16T17:44:23.759Z",
+    "updatedAt": "2026-05-22T16:53:41.359Z",
     "__v": 0,
     "sex": "male",
     "currentFormulaId": "6a08acd0439149f76c87fcd2"
@@ -29,12 +28,23 @@
     "name": "test 2",
     "birthDate": "2026-04-25T10:00:00.000Z",
     "birthWeightGrams": 3400,
-    "feedingsPerDay": 8,
-    "archivedAt": null,
+    "archivedAt": "2026-05-22T16:53:42.708Z",
     "createdAt": "2026-05-13T16:13:26.410Z",
-    "updatedAt": "2026-05-16T17:44:23.759Z",
+    "updatedAt": "2026-05-22T16:53:42.708Z",
     "__v": 0,
     "sex": "male",
     "currentFormulaId": "6a08acd0439149f76c87fcd2"
+  },
+  {
+    "_id": "6a108a56bf4f7b8c0cb7c509",
+    "name": "Test 3",
+    "birthDate": "2026-04-25T16:54:00.000Z",
+    "birthWeightGrams": 3400,
+    "sex": "male",
+    "currentFormulaId": "6a08acd0439149f76c87fcd2",
+    "archivedAt": null,
+    "createdAt": "2026-05-22T16:54:46.067Z",
+    "updatedAt": "2026-05-22T16:54:46.067Z",
+    "__v": 0
   }
 ]

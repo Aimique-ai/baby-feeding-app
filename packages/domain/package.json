@@ -1,0 +1,24 @@
+{
+  "name": "@leon/domain",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./planning": "./src/planning/index.ts",
+    "./planning/*": "./src/planning/*.ts",
+    "./math": "./src/math/round.ts",
+    "./time": "./src/time/index.ts",
+    "./feeding": "./src/feeding/durationChips.ts",
+    "./who": "./src/who/index.ts",
+    "./who/types": "./src/who/analyticsTypes.ts"
+  },
+  "dependencies": {
+    "@leon/contracts": "workspace:*",
+    "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0"
+  },
+  "devDependencies": {
+    "@leon/typescript-config": "workspace:*",
+    "typescript": "^5"
+  }
+}
