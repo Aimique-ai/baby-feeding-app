@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Leon mobile — Сегодня · строгий</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+
+  :root {
+    --bg: #f4f3ef;        /* paper off-white, slight warm grey */
+    --ink: #0e0e0e;       /* near-black */
+    --ink-2: #2a2a2a;     /* darker grey */
+    --ink-3: #5b5b58;     /* secondary text */
+    --ink-4: #9a9893;     /* tertiary / muted */
+    --line: #d6d4cd;      /* primary hairline */
+    --line-2: #e6e4dd;    /* lighter hairline */
+    --accent: #1d2740;    /* deep ink-navy */
+    --accent-fg: #f4f3ef;
+    --surface: #ffffff;
+    --warn: #8a3a1f;      /* sober rust, used very sparingly */
+  }
+
+  body {
+    font-family: "Inter Tight", -apple-system, BlinkMacSystemFont, sans-serif;
+    background:
+      linear-gradient(180deg, #efece6 0%, #e7e4dd 100%);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    padding: 56px 24px 96px;
+    min-height: 100vh;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  .page-head { max-width: 920px; margin: 0 auto 36px; }
+  .page-head .eyebrow {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    margin-bottom: 14px;
+  }
+  .page-head h1 {
+    font-family: "Inter Tight", sans-serif;
+    font-weight: 500; font-size: 40px;
+    letter-spacing: -0.025em; line-height: 1.05;
+    color: var(--ink);
+  }
+  .page-head h1 em {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--ink-3);
+  }
+  .page-head p {
+    margin-top: 14px; max-width: 64ch;
+    color: var(--ink-3); font-size: 14.5px; line-height: 1.6;
+  }
+  .page-head .meta {
+    margin-top: 22px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px;
+    color: var(--ink-4);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .page-head .meta span + span { margin-left: 18px; }
+  .page-head .links {
+    margin-top: 18px; display: flex; gap: 20px; font-size: 13px;
+  }
+  .page-head .links a {
+    color: var(--ink); text-decoration: none;
+    border-bottom: 1px solid var(--ink); padding-bottom: 2px;
+  }
+
+  .stage {
+    display: grid;
+    grid-template-columns: 380px minmax(280px, 1fr);
+    gap: 56px;
+    max-width: 920px;
+    margin: 0 auto;
+    align-items: start;
+  }
+  @media (max-width: 820px) { .stage { grid-template-columns: 1fr; max-width: 420px; } }
+
+  /* PHONE FRAME ----------------------------------------------- */
+  .phone {
+    width: 380px; max-width: 100%; margin: 0 auto;
+    background: #050505; border-radius: 48px; padding: 10px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.2) inset,
+      0 24px 48px -16px rgba(0,0,0,.3);
+  }
+  .screen {
+    border-radius: 38px; overflow: hidden; position: relative;
+    aspect-ratio: 380 / 820;
+    display: flex; flex-direction: column;
+    background: var(--bg); color: var(--ink);
+  }
+  .notch {
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    width: 100px; height: 28px; background: #050505; border-radius: 16px; z-index: 10;
+  }
+  .status-bar {
+    position: relative; z-index: 5;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 24px 0;
+    font-weight: 600; font-size: 13.5px; letter-spacing: -0.01em;
+    font-feature-settings: "tnum";
+  }
+  .status-bar .right { display: flex; gap: 6px; align-items: center; }
+
+  /* ============================================================
+     HEADER STRIP
+     ============================================================ */
+  .strip {
+    margin-top: 40px;
+    padding: 0 22px 18px;
+    border-bottom: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    align-items: end;
+  }
+  .strip .left .k {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--ink-4);
+    text-transform: uppercase;
+  }
+  .strip .left .date {
+    margin-top: 4px;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .strip .right .ix {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--ink-4);
+    text-transform: uppercase;
+    text-align: right;
+  }
+  .strip .right .name {
+    margin-top: 4px;
+    font-family: "Instrument Serif", serif;
+    font-weight: 400;
+    font-size: 20px;
+    letter-spacing: -0.005em;
+    color: var(--ink);
+    text-align: right;
+    line-height: 1;
+  }
+
+  /* ============================================================
+     HEAD METRIC — large display
+     ============================================================ */
+  .head {
+    padding: 24px 22px 18px;
+    border-bottom: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: 18px;
+  }
+  .head .row1 {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: baseline;
+    gap: 14px;
+  }
+  .head .num {
+    font-family: "Inter Tight", sans-serif;
+    font-weight: 400;
+    font-size: 76px;
+    line-height: 0.85;
+    letter-spacing: -0.05em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .head .of {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-3);
+    letter-spacing: -0.01em;
+  }
+  .head .of strong { color: var(--ink); font-weight: 600; }
+  .head .pct {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    align-self: end;
+  }
+  /* bar */
+  .head .bar {
+    height: 6px;
+    background: var(--line-2);
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 0;
+  }
+  .head .bar::after {
+    content: "";
+    position: absolute;
+    inset: 0 29% 0 0;
+    background: var(--ink);
+  }
+  .head .ticks {
+    display: flex;
+    justify-content: space-between;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    color: var(--ink-4);
+    letter-spacing: 0.08em;
+    margin-top: 4px;
+  }
+
+  /* ============================================================
+     SCHEDULE TABLE — feeding log
+     ============================================================ */
+  .schedule {
+    flex: 1;
+    overflow: hidden;
+    padding-bottom: 100px;
+  }
+  .sched-head {
+    display: grid;
+    grid-template-columns: 56px 1fr 60px 60px;
+    padding: 14px 22px 8px;
+    border-bottom: 1px solid var(--line);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+  }
+  .sched-head .num-col { text-align: right; }
+  .sched-head .right { text-align: right; }
+
+  .entry {
+    display: grid;
+    grid-template-columns: 56px 1fr 60px 60px;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--line-2);
+    align-items: baseline;
+    gap: 8px;
+    font-variant-numeric: tabular-nums;
+  }
+  .entry .ix {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px;
+    color: var(--ink-4);
+    letter-spacing: 0.04em;
+  }
+  .entry .t {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .entry .note {
+    font-size: 11.5px;
+    color: var(--ink-4);
+    margin-top: 2px;
+    letter-spacing: -0.005em;
+  }
+  .entry .dur {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-3);
+    text-align: right;
+    letter-spacing: -0.01em;
+  }
+  .entry .vol {
+    font-family: "Inter Tight", sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    color: var(--ink);
+    text-align: right;
+    letter-spacing: -0.02em;
+  }
+  .entry .vol em {
+    font-style: normal;
+    font-size: 10px;
+    color: var(--ink-4);
+    margin-left: 2px;
+    font-family: "JetBrains Mono", monospace;
+  }
+  .entry.plan { background: transparent; }
+  .entry.plan .ix,
+  .entry.plan .t,
+  .entry.plan .dur,
+  .entry.plan .vol { color: var(--ink-4); font-weight: 400; }
+  .entry.plan .t::after {
+    content: " · план";
+    font-family: "Inter Tight", sans-serif;
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    margin-left: 6px;
+    font-weight: 400;
+  }
+  .entry.next {
+    background: var(--ink);
+    color: var(--bg);
+    border-color: var(--ink);
+  }
+  .entry.next .ix,
+  .entry.next .t,
+  .entry.next .dur { color: var(--bg); }
+  .entry.next .note { color: rgba(244,243,239,.6); }
+  .entry.next .vol { color: var(--bg); }
+  .entry.next .vol em { color: rgba(244,243,239,.6); }
+  .entry.next .t::after {
+    content: " ← сейчас";
+    font-family: "Inter Tight", sans-serif;
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(244,243,239,.6);
+    margin-left: 8px;
+    font-weight: 400;
+  }
+
+  /* ============================================================
+     ACTION BAR
+     ============================================================ */
+  .action {
+    position: absolute;
+    left: 16px; right: 16px;
+    bottom: 18px;
+    display: grid;
+    grid-template-columns: 1fr 52px 52px;
+    gap: 8px;
+    z-index: 8;
+  }
+  .action .pri {
+    background: var(--ink);
+    color: var(--bg);
+    border: 0;
+    border-radius: 6px;
+    padding: 17px 20px;
+    font-family: "Inter Tight", sans-serif;
+    font-weight: 500;
+    font-size: 14.5px;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .action .pri .k {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    opacity: 0.65;
+    font-weight: 500;
+    margin-right: 12px;
+  }
+  .action .ico {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    cursor: pointer;
+    display: grid; place-items: center;
+    color: var(--ink);
+  }
+
+  /* ============================================================
+     ANNOTATIONS (right column)
+     ============================================================ */
+  .notes .eyebrow {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    margin-bottom: 12px;
+  }
+  .notes h2 {
+    font-family: "Inter Tight", sans-serif;
+    font-weight: 500;
+    font-size: 24px;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+    margin-bottom: 18px;
+  }
+  .notes h2 em {
+    font-family: "Instrument Serif", serif;
+    font-style: italic; font-weight: 400; color: var(--ink-3);
+  }
+  .notes section {
+    border-top: 1px solid var(--line);
+    padding: 18px 0;
+  }
+  .notes section:first-of-type { border-top: 0; padding-top: 0; }
+  .notes h3 {
+    font-family: "Inter Tight", sans-serif;
+    font-weight: 600;
+    font-size: 13.5px;
+    letter-spacing: -0.005em;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .notes p {
+    font-size: 13.5px;
+    color: var(--ink-3);
+    line-height: 1.6;
+  }
+  .notes p strong { color: var(--ink); font-weight: 600; }
+  .notes .swatches {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .notes .swatches span {
+    aspect-ratio: 1;
+    border: 1px solid var(--line);
+  }
+  .notes .specimen {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11.5px;
+    color: var(--ink-3);
+    margin-top: 8px;
+    letter-spacing: -0.01em;
+  }
+  .notes .specimen b { color: var(--ink); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<header class="page-head">
+  <div class="eyebrow">Leon / mobile / today · iteration 03</div>
+  <h1>Строгий <em>— инженерный</em></h1>
+  <p>
+    Ушёл из «мама-эппа» полностью. Бумажный фон, угольная типографика,
+    моноширинные числа и метки. Никаких пастелей, скруглений-pillow, капель
+    и круглых метафор. День становится <strong>табелем</strong>: сетка с
+    индексами, временем, длительностью и объёмом. Активная строка
+    инвертирована — это единственный «громкий» элемент.
+  </p>
+  <div class="meta">
+    <span>type · Inter Tight + JetBrains Mono</span>
+    <span>palette · paper / ink / navy</span>
+    <span>metaphor · ledger</span>
+  </div>
+  <div class="links">
+    <a href="./index.html">← Дашборд (3 палитры)</a>
+    <a href="./today-orbit.html">← Орбита</a>
+    <a href="./feeding-sheet.html">→ Запись кормления</a>
+  </div>
+</header>
+
+<div class="stage">
+
+  <!-- PHONE -------------------------------------------------------- -->
+  <div class="phone">
+    <div class="screen">
+      <div class="notch"></div>
+      <div class="status-bar">
+        <span>14:32</span>
+        <div class="right">
+          <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><rect x="0" y="7" width="2.5" height="4" rx=".5"/><rect x="4" y="5" width="2.5" height="6" rx=".5"/><rect x="8" y="2" width="2.5" height="9" rx=".5"/><rect x="12" y="0" width="2.5" height="11" rx=".5"/></svg>
+          <svg width="24" height="11" viewBox="0 0 24 11" fill="none" stroke="currentColor" stroke-width="1"><rect x=".5" y=".5" width="20" height="10" rx="2.5"/><rect x="2.5" y="2.5" width="14" height="6" rx="1" fill="currentColor"/><rect x="21" y="3.5" width="2" height="4" rx="1" fill="currentColor"/></svg>
+        </div>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- STRIP: date + name                              -->
+      <!-- ============================================== -->
+      <div class="strip">
+        <div class="left">
+          <div class="k">27.05.2026 · СР</div>
+          <div class="date">День 47</div>
+        </div>
+        <div class="right">
+          <div class="ix">РЕБЁНОК · 4 820 Г</div>
+          <div class="name">Лёва</div>
+        </div>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- HEAD METRIC                                     -->
+      <!-- ============================================== -->
+      <div class="head">
+        <div class="row1">
+          <div class="num">438</div>
+          <div class="of">МЛ · ИЗ <strong>620</strong></div>
+          <div class="pct">71%</div>
+        </div>
+        <div>
+          <div class="bar"></div>
+          <div class="ticks">
+            <span>0</span>
+            <span>155</span>
+            <span>310</span>
+            <span>465</span>
+            <span>620</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- SCHEDULE                                        -->
+      <!-- ============================================== -->
+      <div class="schedule">
+        <div class="sched-head">
+          <span class="num-col">№</span>
+          <span>ВРЕМЯ</span>
+          <span class="right">ДЛИТ.</span>
+          <span class="right">МЛ</span>
+        </div>
+
+        <div class="entry">
+          <span class="ix">01</span>
+          <div>
+            <span class="t">06:15</span>
+            <div class="note">основное</div>
+          </div>
+          <span class="dur">18м</span>
+          <span class="vol">60<em>мл</em></span>
+        </div>
+
+        <div class="entry">
+          <span class="ix">02</span>
+          <div>
+            <span class="t">09:00</span>
+            <div class="note">осн. · креон 3 кап.</div>
+          </div>
+          <span class="dur">16м</span>
+          <span class="vol">60<em>мл</em></span>
+        </div>
+
+        <div class="entry">
+          <span class="ix">03</span>
+          <div>
+            <span class="t">11:45</span>
+            <div class="note">основное</div>
+          </div>
+          <span class="dur">14м</span>
+          <span class="vol">55<em>мл</em></span>
+        </div>
+
+        <div class="entry next">
+          <span class="ix">04</span>
+          <div>
+            <span class="t">14:50</span>
+            <div class="note">через 18 мин</div>
+          </div>
+          <span class="dur">—</span>
+          <span class="vol">60<em>мл</em></span>
+        </div>
+
+        <div class="entry plan">
+          <span class="ix">05</span>
+          <div>
+            <span class="t">17:30</span>
+            <div class="note">—</div>
+          </div>
+          <span class="dur">—</span>
+          <span class="vol">60<em>мл</em></span>
+        </div>
+
+        <div class="entry plan">
+          <span class="ix">06</span>
+          <div>
+            <span class="t">20:15</span>
+            <div class="note">—</div>
+          </div>
+          <span class="dur">—</span>
+          <span class="vol">60<em>мл</em></span>
+        </div>
+
+        <div class="entry plan">
+          <span class="ix">07</span>
+          <div>
+            <span class="t">23:00</span>
+            <div class="note">—</div>
+          </div>
+          <span class="dur">—</span>
+          <span class="vol">60<em>мл</em></span>
+        </div>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- ACTION BAR                                      -->
+      <!-- ============================================== -->
+      <div class="action">
+        <button class="pri">
+          <span class="k">ЗАП</span>
+          Записать кормление
+        </button>
+        <button class="ico" aria-label="История">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
+        </button>
+        <button class="ico" aria-label="Меню">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANNOTATIONS -------------------------------------------------- -->
+  <aside class="notes">
+    <div class="eyebrow">design notes · iteration 03</div>
+    <h2>Строгий <em>как табель</em></h2>
+
+    <section>
+      <h3>Палитра</h3>
+      <p>
+        Бумажный off-white (#f4f3ef), угольный текст, серая иерархия из
+        четырёх ступеней, тонкая графитовая линейка. Акцент через
+        <strong>инверсию</strong> — активная строка чёрная на бумаге, а не
+        цветная. Один синий (navy) держим в резерве для CTA/линков, в этом
+        макете не используется.
+      </p>
+      <div class="swatches">
+        <span style="background:#f4f3ef"></span>
+        <span style="background:#e6e4dd"></span>
+        <span style="background:#d6d4cd"></span>
+        <span style="background:#9a9893"></span>
+        <span style="background:#2a2a2a"></span>
+        <span style="background:#0e0e0e"></span>
+      </div>
+    </section>
+
+    <section>
+      <h3>Типографика</h3>
+      <p>
+        <strong>Inter Tight</strong> для UI — узкий неогротеск, прижатые
+        буквы, без характера, но с очень читаемыми цифрами.
+        <strong>JetBrains Mono</strong> для меток, индексов, времени —
+        моноширинная сетка делает табель табелем.
+        <strong>Instrument Serif italic</strong> — единственный голос
+        «человека» в макете, только на имени ребёнка и заголовке.
+      </p>
+      <div class="specimen">
+        <b>0123456789</b> · 4 820g · 14:32:08 · #04
+      </div>
+    </section>
+
+    <section>
+      <h3>Прогресс — не круг и не пилюля</h3>
+      <p>
+        <strong>438 / 620 ml / 71%</strong> на одной строке, под ней
+        тонкий бар с тиками 0–155–310–465–620. Это <strong>шкала</strong>,
+        а не motivational ring. Числа делают всю работу.
+      </p>
+    </section>
+
+    <section>
+      <h3>День — таблица, не лента</h3>
+      <p>
+        Колонки <em>#</em> · <em>TIME</em> · <em>DUR</em> · <em>ML</em>.
+        Индекс кормления (01..07) задаёт чувство счёта.
+        План отличается приглушённым серым и меткой «· ПЛАН».
+        <strong>Следующее кормление</strong> — единственная инвертированная
+        строка, она вытягивает взгляд без цвета.
+      </p>
+    </section>
+
+    <section>
+      <h3>Действие</h3>
+      <p>
+        Прямоугольная чёрная кнопка с моно-меткой <code>REC</code> слева —
+        это «эквалайзер-кнопка». Рядом две квадратные иконки: история и
+        меню. Никакого FAB-кружка, никакого центрального плюса. Если
+        хочется ещё строже — оставить только одну кнопку «Записать» во весь
+        низ.
+      </p>
+    </section>
+
+    <section>
+      <h3>Что осталось за рамкой</h3>
+      <p>
+        Лекарство в строке кормления показано как мелкий note под временем
+        («креон 3 кап.»). Recommendation per-feeding и protein-flags ушли в
+        отдельный sub-screen «Today / Detail» с такой же ledger-эстетикой —
+        не загромождают главный.
+      </p>
+    </section>
+  </aside>
+
+</div>
+
+</body>
+</html>

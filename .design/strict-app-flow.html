@@ -1,0 +1,2925 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Leon mobile — Строгий · полный флоу + UI kit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+
+  :root {
+    --bg: #f4f3ef;
+    --ink: #0e0e0e;
+    --ink-2: #2a2a2a;
+    --ink-3: #5b5b58;
+    --ink-4: #9a9893;
+    --line: #d6d4cd;
+    --line-2: #e6e4dd;
+    --accent: #1d2740;
+    --accent-fg: #f4f3ef;
+    --surface: #ffffff;
+    --warn: #8a3a1f;
+    --good: #2c5b3a;
+  }
+
+  body {
+    font-family: "Inter Tight", -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(180deg, #efece6 0%, #e7e4dd 100%);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    padding: 56px 24px 96px;
+    min-height: 100vh;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  .page-head { max-width: 1280px; margin: 0 auto 56px; }
+  .page-head .eyebrow {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--ink-4);
+    margin-bottom: 14px;
+  }
+  .page-head h1 {
+    font-family: "Inter Tight", sans-serif;
+    font-weight: 500; font-size: 44px;
+    letter-spacing: -0.03em; line-height: 1.02;
+  }
+  .page-head h1 em {
+    font-family: "Instrument Serif", serif;
+    font-style: italic; font-weight: 400; color: var(--ink-3);
+  }
+  .page-head p {
+    margin-top: 16px; max-width: 68ch;
+    color: var(--ink-3); font-size: 14.5px; line-height: 1.6;
+  }
+  .page-head .meta {
+    margin-top: 22px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; color: var(--ink-4);
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .page-head .meta span + span { margin-left: 18px; }
+
+  /* SECTION DIVIDER ----------------------------------- */
+  .section-rule {
+    max-width: 1280px;
+    margin: 88px auto 32px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--ink);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: baseline;
+    gap: 24px;
+  }
+  .section-rule .num {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; letter-spacing: 0.22em;
+    color: var(--ink-4); text-transform: uppercase;
+  }
+  .section-rule h2 {
+    font-family: "Inter Tight", sans-serif;
+    font-weight: 500; font-size: 28px;
+    letter-spacing: -0.025em; line-height: 1;
+  }
+  .section-rule h2 em {
+    font-family: "Instrument Serif", serif;
+    font-style: italic; font-weight: 400; color: var(--ink-3);
+  }
+  .section-rule .count {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; color: var(--ink-3);
+    letter-spacing: 0.04em;
+  }
+
+  /* GALLERY GRID -------------------------------------- */
+  .gallery {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 56px 48px;
+    justify-items: center;
+  }
+  .group { width: 380px; max-width: 100%; }
+  .group .label {
+    margin: 0 0 14px 4px;
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 12px;
+  }
+  .group .label h3 {
+    font-family: "Inter Tight", sans-serif;
+    font-weight: 500; font-size: 18px;
+    letter-spacing: -0.02em;
+  }
+  .group .label h3 em {
+    font-family: "Instrument Serif", serif;
+    font-style: italic; font-weight: 400; color: var(--ink-3);
+  }
+  .group .label .ix {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; letter-spacing: 0.18em;
+    color: var(--ink-4); text-transform: uppercase;
+  }
+  .group .desc {
+    margin: 0 4px 16px;
+    font-size: 12px; color: var(--ink-3); line-height: 1.5;
+  }
+
+  /* PHONE FRAME ----------------------------------------------- */
+  .phone {
+    background: #050505; border-radius: 48px; padding: 10px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.2) inset,
+      0 24px 48px -16px rgba(0,0,0,.3);
+  }
+  .screen {
+    border-radius: 38px; overflow: hidden; position: relative;
+    aspect-ratio: 380 / 820;
+    display: flex; flex-direction: column;
+    background: var(--bg); color: var(--ink);
+  }
+  .notch {
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    width: 100px; height: 28px; background: #050505; border-radius: 16px; z-index: 10;
+  }
+  .status-bar {
+    position: relative; z-index: 5;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 24px 0;
+    font-weight: 600; font-size: 13.5px; letter-spacing: -0.01em;
+    font-feature-settings: "tnum";
+  }
+  .status-bar .right { display: flex; gap: 6px; align-items: center; }
+
+  /* TOPBAR ---------------------------------------------------- */
+  .topbar {
+    margin-top: 40px;
+    padding: 0 22px 16px;
+    border-bottom: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+  }
+  .topbar .back {
+    width: 32px; height: 32px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 6px;
+    display: grid; place-items: center;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .topbar .title {
+    font-family: "Inter Tight", sans-serif;
+    font-weight: 500; font-size: 17px;
+    letter-spacing: -0.02em; text-align: center;
+  }
+  .topbar .crumb {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9.5px; letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    text-align: center; margin-top: 2px;
+  }
+  .topbar .right-action {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--ink);
+    background: var(--surface);
+    padding: 8px 10px; cursor: pointer;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  .topbar .spacer { width: 32px; height: 32px; }
+
+  /* === TODAY (mini, the canonical) =================== */
+  .strip {
+    margin-top: 40px; padding: 0 22px 18px;
+    border-bottom: 1px solid var(--line);
+    display: grid; grid-template-columns: 1fr auto;
+    gap: 12px; align-items: end;
+  }
+  .strip .k {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; letter-spacing: 0.18em;
+    color: var(--ink-4); text-transform: uppercase;
+  }
+  .strip .left .date {
+    margin-top: 4px; font-size: 15px; font-weight: 500;
+    letter-spacing: -0.015em;
+    font-variant-numeric: tabular-nums;
+  }
+  .strip .right .ix {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; letter-spacing: 0.18em;
+    color: var(--ink-4); text-transform: uppercase;
+    text-align: right;
+  }
+  .strip .right .name {
+    margin-top: 4px;
+    font-family: "Instrument Serif", serif;
+    font-weight: 400; font-size: 20px;
+    text-align: right; line-height: 1;
+  }
+
+  .head {
+    padding: 24px 22px 18px;
+    border-bottom: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: 18px;
+  }
+  .head .row1 {
+    display: grid; grid-template-columns: auto 1fr auto;
+    align-items: baseline; gap: 14px;
+  }
+  .head .num {
+    font-family: "Inter Tight", sans-serif;
+    font-weight: 400; font-size: 76px;
+    line-height: 0.85; letter-spacing: -0.05em;
+    font-variant-numeric: tabular-nums;
+  }
+  .head .of {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px; color: var(--ink-3);
+    letter-spacing: -0.01em;
+  }
+  .head .of strong { color: var(--ink); font-weight: 600; }
+  .head .pct {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px; font-weight: 500;
+    align-self: end;
+  }
+  .head .bar {
+    height: 6px;
+    background: var(--line-2);
+    position: relative;
+    border: 1px solid var(--line);
+  }
+  .head .bar::after {
+    content: ""; position: absolute;
+    inset: 0 29% 0 0; background: var(--ink);
+  }
+  .head .ticks {
+    display: flex; justify-content: space-between;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; color: var(--ink-4);
+    letter-spacing: 0.08em; margin-top: 4px;
+  }
+
+  .schedule { flex: 1; overflow: hidden; padding-bottom: 100px; }
+  .sched-head {
+    display: grid; grid-template-columns: 56px 1fr 60px 60px;
+    padding: 14px 22px 8px;
+    border-bottom: 1px solid var(--line);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9.5px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--ink-4);
+  }
+  .sched-head .right { text-align: right; }
+  .sched-head .num-col { text-align: right; }
+
+  .entry {
+    display: grid; grid-template-columns: 56px 1fr 60px 60px;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--line-2);
+    align-items: baseline; gap: 8px;
+    font-variant-numeric: tabular-nums;
+  }
+  .entry .ix {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; color: var(--ink-4);
+  }
+  .entry .t {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13.5px; font-weight: 500;
+  }
+  .entry .note { font-size: 11.5px; color: var(--ink-4); margin-top: 2px; }
+  .entry .dur {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px; color: var(--ink-3); text-align: right;
+  }
+  .entry .vol {
+    font-family: "Inter Tight", sans-serif;
+    font-weight: 500; font-size: 16px;
+    text-align: right; letter-spacing: -0.02em;
+  }
+  .entry .vol em {
+    font-style: normal; font-size: 10px; color: var(--ink-4);
+    margin-left: 2px; font-family: "JetBrains Mono", monospace;
+  }
+  .entry.plan .ix,
+  .entry.plan .t,
+  .entry.plan .dur,
+  .entry.plan .vol { color: var(--ink-4); font-weight: 400; }
+  .entry.next { background: var(--ink); color: var(--bg); }
+  .entry.next .ix,
+  .entry.next .t,
+  .entry.next .dur,
+  .entry.next .vol { color: var(--bg); }
+  .entry.next .vol em { color: rgba(244,243,239,.6); }
+  .entry.next .note { color: rgba(244,243,239,.6); }
+
+  .action {
+    position: absolute; left: 16px; right: 16px; bottom: 18px;
+    display: grid; grid-template-columns: 1fr 52px 52px;
+    gap: 8px; z-index: 8;
+  }
+  .action .pri {
+    background: var(--ink); color: var(--bg); border: 0;
+    border-radius: 6px; padding: 17px 20px;
+    font-family: "Inter Tight", sans-serif;
+    font-weight: 500; font-size: 14.5px;
+    letter-spacing: -0.01em; cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .action .pri .k {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; letter-spacing: 0.16em;
+    text-transform: uppercase; opacity: 0.65;
+    margin-right: 12px;
+  }
+  .action .ico {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 6px; cursor: pointer;
+    display: grid; place-items: center; color: var(--ink);
+  }
+
+  /* SIDE NAV (drawer) ---------------------------------- */
+  .scrim {
+    position: absolute; inset: 0; background: rgba(14,14,14,0.42);
+    z-index: 12;
+  }
+  .drawer {
+    position: absolute; top: 0; bottom: 0; left: 0;
+    width: 78%;
+    background: var(--bg);
+    z-index: 14;
+    display: flex; flex-direction: column;
+    border-right: 1px solid var(--line);
+  }
+  .drawer .dhead {
+    padding: 56px 22px 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .drawer .dhead .brand {
+    font-family: "Instrument Serif", serif;
+    font-size: 28px; letter-spacing: -0.01em; line-height: 1;
+  }
+  .drawer .dhead .brand em {
+    font-style: italic; color: var(--ink-3);
+  }
+  .drawer .dhead .ver {
+    margin-top: 6px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--ink-4);
+  }
+  .drawer .baby-card {
+    margin: 14px 22px 18px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    padding: 12px 14px;
+    border-radius: 6px;
+    display: grid;
+    grid-template-columns: 34px 1fr auto;
+    gap: 10px; align-items: center;
+  }
+  .drawer .baby-card .av {
+    width: 32px; height: 32px;
+    background: var(--ink); color: var(--bg);
+    border-radius: 4px;
+    display: grid; place-items: center;
+    font-weight: 600; font-size: 13px;
+  }
+  .drawer .baby-card .name {
+    font-weight: 500; font-size: 14px; letter-spacing: -0.01em;
+  }
+  .drawer .baby-card .sub {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; color: var(--ink-4);
+    margin-top: 1px;
+  }
+  .drawer .baby-card .swap {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9.5px; letter-spacing: 0.16em;
+    color: var(--ink-3); text-transform: uppercase;
+    border: 1px solid var(--line);
+    padding: 4px 8px; border-radius: 4px;
+  }
+  .drawer .nav-section {
+    padding: 14px 22px 6px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9.5px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--ink-4);
+  }
+  .drawer .nav-item {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    padding: 14px 22px;
+    border-top: 1px solid var(--line-2);
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+  }
+  .drawer .nav-item .nx {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; color: var(--ink-4);
+  }
+  .drawer .nav-item .lbl {
+    font-weight: 500; font-size: 15px; letter-spacing: -0.01em;
+  }
+  .drawer .nav-item .meta {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; color: var(--ink-3);
+  }
+  .drawer .nav-item.active {
+    background: var(--ink); color: var(--bg);
+  }
+  .drawer .nav-item.active .nx,
+  .drawer .nav-item.active .meta { color: rgba(244,243,239,.65); }
+  .drawer .dfoot {
+    margin-top: auto;
+    border-top: 1px solid var(--line);
+    padding: 14px 22px 24px;
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .drawer .dfoot .who {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px; color: var(--ink-3); letter-spacing: -0.01em;
+  }
+  .drawer .dfoot .out {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--warn);
+  }
+
+  /* HISTORY ----------------------------------------- */
+  .hist-summary {
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  .hist-summary .cell .k {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9.5px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--ink-4);
+    margin-bottom: 4px;
+  }
+  .hist-summary .cell .v {
+    font-weight: 500; font-size: 22px;
+    letter-spacing: -0.03em; line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .hist-summary .cell .v small {
+    font-size: 11px; color: var(--ink-3); margin-left: 2px;
+    font-weight: 500; font-family: "JetBrains Mono", monospace;
+  }
+  .hist-summary .cell .delta {
+    margin-top: 4px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; color: var(--ink-3);
+  }
+  .hist-summary .cell .delta.good { color: var(--good); }
+  .hist-summary .cell .delta.warn { color: var(--warn); }
+
+  .tabs {
+    display: grid; grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg);
+  }
+  .tabs .tab {
+    padding: 14px 0;
+    text-align: center;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--ink-4);
+    cursor: pointer;
+    border-bottom: 1px solid transparent;
+    margin-bottom: -1px;
+  }
+  .tabs .tab.on { color: var(--ink); border-bottom-color: var(--ink); }
+
+  .day-row {
+    display: grid; grid-template-columns: 52px 1fr 56px 60px;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--line-2);
+    align-items: baseline; gap: 10px;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+  }
+  .day-row .ix {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; color: var(--ink-4);
+  }
+  .day-row .date {
+    font-weight: 500; font-size: 14px; letter-spacing: -0.01em;
+  }
+  .day-row .meta {
+    font-size: 11px; color: var(--ink-4); margin-top: 2px;
+  }
+  .day-row .ml {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px; color: var(--ink-3); text-align: right;
+  }
+  .day-row .delta {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px; text-align: right; font-weight: 500;
+  }
+  .day-row .delta.good { color: var(--good); }
+  .day-row .delta.warn { color: var(--warn); }
+  .day-row .delta.zero { color: var(--ink-4); }
+
+  .day-head-meta {
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--line);
+    display: grid; grid-template-columns: 1fr auto;
+    align-items: end; gap: 16px;
+  }
+  .day-head-meta .left .k {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; letter-spacing: 0.18em;
+    color: var(--ink-4); text-transform: uppercase;
+  }
+  .day-head-meta .left .v {
+    margin-top: 4px;
+    font-weight: 500; font-size: 28px;
+    letter-spacing: -0.03em; line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .day-head-meta .left .v small {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px; color: var(--ink-3);
+    margin-left: 4px; font-weight: 500;
+  }
+  .day-head-meta .right .pct {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px; font-weight: 500;
+  }
+  .day-head-meta .right .delta {
+    margin-top: 2px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+  }
+  .day-head-meta .right .delta.good { color: var(--good); }
+
+  .nav-day {
+    display: flex; justify-content: space-between;
+    padding: 12px 22px;
+    border-bottom: 1px solid var(--line);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px; color: var(--ink-3);
+  }
+  .nav-day a { color: var(--ink); text-decoration: none; }
+
+  /* CHART (history analytics) -------------------------- */
+  .ha-block {
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .ha-block .lbl {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9.5px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--ink-4);
+    margin-bottom: 10px;
+  }
+  .ha-bar-chart {
+    display: grid;
+    grid-template-columns: repeat(14, 1fr);
+    gap: 3px; height: 110px;
+    align-items: end;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 4px;
+  }
+  .ha-bar-chart .b {
+    background: var(--ink-2);
+    width: 100%;
+    position: relative;
+  }
+  .ha-bar-chart .b.under { background: var(--ink-4); }
+  .ha-bar-chart .b.on { background: var(--ink); }
+  .ha-bar-chart .target {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    height: 1px;
+    background: var(--warn);
+    align-self: center;
+    margin-top: -28px;
+    z-index: 2;
+    position: relative;
+  }
+  .ha-axis {
+    margin-top: 6px;
+    display: flex; justify-content: space-between;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9.5px; color: var(--ink-4);
+  }
+  .ha-legend {
+    margin-top: 14px;
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  .ha-legend .lg {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; color: var(--ink-3); letter-spacing: -0.005em;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .ha-legend .sw {
+    width: 10px; height: 10px;
+    display: inline-block;
+  }
+
+  /* WEIGHT ----------------------------------------- */
+  .chart-block { padding: 16px 22px 14px; border-bottom: 1px solid var(--line); }
+  .chart-block .now {
+    display: grid; grid-template-columns: 1fr auto auto;
+    align-items: baseline; gap: 12px; margin-bottom: 14px;
+  }
+  .chart-block .now .v {
+    font-weight: 500; font-size: 36px;
+    letter-spacing: -0.03em; line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .chart-block .now .v small {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px; color: var(--ink-3);
+    margin-left: 4px; font-weight: 500;
+  }
+  .chart-block .now .since {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; color: var(--ink-3);
+  }
+  .chart-block .now .gain {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px; font-weight: 500; color: var(--good);
+  }
+  .chart-svg {
+    background:
+      linear-gradient(to right, var(--line-2) 1px, transparent 1px) 0 0 / 25% 100%,
+      linear-gradient(to bottom, var(--line-2) 1px, transparent 1px) 0 0 / 100% 25%;
+    border: 1px solid var(--line);
+    width: 100%; height: 130px; display: block;
+  }
+  .chart-axis {
+    display: flex; justify-content: space-between; margin-top: 6px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9.5px; color: var(--ink-4);
+  }
+  .w-row {
+    display: grid; grid-template-columns: 52px 1fr 76px 60px;
+    padding: 12px 22px;
+    border-bottom: 1px solid var(--line-2);
+    align-items: baseline; gap: 8px;
+    font-variant-numeric: tabular-nums;
+  }
+  .w-row .ix {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; color: var(--ink-4);
+  }
+  .w-row .date { font-weight: 500; font-size: 13.5px; }
+  .w-row .dol {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; color: var(--ink-4); margin-top: 1px;
+  }
+  .w-row .grams {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px; text-align: right; font-weight: 500;
+  }
+  .w-row .gain {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px; text-align: right; color: var(--good);
+  }
+  .w-row .gain.zero { color: var(--ink-4); }
+
+  /* MEDICATIONS ----------------------------------------- */
+  .med-row {
+    display: grid; grid-template-columns: 52px 1fr auto;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--line-2);
+    align-items: center; gap: 10px;
+  }
+  .med-row .ix {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; color: var(--ink-4);
+  }
+  .med-row .name {
+    font-weight: 500; font-size: 14.5px; letter-spacing: -0.01em;
+  }
+  .med-row .dose {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px; color: var(--ink-3); margin-top: 2px;
+  }
+  .med-row .acts { display: flex; gap: 6px; }
+  .med-row .acts button {
+    width: 30px; height: 30px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--ink-2);
+    display: grid; place-items: center;
+    cursor: pointer;
+  }
+  .med-row.archived { opacity: 0.55; }
+
+  .section-sep {
+    padding: 16px 22px 6px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9.5px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--ink-4);
+    background: var(--bg);
+    border-bottom: 1px solid var(--line-2);
+  }
+
+  /* BABIES ----------------------------------------- */
+  .baby-row {
+    display: grid; grid-template-columns: 40px 1fr auto;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--line-2);
+    align-items: center; gap: 12px;
+    cursor: pointer;
+  }
+  .baby-row .av {
+    width: 36px; height: 36px;
+    border-radius: 6px;
+    background: var(--ink); color: var(--bg);
+    display: grid; place-items: center;
+    font-weight: 600; font-size: 14px;
+  }
+  .baby-row .av.archived {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    color: var(--ink-3);
+  }
+  .baby-row .name { font-weight: 500; font-size: 15px; letter-spacing: -0.01em; }
+  .baby-row .sub {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; color: var(--ink-4);
+    margin-top: 2px;
+  }
+  .baby-row .badge {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9.5px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--ink);
+    border: 1px solid var(--ink);
+    padding: 3px 8px; border-radius: 4px;
+  }
+  .baby-row .badge.archived { color: var(--ink-4); border-color: var(--line); }
+
+  /* SHEET ----------------------------------------- */
+  .sheet-grid {
+    padding: 22px 22px 0;
+    display: flex; flex-direction: column;
+    gap: 18px; flex: 1; overflow: hidden;
+  }
+  .sheet-grid .field { display: flex; flex-direction: column; gap: 8px; }
+  .sheet-grid .field .lbl {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9.5px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--ink-4);
+  }
+  .time-cell {
+    display: grid; grid-template-columns: 1fr auto;
+    align-items: center; gap: 12px;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 6px;
+  }
+  .time-cell .t {
+    font-weight: 500; font-size: 18px;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .time-cell .t em {
+    font-family: "JetBrains Mono", monospace;
+    font-style: normal; color: var(--ink-3);
+    font-size: 11px; margin-left: 8px;
+  }
+  .time-cell .edit {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; letter-spacing: 0.16em;
+    text-transform: uppercase;
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 6px 10px;
+    color: var(--ink-2); cursor: pointer;
+  }
+  .seg {
+    display: grid; grid-template-columns: 1fr 1fr;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 6px; overflow: hidden;
+  }
+  .seg button {
+    background: transparent; border: 0;
+    padding: 13px 0;
+    font-family: "Inter Tight", sans-serif;
+    font-weight: 500; font-size: 13.5px;
+    color: var(--ink-3); cursor: pointer;
+    border-right: 1px solid var(--line);
+  }
+  .seg button:last-child { border-right: 0; }
+  .seg button.on { background: var(--ink); color: var(--bg); }
+
+  .chips {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
+  }
+  .chips.med-chips {
+    grid-template-columns: auto auto auto auto auto;
+    justify-content: start; gap: 6px;
+  }
+  .chips.med-chips button { padding: 11px 14px; }
+  .chips button {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 11px 0;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12.5px;
+    cursor: pointer;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+  }
+  .chips button.on {
+    background: var(--ink); color: var(--bg); border-color: var(--ink);
+  }
+  .chips button.ghost { border-style: dashed; color: var(--ink-3); }
+
+  .stepper {
+    display: grid; grid-template-columns: 52px 1fr 52px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 6px; overflow: hidden;
+  }
+  .stepper button {
+    background: transparent; border: 0;
+    border-right: 1px solid var(--line);
+    cursor: pointer; color: var(--ink);
+    display: grid; place-items: center;
+  }
+  .stepper button:last-child {
+    border-right: 0; border-left: 1px solid var(--line);
+  }
+  .stepper .value {
+    display: flex; align-items: baseline; justify-content: center;
+    gap: 8px; padding: 14px 0;
+  }
+  .stepper .value .big {
+    font-weight: 500; font-size: 32px;
+    letter-spacing: -0.04em; line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .stepper .value .unit {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11.5px; color: var(--ink-3);
+  }
+  .hint {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; color: var(--ink-3); text-align: center;
+  }
+  .hint strong { color: var(--ink); font-weight: 600; }
+
+  .sheet-action {
+    position: absolute;
+    left: 16px; right: 16px; bottom: 18px;
+    display: grid; grid-template-columns: 1fr 56px; gap: 8px;
+  }
+  .sheet-action .save {
+    background: var(--ink); color: var(--bg); border: 0;
+    border-radius: 6px; padding: 17px 20px;
+    font-weight: 500; font-size: 14.5px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .sheet-action .save .k {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; letter-spacing: 0.16em;
+    text-transform: uppercase; opacity: 0.65;
+  }
+  .sheet-action .trash {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 6px; cursor: pointer;
+    display: grid; place-items: center; color: var(--warn);
+  }
+
+  /* SETTINGS ----------------------------------------- */
+  .set-section { border-bottom: 1px solid var(--line); }
+  .set-section .head-s {
+    padding: 14px 22px 8px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9.5px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--ink-4);
+  }
+  .set-row {
+    display: grid; grid-template-columns: 1fr auto;
+    padding: 14px 22px; align-items: center; gap: 12px;
+    border-top: 1px solid var(--line-2);
+    cursor: pointer;
+  }
+  .set-row .l .k {
+    font-weight: 500; font-size: 14px;
+    letter-spacing: -0.005em;
+  }
+  .set-row .l .v {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px; color: var(--ink-3); margin-top: 2px;
+  }
+  .set-row .r {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px; color: var(--ink-3); text-align: right;
+  }
+  .set-row .r svg { color: var(--ink-4); margin-left: 6px; vertical-align: middle; }
+  .toggle {
+    width: 38px; height: 22px;
+    border-radius: 999px;
+    background: var(--line);
+    position: relative;
+    transition: background .15s;
+  }
+  .toggle::after {
+    content: "";
+    position: absolute; top: 2px; left: 2px;
+    width: 18px; height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,.15);
+    transition: left .15s;
+  }
+  .toggle.on { background: var(--ink); }
+  .toggle.on::after { left: 18px; }
+
+  /* ONBOARDING / EMPTY STATE ------------------------ */
+  .onboard {
+    flex: 1;
+    padding: 64px 22px 24px;
+    display: flex; flex-direction: column;
+    gap: 22px;
+  }
+  .onboard .eyebrow {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--ink-4);
+  }
+  .onboard h1 {
+    font-family: "Inter Tight", sans-serif;
+    font-weight: 500; font-size: 36px;
+    letter-spacing: -0.03em; line-height: 1.02;
+  }
+  .onboard h1 em {
+    font-family: "Instrument Serif", serif;
+    font-style: italic; font-weight: 400; color: var(--ink-3);
+  }
+  .onboard p {
+    color: var(--ink-3); font-size: 13.5px;
+    line-height: 1.55;
+  }
+  .onboard ul {
+    list-style: none; padding: 0; margin: 0;
+    border-top: 1px solid var(--line);
+  }
+  .onboard ul li {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line-2);
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 8px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11.5px;
+    color: var(--ink-3);
+  }
+  .onboard ul li .nx { color: var(--ink-4); }
+  .onboard .cta {
+    margin-top: auto;
+    background: var(--ink); color: var(--bg);
+    border: 0; padding: 16px 18px;
+    border-radius: 6px;
+    font-weight: 500; font-size: 14.5px;
+    display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer;
+  }
+  .onboard .cta .k {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; letter-spacing: 0.16em;
+    text-transform: uppercase; opacity: 0.65;
+  }
+
+  /* ADD BABY (form) ------------------------- */
+  .form-grid {
+    padding: 22px 22px 120px;
+    display: flex; flex-direction: column;
+    gap: 18px; flex: 1; overflow: hidden;
+  }
+  .form-grid .input-cell {
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .form-grid .input-cell .lbl {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9.5px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--ink-4);
+  }
+  .input {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 13px 14px;
+    font-family: "Inter Tight", sans-serif;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .input.focused {
+    border-color: var(--ink);
+    box-shadow: 0 0 0 1px var(--ink) inset;
+  }
+  .input.placeholder { color: var(--ink-4); }
+
+  /* TIMER / RECORDING ROW (sticky over today) -------- */
+  .timer-strip {
+    margin: 0 16px;
+    padding: 12px 14px;
+    background: var(--ink);
+    color: var(--bg);
+    border-radius: 6px;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 12px;
+    align-items: center;
+    position: absolute;
+    left: 0; right: 0; bottom: 78px;
+    z-index: 7;
+  }
+  .timer-strip .dot {
+    width: 8px; height: 8px;
+    background: var(--warn);
+    border-radius: 999px;
+    box-shadow: 0 0 0 4px rgba(138,58,31,.18);
+    animation: pulse 1.4s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+  }
+  .timer-strip .lbl {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; letter-spacing: 0.18em;
+    text-transform: uppercase;
+    opacity: 0.65;
+  }
+  .timer-strip .v {
+    font-weight: 500; font-size: 16px;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+  .timer-strip .stop {
+    background: transparent;
+    border: 1px solid rgba(244,243,239,.35);
+    color: var(--bg);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; letter-spacing: 0.16em;
+    padding: 6px 10px; border-radius: 4px;
+    cursor: pointer; text-transform: uppercase;
+  }
+
+  /* TOAST ----------------------------------------- */
+  .toast {
+    position: absolute;
+    left: 16px; right: 16px; top: 60px;
+    z-index: 20;
+    background: var(--ink);
+    color: var(--bg);
+    border-radius: 6px;
+    padding: 12px 14px;
+    display: grid;
+    grid-template-columns: 22px 1fr auto;
+    gap: 10px;
+    align-items: center;
+  }
+  .toast .ic {
+    width: 18px; height: 18px;
+    border-radius: 999px;
+    background: var(--good);
+    display: grid; place-items: center;
+    color: var(--bg);
+  }
+  .toast .msg {
+    font-size: 13px;
+    letter-spacing: -0.005em;
+  }
+  .toast .msg em {
+    font-style: normal;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px;
+    color: rgba(244,243,239,.6);
+    margin-left: 6px;
+  }
+  .toast .undo {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--bg); opacity: 0.7;
+  }
+
+  /* ==================================================
+     UI KIT
+     ================================================== */
+  .kit-wrap {
+    max-width: 1280px;
+    margin: 0 auto;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    padding: 0;
+  }
+  .kit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0;
+  }
+  .kit-cell {
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding: 24px 22px 28px;
+    background: var(--bg);
+    min-height: 200px;
+    display: flex; flex-direction: column;
+    gap: 16px;
+  }
+  .kit-cell .label {
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .kit-cell .label .nm {
+    font-family: "Inter Tight", sans-serif;
+    font-weight: 500; font-size: 14px;
+    letter-spacing: -0.01em;
+  }
+  .kit-cell .label .ix {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9.5px; letter-spacing: 0.18em;
+    color: var(--ink-4); text-transform: uppercase;
+  }
+  .kit-cell .desc {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; color: var(--ink-3);
+    line-height: 1.5; letter-spacing: -0.005em;
+  }
+  .kit-cell .stage {
+    background: var(--bg);
+    border: 1px dashed var(--line);
+    padding: 18px;
+    display: flex; flex-direction: column; gap: 12px;
+    align-items: stretch;
+  }
+  .kit-cell .stage.inline {
+    flex-direction: row; flex-wrap: wrap; align-items: center;
+  }
+  .kit-cell .stage.dark {
+    background: var(--ink);
+  }
+
+  /* buttons (kit) */
+  .btn-pri {
+    background: var(--ink); color: var(--bg); border: 0;
+    border-radius: 6px;
+    padding: 13px 18px;
+    font-weight: 500; font-size: 14px;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 12px;
+  }
+  .btn-pri .k {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; letter-spacing: 0.16em;
+    text-transform: uppercase; opacity: 0.65;
+  }
+  .btn-sec {
+    background: var(--surface); color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-weight: 500; font-size: 14px;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+  }
+  .btn-ghost {
+    background: transparent; color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; letter-spacing: 0.16em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .btn-icon {
+    width: 36px; height: 36px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 6px;
+    display: inline-grid; place-items: center;
+    color: var(--ink); cursor: pointer;
+  }
+  .btn-danger {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 12px 16px;
+    color: var(--warn);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11.5px; letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  /* tokens swatches */
+  .sw-block { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+  .sw-block span {
+    aspect-ratio: 1; border: 1px solid var(--line);
+    position: relative;
+  }
+  .sw-block span::after {
+    content: attr(data-h);
+    position: absolute; left: 4px; bottom: 4px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 8.5px; color: var(--ink-3);
+    letter-spacing: -0.01em;
+    mix-blend-mode: difference;
+    color: #fff;
+  }
+
+  /* type spec */
+  .type-line { border-bottom: 1px solid var(--line-2); padding-bottom: 10px; }
+  .type-line:last-child { border-bottom: 0; }
+  .type-line .meta {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9.5px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--ink-4);
+    margin-bottom: 6px;
+  }
+  .type-display {
+    font-family: "Inter Tight", sans-serif;
+    font-weight: 500; font-size: 36px;
+    letter-spacing: -0.04em; line-height: 1;
+  }
+  .type-display em {
+    font-family: "Instrument Serif", serif;
+    font-style: italic; font-weight: 400; color: var(--ink-3);
+  }
+  .type-h {
+    font-weight: 500; font-size: 22px;
+    letter-spacing: -0.025em;
+  }
+  .type-body { font-size: 14px; color: var(--ink-2); line-height: 1.55; }
+  .type-mono {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px; letter-spacing: -0.01em; color: var(--ink-2);
+  }
+
+  /* tabular numbers demo */
+  .num-demo {
+    font-family: "Inter Tight", sans-serif;
+    font-weight: 500; font-size: 32px;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .num-demo small {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px; color: var(--ink-3);
+    margin-left: 6px;
+  }
+
+  /* progress bar kit */
+  .pbar {
+    height: 6px;
+    background: var(--line-2);
+    position: relative;
+    border: 1px solid var(--line);
+  }
+  .pbar > i {
+    position: absolute; inset: 0 50% 0 0;
+    background: var(--ink);
+  }
+  .pbar.dashed > i {
+    background: repeating-linear-gradient(45deg, var(--ink) 0 4px, transparent 4px 6px);
+  }
+  .pbar.over > i { background: var(--warn); inset: 0 -10% 0 0; }
+  .pbar-ticks {
+    margin-top: 4px;
+    display: flex; justify-content: space-between;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9.5px; color: var(--ink-4);
+  }
+
+  /* index spec */
+  .ix-list {
+    display: grid;
+    grid-template-columns: 56px 1fr auto;
+    column-gap: 8px;
+    row-gap: 6px;
+    font-variant-numeric: tabular-nums;
+  }
+  .ix-list .ix {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; color: var(--ink-4);
+  }
+  .ix-list .lab { font-size: 13px; }
+  .ix-list .val {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px; color: var(--ink-2);
+    text-align: right;
+  }
+
+  /* badges */
+  .badge {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9.5px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--ink);
+    border: 1px solid var(--ink);
+    padding: 3px 8px; border-radius: 4px;
+    display: inline-block;
+  }
+  .badge.archived { color: var(--ink-4); border-color: var(--line); }
+  .badge.good {
+    color: var(--good); border-color: var(--good);
+  }
+  .badge.warn {
+    color: var(--warn); border-color: var(--warn);
+  }
+  .badge.solid {
+    background: var(--ink); color: var(--bg);
+    border-color: var(--ink);
+  }
+
+  /* radio + checkbox kit */
+  .check-row {
+    display: grid; grid-template-columns: 24px 1fr;
+    gap: 12px; align-items: center;
+  }
+  .check-row .b {
+    width: 20px; height: 20px;
+    border: 1px solid var(--ink-3);
+    border-radius: 4px;
+    background: var(--surface);
+    display: grid; place-items: center;
+  }
+  .check-row .b.on {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--bg);
+  }
+  .check-row .r {
+    width: 20px; height: 20px;
+    border: 1px solid var(--ink-3);
+    border-radius: 999px;
+    background: var(--surface);
+    display: grid; place-items: center;
+  }
+  .check-row .r.on::after {
+    content: "";
+    width: 10px; height: 10px;
+    background: var(--ink); border-radius: 999px;
+  }
+  .check-row .lbl {
+    font-size: 14px; letter-spacing: -0.01em;
+  }
+
+  /* input variants */
+  .field-col { display: flex; flex-direction: column; gap: 6px; }
+  .field-col .lbl {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9.5px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--ink-4);
+  }
+  .field-col .hint {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; color: var(--ink-3); text-align: left;
+  }
+
+  /* icon row */
+  .icon-row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+  }
+  .icon-row .it {
+    aspect-ratio: 1;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    display: grid; place-items: center;
+    color: var(--ink-2);
+  }
+
+  /* small inverse spec for dark stages */
+  .stage.dark .btn-pri,
+  .stage.dark .btn-sec,
+  .stage.dark .btn-ghost { /* keep contrast */ }
+  .inverse-text {
+    color: var(--bg);
+  }
+
+  /* alert / banner kit */
+  .alert {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-left: 3px solid var(--ink);
+    padding: 12px 14px;
+    display: grid;
+    grid-template-columns: 22px 1fr auto;
+    gap: 10px;
+    align-items: start;
+  }
+  .alert.warn { border-left-color: var(--warn); }
+  .alert.good { border-left-color: var(--good); }
+  .alert .ic { color: var(--ink); margin-top: 2px; }
+  .alert .ic.warn { color: var(--warn); }
+  .alert .ic.good { color: var(--good); }
+  .alert .body .ttl {
+    font-weight: 500; font-size: 13.5px;
+    letter-spacing: -0.005em;
+  }
+  .alert .body .msg {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; color: var(--ink-3);
+    margin-top: 2px; line-height: 1.5;
+  }
+  .alert .close {
+    color: var(--ink-4); cursor: pointer;
+  }
+
+  /* skeleton kit */
+  .skel {
+    background: linear-gradient(90deg, var(--line-2) 0%, var(--line) 50%, var(--line-2) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+    border-radius: 2px;
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* tab kit demo */
+  .tab-demo {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    border-bottom: 1px solid var(--line);
+  }
+  .tab-demo .t {
+    padding: 12px 0;
+    text-align: center;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--ink-4);
+    margin-bottom: -1px;
+    border-bottom: 1px solid transparent;
+  }
+  .tab-demo .t.on {
+    color: var(--ink); border-bottom-color: var(--ink);
+  }
+
+  /* helper: small flex row */
+  .row-2 { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+</style>
+</head>
+<body>
+
+<header class="page-head">
+  <div class="eyebrow">Leon / mobile / strict iteration · app-flow + ui kit</div>
+  <h1>Полный флоу <em>— все экраны и компоненты</em></h1>
+  <p>
+    Сквозная серия экранов реального приложения, переосмысленная под мобильный
+    ledger-стиль: бумажный фон, угольный текст, моноширинные числа, hairlines 1 px,
+    прямоугольные радиусы 4–6 px, инверсия как единственный громкий акцент. Слева
+    направо — главные сценарии (Сегодня, История, Вес, Лекарства, Дети, Настройки),
+    подоверлеи (боковое меню, sheet-формы, тосты, таймер) и ниже — UI-kit
+    атомарных компонентов, на которых это всё построено.
+  </p>
+  <div class="meta">
+    <span>type · Inter Tight + JetBrains Mono + Instrument Serif</span>
+    <span>palette · paper/ink/navy</span>
+    <span>metaphor · ledger</span>
+  </div>
+</header>
+
+<!-- =====================================================
+     SECTION I · CORE FLOW (главные экраны)
+     ===================================================== -->
+<div class="section-rule">
+  <span class="num">SECTION I</span>
+  <h2>Главные экраны <em>— основной флоу</em></h2>
+  <span class="count">10 SCREENS</span>
+</div>
+
+<div class="gallery">
+
+  <!-- 01 TODAY ------------------------------------------ -->
+  <div class="group">
+    <div class="label">
+      <h3>Сегодня <em>— день в работе</em></h3>
+      <span class="ix">01 / TODAY</span>
+    </div>
+    <div class="desc">
+      Корневой экран. Шапка-полоска, крупный счётчик мл/из/процент, табличный
+      график кормлений: факт + план + активная инверсная строка «сейчас».
+    </div>
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="status-bar">
+        <span>14:32</span>
+        <div class="right">
+          <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><rect x="0" y="7" width="2.5" height="4" rx=".5"/><rect x="4" y="5" width="2.5" height="6" rx=".5"/><rect x="8" y="2" width="2.5" height="9" rx=".5"/><rect x="12" y="0" width="2.5" height="11" rx=".5"/></svg>
+          <svg width="24" height="11" viewBox="0 0 24 11" fill="none" stroke="currentColor" stroke-width="1"><rect x=".5" y=".5" width="20" height="10" rx="2.5"/><rect x="2.5" y="2.5" width="14" height="6" rx="1" fill="currentColor"/><rect x="21" y="3.5" width="2" height="4" rx="1" fill="currentColor"/></svg>
+        </div>
+      </div>
+
+      <div class="strip">
+        <div class="left"><div class="k">27.05.2026 · СР</div><div class="date">День 47</div></div>
+        <div class="right"><div class="ix">РЕБЁНОК · 4 820 Г</div><div class="name">Лёва</div></div>
+      </div>
+
+      <div class="head">
+        <div class="row1">
+          <div class="num">438</div>
+          <div class="of">МЛ · ИЗ <strong>620</strong></div>
+          <div class="pct">71%</div>
+        </div>
+        <div>
+          <div class="bar"></div>
+          <div class="ticks"><span>0</span><span>155</span><span>310</span><span>465</span><span>620</span></div>
+        </div>
+      </div>
+
+      <div class="schedule">
+        <div class="sched-head">
+          <span class="num-col">№</span><span>ВРЕМЯ</span><span class="right">ДЛИТ.</span><span class="right">МЛ</span>
+        </div>
+        <div class="entry"><span class="ix">01</span><div><span class="t">06:15</span><div class="note">основное</div></div><span class="dur">18м</span><span class="vol">60<em>мл</em></span></div>
+        <div class="entry"><span class="ix">02</span><div><span class="t">09:00</span><div class="note">осн. · креон 3 кап.</div></div><span class="dur">16м</span><span class="vol">60<em>мл</em></span></div>
+        <div class="entry"><span class="ix">03</span><div><span class="t">11:45</span><div class="note">основное</div></div><span class="dur">14м</span><span class="vol">55<em>мл</em></span></div>
+        <div class="entry next"><span class="ix">04</span><div><span class="t">14:50</span><div class="note">через 18 мин</div></div><span class="dur">—</span><span class="vol">60<em>мл</em></span></div>
+        <div class="entry plan"><span class="ix">05</span><div><span class="t">17:30</span><div class="note">—</div></div><span class="dur">—</span><span class="vol">60<em>мл</em></span></div>
+        <div class="entry plan"><span class="ix">06</span><div><span class="t">20:15</span><div class="note">—</div></div><span class="dur">—</span><span class="vol">60<em>мл</em></span></div>
+        <div class="entry plan"><span class="ix">07</span><div><span class="t">23:00</span><div class="note">—</div></div><span class="dur">—</span><span class="vol">60<em>мл</em></span></div>
+      </div>
+
+      <div class="action">
+        <button class="pri"><span class="k">ЗАП</span>Записать кормление</button>
+        <button class="ico" aria-label="История"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16"/><path d="M16 3v4M8 3v4M3 10h18"/></svg></button>
+        <button class="ico" aria-label="Меню"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 02 TODAY + TIMER (live recording) ------------------ -->
+  <div class="group">
+    <div class="label">
+      <h3>Сегодня <em>— идёт кормление</em></h3>
+      <span class="ix">02 / LIVE</span>
+    </div>
+    <div class="desc">
+      Состояние пишущего таймера. Над bottom-bar — узкая чёрная плашка с
+      пульсирующей точкой, длительностью и кнопкой <code>СТОП</code>. Тост
+      сверху подтверждает старт.
+    </div>
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="status-bar"><span>14:50</span><div class="right">
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><rect x="0" y="7" width="2.5" height="4" rx=".5"/><rect x="4" y="5" width="2.5" height="6" rx=".5"/><rect x="8" y="2" width="2.5" height="9" rx=".5"/><rect x="12" y="0" width="2.5" height="11" rx=".5"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none" stroke="currentColor" stroke-width="1"><rect x=".5" y=".5" width="20" height="10" rx="2.5"/><rect x="2.5" y="2.5" width="14" height="6" rx="1" fill="currentColor"/><rect x="21" y="3.5" width="2" height="4" rx="1" fill="currentColor"/></svg>
+      </div></div>
+
+      <div class="toast">
+        <div class="ic"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></div>
+        <div class="msg">Таймер запущен <em>14:50 · кормление №04</em></div>
+        <span class="undo">UNDO</span>
+      </div>
+
+      <div class="strip">
+        <div class="left"><div class="k">27.05.2026 · СР</div><div class="date">День 47</div></div>
+        <div class="right"><div class="ix">РЕБЁНОК · 4 820 Г</div><div class="name">Лёва</div></div>
+      </div>
+
+      <div class="head">
+        <div class="row1">
+          <div class="num">438</div>
+          <div class="of">МЛ · ИЗ <strong>620</strong></div>
+          <div class="pct">71%</div>
+        </div>
+        <div>
+          <div class="bar"></div>
+          <div class="ticks"><span>0</span><span>155</span><span>310</span><span>465</span><span>620</span></div>
+        </div>
+      </div>
+
+      <div class="schedule">
+        <div class="sched-head">
+          <span class="num-col">№</span><span>ВРЕМЯ</span><span class="right">ДЛИТ.</span><span class="right">МЛ</span>
+        </div>
+        <div class="entry"><span class="ix">01</span><div><span class="t">06:15</span><div class="note">основное</div></div><span class="dur">18м</span><span class="vol">60<em>мл</em></span></div>
+        <div class="entry"><span class="ix">02</span><div><span class="t">09:00</span><div class="note">осн. · креон 3 кап.</div></div><span class="dur">16м</span><span class="vol">60<em>мл</em></span></div>
+        <div class="entry"><span class="ix">03</span><div><span class="t">11:45</span><div class="note">основное</div></div><span class="dur">14м</span><span class="vol">55<em>мл</em></span></div>
+        <div class="entry next"><span class="ix">04</span><div><span class="t">14:50</span><div class="note">идёт запись</div></div><span class="dur">02:14</span><span class="vol">—</span></div>
+        <div class="entry plan"><span class="ix">05</span><div><span class="t">17:30</span><div class="note">—</div></div><span class="dur">—</span><span class="vol">60<em>мл</em></span></div>
+      </div>
+
+      <div class="timer-strip">
+        <div class="dot"></div>
+        <div><div class="lbl">ИДЁТ КОРМЛ. №04</div><div class="v">02:14 · с 14:50</div></div>
+        <button class="stop">PAUSE</button>
+        <button class="stop">STOP</button>
+      </div>
+
+      <div class="action">
+        <button class="pri"><span class="k">ЗАВ</span>Завершить и записать</button>
+        <button class="ico" aria-label="История"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16"/><path d="M16 3v4M8 3v4M3 10h18"/></svg></button>
+        <button class="ico" aria-label="Меню"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 03 TODAY + SIDE NAV OPEN ------------------------- -->
+  <div class="group">
+    <div class="label">
+      <h3>Боковое меню <em>— навигация</em></h3>
+      <span class="ix">03 / DRAWER</span>
+    </div>
+    <div class="desc">
+      Drawer 78 % ширины поверх Today. Сверху — карточка активного ребёнка
+      с кнопкой <em>SWAP</em>. Активный пункт инвертирован.
+    </div>
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="status-bar"><span>14:32</span><div class="right">
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><rect x="0" y="7" width="2.5" height="4" rx=".5"/><rect x="4" y="5" width="2.5" height="6" rx=".5"/><rect x="8" y="2" width="2.5" height="9" rx=".5"/><rect x="12" y="0" width="2.5" height="11" rx=".5"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none" stroke="currentColor" stroke-width="1"><rect x=".5" y=".5" width="20" height="10" rx="2.5"/><rect x="2.5" y="2.5" width="14" height="6" rx="1" fill="currentColor"/><rect x="21" y="3.5" width="2" height="4" rx="1" fill="currentColor"/></svg>
+      </div></div>
+
+      <!-- dimmed background today -->
+      <div class="strip"><div class="left"><div class="k">27.05.2026</div><div class="date">День 47</div></div><div class="right"><div class="ix">4 820 Г</div><div class="name">Лёва</div></div></div>
+      <div class="head"><div class="row1"><div class="num">438</div><div class="of">/<strong>620</strong></div><div class="pct">71%</div></div><div><div class="bar"></div></div></div>
+      <div class="scrim"></div>
+
+      <div class="drawer">
+        <div class="dhead">
+          <div class="brand">Leon <em>· ledger</em></div>
+          <div class="ver">v0.4.2 · MOBILE</div>
+        </div>
+        <div class="baby-card">
+          <div class="av">Л</div>
+          <div>
+            <div class="name">Лёва</div>
+            <div class="sub">ДЕНЬ 47 · 4820 Г</div>
+          </div>
+          <span class="swap">SWAP</span>
+        </div>
+
+        <div class="nav-section">SECTIONS</div>
+        <div class="nav-item active">
+          <span class="nx">01</span>
+          <span class="lbl">Сегодня</span>
+          <span class="meta">438/620 · 71%</span>
+        </div>
+        <div class="nav-item">
+          <span class="nx">02</span>
+          <span class="lbl">История</span>
+          <span class="meta">46 ДН.</span>
+        </div>
+        <div class="nav-item">
+          <span class="nx">03</span>
+          <span class="lbl">Вес</span>
+          <span class="meta">+820 Г</span>
+        </div>
+        <div class="nav-item">
+          <span class="nx">04</span>
+          <span class="lbl">Лекарства</span>
+          <span class="meta">3 АКТ.</span>
+        </div>
+
+        <div class="nav-section">SUBJECTS · CFG</div>
+        <div class="nav-item">
+          <span class="nx">05</span>
+          <span class="lbl">Дети</span>
+          <span class="meta">1 АКТ · 2 АРХ</span>
+        </div>
+        <div class="nav-item">
+          <span class="nx">06</span>
+          <span class="lbl">Настройки</span>
+          <span class="meta">→</span>
+        </div>
+
+        <div class="dfoot">
+          <span class="who">sergey@leon.app</span>
+          <span class="out">ВЫЙТИ</span>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 04 HISTORY LIST --------------------------------- -->
+  <div class="group">
+    <div class="label">
+      <h3>История <em>— список дней</em></h3>
+      <span class="ix">04 / HISTORY</span>
+    </div>
+    <div class="desc">
+      Сводка сверху, табы <em>ДНИ / АНАЛИТИКА</em>, ниже — лента дней с
+      дельтой к ориентиру (зелёный = в диапазоне, ржавый = вне).
+    </div>
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="status-bar"><span>14:32</span><div class="right">
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><rect x="0" y="7" width="2.5" height="4" rx=".5"/><rect x="4" y="5" width="2.5" height="6" rx=".5"/><rect x="8" y="2" width="2.5" height="9" rx=".5"/><rect x="12" y="0" width="2.5" height="11" rx=".5"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none" stroke="currentColor" stroke-width="1"><rect x=".5" y=".5" width="20" height="10" rx="2.5"/><rect x="2.5" y="2.5" width="14" height="6" rx="1" fill="currentColor"/><rect x="21" y="3.5" width="2" height="4" rx="1" fill="currentColor"/></svg>
+      </div></div>
+
+      <div class="topbar">
+        <button class="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <div><div class="crumb">LEON · ИСТОРИЯ</div><div class="title">История</div></div>
+        <button class="right-action">+ ДОБ</button>
+      </div>
+
+      <div class="tabs">
+        <div class="tab on">Дни</div>
+        <div class="tab">Аналитика</div>
+      </div>
+
+      <div class="hist-summary">
+        <div class="cell"><div class="k">Дней</div><div class="v">46</div><div class="delta">с рождения</div></div>
+        <div class="cell"><div class="k">Ср. дефицит</div><div class="v">−42<small>мл</small></div><div class="delta warn">7% ниже</div></div>
+        <div class="cell"><div class="k">Ср. длит-ть</div><div class="v">15<small>мин</small></div><div class="delta">8 корм/день</div></div>
+      </div>
+
+      <div style="flex:1; overflow:hidden;">
+        <div class="day-row"><span class="ix">№46</span><div><div class="date">26 мая · вт</div><div class="meta">8 корм · 0 докорм · ср. 15м</div></div><span class="ml">595/620</span><span class="delta warn">−25</span></div>
+        <div class="day-row"><span class="ix">№45</span><div><div class="date">25 мая · пн</div><div class="meta">8 корм · 1 докорм · ср. 16м</div></div><span class="ml">640/620</span><span class="delta good">+20</span></div>
+        <div class="day-row"><span class="ix">№44</span><div><div class="date">24 мая · вс</div><div class="meta">7 корм · 0 докорм · ср. 14м</div></div><span class="ml">560/620</span><span class="delta warn">−60</span></div>
+        <div class="day-row"><span class="ix">№43</span><div><div class="date">23 мая · сб</div><div class="meta">8 корм · 2 докорм · ср. 17м</div></div><span class="ml">620/620</span><span class="delta zero">0</span></div>
+        <div class="day-row"><span class="ix">№42</span><div><div class="date">22 мая · пт</div><div class="meta">8 корм · 0 докорм · ср. 15м</div></div><span class="ml">615/610</span><span class="delta good">+5</span></div>
+        <div class="day-row"><span class="ix">№41</span><div><div class="date">21 мая · чт</div><div class="meta">8 корм · 1 докорм · ср. 16м</div></div><span class="ml">580/610</span><span class="delta warn">−30</span></div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 05 HISTORY DAY DETAIL ---------------------------- -->
+  <div class="group">
+    <div class="label">
+      <h3>День истории <em>— детально</em></h3>
+      <span class="ix">05 / DAY/45</span>
+    </div>
+    <div class="desc">
+      Та же ledger-сетка, что и «Сегодня», но без активной строки и
+      без CTA «Записать». Сверху — навигация по дням ←/→.
+    </div>
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="status-bar"><span>14:32</span><div class="right">
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><rect x="0" y="7" width="2.5" height="4" rx=".5"/><rect x="4" y="5" width="2.5" height="6" rx=".5"/><rect x="8" y="2" width="2.5" height="9" rx=".5"/><rect x="12" y="0" width="2.5" height="11" rx=".5"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none" stroke="currentColor" stroke-width="1"><rect x=".5" y=".5" width="20" height="10" rx="2.5"/><rect x="2.5" y="2.5" width="14" height="6" rx="1" fill="currentColor"/><rect x="21" y="3.5" width="2" height="4" rx="1" fill="currentColor"/></svg>
+      </div></div>
+
+      <div class="topbar">
+        <button class="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <div><div class="crumb">ИСТОРИЯ · ДЕНЬ 45</div><div class="title">25 мая 2026</div></div>
+        <div class="spacer"></div>
+      </div>
+
+      <div class="nav-day"><a>← день 44 · 24.05</a><span>день 45</span><a>день 46 · 26.05 →</a></div>
+
+      <div class="day-head-meta">
+        <div class="left"><div class="k">Выпито</div><div class="v">640<small>МЛ / 620</small></div></div>
+        <div class="right"><div class="pct">103%</div><div class="delta good">+20 мл</div></div>
+      </div>
+
+      <div style="padding:14px 22px 8px; border-bottom:1px solid var(--line); font-family:'JetBrains Mono', monospace; font-size:9.5px; letter-spacing:0.18em; text-transform:uppercase; color:var(--ink-4);">8 КОРМЛЕНИЙ · 1 ДОКОРМ</div>
+
+      <div style="flex:1; overflow:hidden;">
+        <div class="day-row" style="grid-template-columns:52px 1fr 60px 60px;"><span class="ix">01</span><div><div class="date">06:10</div><div class="meta">основное</div></div><span class="ml">19м</span><span class="delta">75 мл</span></div>
+        <div class="day-row" style="grid-template-columns:52px 1fr 60px 60px;"><span class="ix">02</span><div><div class="date">08:55</div><div class="meta">осн. · креон 3 кап.</div></div><span class="ml">16м</span><span class="delta">80 мл</span></div>
+        <div class="day-row" style="grid-template-columns:52px 1fr 60px 60px;"><span class="ix">03</span><div><div class="date">11:30</div><div class="meta">основное</div></div><span class="ml">14м</span><span class="delta">75 мл</span></div>
+        <div class="day-row" style="grid-template-columns:52px 1fr 60px 60px;"><span class="ix">04</span><div><div class="date">14:20</div><div class="meta">основное</div></div><span class="ml">15м</span><span class="delta">80 мл</span></div>
+        <div class="day-row" style="grid-template-columns:52px 1fr 60px 60px;"><span class="ix" style="color:var(--warn);">04+</span><div><div class="date">14:55</div><div class="meta" style="color:var(--warn);">докорм</div></div><span class="ml">8м</span><span class="delta">20 мл</span></div>
+        <div class="day-row" style="grid-template-columns:52px 1fr 60px 60px;"><span class="ix">05</span><div><div class="date">17:00</div><div class="meta">основное</div></div><span class="ml">16м</span><span class="delta">85 мл</span></div>
+        <div class="day-row" style="grid-template-columns:52px 1fr 60px 60px;"><span class="ix">06</span><div><div class="date">19:45</div><div class="meta">основное</div></div><span class="ml">18м</span><span class="delta">80 мл</span></div>
+        <div class="day-row" style="grid-template-columns:52px 1fr 60px 60px;"><span class="ix">07</span><div><div class="date">22:30</div><div class="meta">основное</div></div><span class="ml">14м</span><span class="delta">75 мл</span></div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 06 HISTORY ANALYTICS ---------------------------- -->
+  <div class="group">
+    <div class="label">
+      <h3>История · аналитика <em>— сводка</em></h3>
+      <span class="ix">06 / HIST/ANL</span>
+    </div>
+    <div class="desc">
+      Вторая вкладка истории. Бары по дням против целевого мл/сутки,
+      линейка цели — тонкая ржавая. Ниже — сводные числа.
+    </div>
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="status-bar"><span>14:32</span><div class="right">
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><rect x="0" y="7" width="2.5" height="4" rx=".5"/><rect x="4" y="5" width="2.5" height="6" rx=".5"/><rect x="8" y="2" width="2.5" height="9" rx=".5"/><rect x="12" y="0" width="2.5" height="11" rx=".5"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none" stroke="currentColor" stroke-width="1"><rect x=".5" y=".5" width="20" height="10" rx="2.5"/><rect x="2.5" y="2.5" width="14" height="6" rx="1" fill="currentColor"/><rect x="21" y="3.5" width="2" height="4" rx="1" fill="currentColor"/></svg>
+      </div></div>
+
+      <div class="topbar">
+        <button class="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <div><div class="crumb">ИСТОРИЯ · АНАЛИТИКА</div><div class="title">Аналитика</div></div>
+        <div class="spacer"></div>
+      </div>
+
+      <div class="tabs"><div class="tab">Дни</div><div class="tab on">Аналитика</div></div>
+
+      <div class="ha-block">
+        <div class="lbl">ВЫПИТО ПО ДНЯМ · ПОСЛЕДНИЕ 14</div>
+        <div class="ha-bar-chart">
+          <div class="b under" style="height:55%"></div>
+          <div class="b" style="height:70%"></div>
+          <div class="b under" style="height:60%"></div>
+          <div class="b on" style="height:96%"></div>
+          <div class="b" style="height:80%"></div>
+          <div class="b under" style="height:62%"></div>
+          <div class="b" style="height:88%"></div>
+          <div class="b on" style="height:100%"></div>
+          <div class="b under" style="height:48%"></div>
+          <div class="b" style="height:90%"></div>
+          <div class="b under" style="height:65%"></div>
+          <div class="b on" style="height:103%"></div>
+          <div class="b" style="height:85%"></div>
+          <div class="b under" style="height:68%"></div>
+        </div>
+        <div class="ha-axis"><span>14 МАЯ</span><span>20 МАЯ</span><span>27 МАЯ</span></div>
+        <div class="ha-legend">
+          <span class="lg"><span class="sw" style="background:var(--ink)"></span> на цели</span>
+          <span class="lg"><span class="sw" style="background:var(--ink-2)"></span> близко</span>
+          <span class="lg"><span class="sw" style="background:var(--ink-4)"></span> ниже</span>
+        </div>
+      </div>
+
+      <div class="hist-summary" style="border-top:0;">
+        <div class="cell"><div class="k">На цели</div><div class="v">3<small>/14</small></div><div class="delta good">21%</div></div>
+        <div class="cell"><div class="k">Ниже −10%</div><div class="v">6<small>/14</small></div><div class="delta warn">43%</div></div>
+        <div class="cell"><div class="k">Тренд</div><div class="v">+12<small>мл/дн</small></div><div class="delta good">↑ растёт</div></div>
+      </div>
+
+      <div style="padding:14px 22px; border-bottom:1px solid var(--line); font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-3);">
+        <strong style="color:var(--ink); font-weight:600;">Хайлайт.</strong>
+        Лучший день · <strong style="color:var(--ink);">№42 · 22.05</strong> — 615/610, +5 мл.<br>
+        Самый низкий · <strong style="color:var(--ink);">№44 · 24.05</strong> — 560/620, −60 мл.
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 07 WEIGHT LIST ---------------------------- -->
+  <div class="group">
+    <div class="label">
+      <h3>Вес <em>— записи и кривая</em></h3>
+      <span class="ix">07 / WEIGHT</span>
+    </div>
+    <div class="desc">
+      Спарклайн сверху без украшений. Текущий вес крупно, прирост — моноширинно.
+      Список взвешиваний с дельтой к предыдущей записи.
+    </div>
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="status-bar"><span>14:32</span><div class="right">
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><rect x="0" y="7" width="2.5" height="4" rx=".5"/><rect x="4" y="5" width="2.5" height="6" rx=".5"/><rect x="8" y="2" width="2.5" height="9" rx=".5"/><rect x="12" y="0" width="2.5" height="11" rx=".5"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none" stroke="currentColor" stroke-width="1"><rect x=".5" y=".5" width="20" height="10" rx="2.5"/><rect x="2.5" y="2.5" width="14" height="6" rx="1" fill="currentColor"/><rect x="21" y="3.5" width="2" height="4" rx="1" fill="currentColor"/></svg>
+      </div></div>
+
+      <div class="topbar">
+        <button class="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <div><div class="crumb">LEON · ВЕС</div><div class="title">Вес</div></div>
+        <button class="right-action">+ ДОБ.</button>
+      </div>
+
+      <div class="tabs"><div class="tab on">Записи</div><div class="tab">Аналитика</div></div>
+
+      <div class="chart-block">
+        <div class="now">
+          <div class="v">4 820<small>Г</small></div>
+          <div class="since">47 ДЕНЬ</div>
+          <div class="gain">+820 г / 47д</div>
+        </div>
+        <svg class="chart-svg" viewBox="0 0 320 130" preserveAspectRatio="none">
+          <rect x="0" y="30" width="320" height="50" fill="#e6e4dd" opacity="0.5"/>
+          <polyline fill="none" stroke="#0e0e0e" stroke-width="1.8"
+            points="6,108 28,103 54,99 80,92 106,85 132,76 158,68 184,58 210,49 240,42 270,32 300,22 314,18"/>
+          <line x1="6" y1="0" x2="6" y2="130" stroke="#9a9893" stroke-dasharray="2 3" stroke-width="0.8"/>
+          <circle cx="314" cy="18" r="3.5" fill="#fff" stroke="#0e0e0e" stroke-width="2"/>
+        </svg>
+        <div class="chart-axis"><span>0</span><span>10</span><span>20</span><span>30</span><span>40</span><span>СЕЙЧАС</span></div>
+      </div>
+
+      <div style="flex:1; overflow:hidden;">
+        <div class="w-row"><span class="ix">12</span><div><div class="date">27 мая · ср</div><div class="dol">день 47</div></div><span class="grams">4 820 г</span><span class="gain">+220</span></div>
+        <div class="w-row"><span class="ix">11</span><div><div class="date">23 мая · сб</div><div class="dol">день 43</div></div><span class="grams">4 600 г</span><span class="gain">+180</span></div>
+        <div class="w-row"><span class="ix">10</span><div><div class="date">19 мая · вт</div><div class="dol">день 39</div></div><span class="grams">4 420 г</span><span class="gain">+200</span></div>
+        <div class="w-row"><span class="ix">09</span><div><div class="date">15 мая · пт</div><div class="dol">день 35</div></div><span class="grams">4 220 г</span><span class="gain">+180</span></div>
+        <div class="w-row"><span class="ix">08</span><div><div class="date">11 мая · пн</div><div class="dol">день 31</div></div><span class="grams">4 040 г</span><span class="gain">+160</span></div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 08 WEIGHT ANALYTICS ---------------------------- -->
+  <div class="group">
+    <div class="label">
+      <h3>Вес · аналитика <em>— темп набора</em></h3>
+      <span class="ix">08 / WGT/ANL</span>
+    </div>
+    <div class="desc">
+      Вторая вкладка веса. Темп грамм/сутки по неделям против рекомендованной
+      полосы (15–30 г/сут). Сводка — мин/макс/средний.
+    </div>
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="status-bar"><span>14:32</span><div class="right">
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><rect x="0" y="7" width="2.5" height="4" rx=".5"/><rect x="4" y="5" width="2.5" height="6" rx=".5"/><rect x="8" y="2" width="2.5" height="9" rx=".5"/><rect x="12" y="0" width="2.5" height="11" rx=".5"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none" stroke="currentColor" stroke-width="1"><rect x=".5" y=".5" width="20" height="10" rx="2.5"/><rect x="2.5" y="2.5" width="14" height="6" rx="1" fill="currentColor"/><rect x="21" y="3.5" width="2" height="4" rx="1" fill="currentColor"/></svg>
+      </div></div>
+
+      <div class="topbar">
+        <button class="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <div><div class="crumb">ВЕС · АНАЛИТИКА</div><div class="title">Темп набора</div></div>
+        <div class="spacer"></div>
+      </div>
+
+      <div class="tabs"><div class="tab">Записи</div><div class="tab on">Аналитика</div></div>
+
+      <div class="chart-block">
+        <div class="now">
+          <div class="v">+38<small>Г/СУТ</small></div>
+          <div class="since">ПОСЛ. 7 ДН.</div>
+          <div class="gain">в норме</div>
+        </div>
+        <svg class="chart-svg" viewBox="0 0 320 130" preserveAspectRatio="none">
+          <rect x="0" y="55" width="320" height="35" fill="#e6e4dd" opacity="0.6"/>
+          <line x1="0" y1="55" x2="320" y2="55" stroke="#9a9893" stroke-dasharray="2 3" stroke-width="0.8"/>
+          <line x1="0" y1="90" x2="320" y2="90" stroke="#9a9893" stroke-dasharray="2 3" stroke-width="0.8"/>
+          <polyline fill="none" stroke="#0e0e0e" stroke-width="1.8"
+            points="20,108 70,92 120,82 170,70 220,62 270,48 310,42"/>
+          <circle cx="310" cy="42" r="3.5" fill="#fff" stroke="#0e0e0e" stroke-width="2"/>
+        </svg>
+        <div class="chart-axis"><span>W1</span><span>W2</span><span>W3</span><span>W4</span><span>W5</span><span>W6</span><span>СЕЙЧАС</span></div>
+      </div>
+
+      <div class="hist-summary" style="border-top:0;">
+        <div class="cell"><div class="k">Средний</div><div class="v">+24<small>г/д</small></div><div class="delta">за всё</div></div>
+        <div class="cell"><div class="k">Минимум</div><div class="v">+11<small>г/д</small></div><div class="delta">нед. 2</div></div>
+        <div class="cell"><div class="k">Максимум</div><div class="v">+55<small>г/д</small></div><div class="delta good">нед. 6</div></div>
+      </div>
+      <div style="padding:14px 22px; font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-3);">
+        НОРМА · 15–30 Г/СУТ на возрасте 1–3 мес.<br>
+        Последняя неделя — выше верхней границы. Контроль ок.
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 09 MEDICATIONS ---------------------------- -->
+  <div class="group">
+    <div class="label">
+      <h3>Лекарства <em>— справочник</em></h3>
+      <span class="ix">09 / MEDS</span>
+    </div>
+    <div class="desc">
+      Список с индексом, дефолтной дозой и парой icon-кнопок. Архивные ниже
+      разделителя, приглушены — не удалены ради сохранения связей в истории.
+    </div>
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="status-bar"><span>14:32</span><div class="right">
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><rect x="0" y="7" width="2.5" height="4" rx=".5"/><rect x="4" y="5" width="2.5" height="6" rx=".5"/><rect x="8" y="2" width="2.5" height="9" rx=".5"/><rect x="12" y="0" width="2.5" height="11" rx=".5"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none" stroke="currentColor" stroke-width="1"><rect x=".5" y=".5" width="20" height="10" rx="2.5"/><rect x="2.5" y="2.5" width="14" height="6" rx="1" fill="currentColor"/><rect x="21" y="3.5" width="2" height="4" rx="1" fill="currentColor"/></svg>
+      </div></div>
+
+      <div class="topbar">
+        <button class="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <div><div class="crumb">LEON · ЛЕКАРСТВА</div><div class="title">Лекарства</div></div>
+        <button class="right-action">+ ДОБ.</button>
+      </div>
+
+      <div class="section-sep">АКТИВНЫЕ · 3</div>
+      <div class="med-row"><span class="ix">01</span><div><div class="name">Креон</div><div class="dose">3 капли · стандарт</div></div><div class="acts"><button><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4v16h16v-7M18.5 2.5a2 2 0 0 1 2.8 2.8L12 14.5l-4 1 1-4z"/></svg></button><button><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button></div></div>
+      <div class="med-row"><span class="ix">02</span><div><div class="name">Витамин D3</div><div class="dose">1 капля · ежедневно</div></div><div class="acts"><button><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4v16h16v-7M18.5 2.5a2 2 0 0 1 2.8 2.8L12 14.5l-4 1 1-4z"/></svg></button><button><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button></div></div>
+      <div class="med-row"><span class="ix">03</span><div><div class="name">Эспумизан</div><div class="dose">5 капель · по симптомам</div></div><div class="acts"><button><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4v16h16v-7M18.5 2.5a2 2 0 0 1 2.8 2.8L12 14.5l-4 1 1-4z"/></svg></button><button><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button></div></div>
+
+      <div class="section-sep">АРХИВНЫЕ · 2</div>
+      <div class="med-row archived"><span class="ix">04</span><div><div class="name">Бифидумбактерин</div><div class="dose">5 капель · дни 02–18</div></div><div class="acts"><button><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button></div></div>
+      <div class="med-row archived"><span class="ix">05</span><div><div class="name">Хилак форте</div><div class="dose">10 капель · дни 05–22</div></div><div class="acts"><button><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button></div></div>
+    </div></div>
+  </div>
+
+  <!-- 10 SETTINGS ------------------------------------ -->
+  <div class="group">
+    <div class="label">
+      <h3>Настройки <em>— параметры</em></h3>
+      <span class="ix">10 / CFG</span>
+    </div>
+    <div class="desc">
+      Группы разделителями uppercase JetBrains Mono. Значения справа —
+      моноширинные. Тогглы прямоугольные с rounded handle, ближе к лабораторным контроллам.
+    </div>
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="status-bar"><span>14:32</span><div class="right">
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><rect x="0" y="7" width="2.5" height="4" rx=".5"/><rect x="4" y="5" width="2.5" height="6" rx=".5"/><rect x="8" y="2" width="2.5" height="9" rx=".5"/><rect x="12" y="0" width="2.5" height="11" rx=".5"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none" stroke="currentColor" stroke-width="1"><rect x=".5" y=".5" width="20" height="10" rx="2.5"/><rect x="2.5" y="2.5" width="14" height="6" rx="1" fill="currentColor"/><rect x="21" y="3.5" width="2" height="4" rx="1" fill="currentColor"/></svg>
+      </div></div>
+
+      <div class="topbar">
+        <button class="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <div><div class="crumb">LEON · НАСТРОЙКИ</div><div class="title">Настройки</div></div>
+        <div class="spacer"></div>
+      </div>
+
+      <div class="set-section">
+        <div class="head-s">SUBJECT</div>
+        <div class="set-row"><div class="l"><div class="k">Активный ребёнок</div><div class="v">день 47 · 4820 г</div></div><div class="r">Лёва<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div></div>
+        <div class="set-row"><div class="l"><div class="k">Смесь</div><div class="v">67 ккал/100мл · 12% белок</div></div><div class="r">NAN Pro 1<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div></div>
+      </div>
+
+      <div class="set-section">
+        <div class="head-s">PLANNING</div>
+        <div class="set-row"><div class="l"><div class="k">Желаемое число кормлений</div><div class="v">диапазон дн. 40–60: 7–9</div></div><div class="r">8<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div></div>
+        <div class="set-row"><div class="l"><div class="k">Окно бодрствования</div><div class="v">первое и последнее кормления</div></div><div class="r">06:00 → 23:00<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div></div>
+        <div class="set-row"><div class="l"><div class="k">Tomorrow-slot</div><div class="v">первое кормление след. дня</div></div><div class="r"><div class="toggle on"></div></div></div>
+      </div>
+
+      <div class="set-section">
+        <div class="head-s">UNITS · TZ</div>
+        <div class="set-row"><div class="l"><div class="k">Часовой пояс</div><div class="v">авто из устройства</div></div><div class="r">Europe/Moscow</div></div>
+        <div class="set-row"><div class="l"><div class="k">Единицы веса</div><div class="v">граммы / фунты</div></div><div class="r">г<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div></div>
+      </div>
+
+      <div class="set-section">
+        <div class="head-s">SYSTEM · v0.4.2</div>
+        <div class="set-row"><div class="l"><div class="k">Экспорт данных</div><div class="v">CSV · все кормления</div></div><div class="r"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div></div>
+        <div class="set-row"><div class="l"><div class="k">Тёмная тема</div><div class="v">авто по системе</div></div><div class="r"><div class="toggle"></div></div></div>
+      </div>
+    </div></div>
+  </div>
+
+</div>
+
+<!-- =====================================================
+     SECTION II · MODALS, SHEETS, OVERLAYS
+     ===================================================== -->
+<div class="section-rule">
+  <span class="num">SECTION II</span>
+  <h2>Sheets и оверлеи <em>— ввод и переключения</em></h2>
+  <span class="count">6 SCREENS</span>
+</div>
+
+<div class="gallery">
+
+  <!-- 11 FEEDING SHEET ---------------------------- -->
+  <div class="group">
+    <div class="label">
+      <h3>Запись кормления <em>— full-sheet</em></h3>
+      <span class="ix">11 / REC</span>
+    </div>
+    <div class="desc">
+      Полноэкранный лист. Все контролы — прямоугольные, моноширинные числа,
+      инверсия для активных. CTA <code>СОХР</code> с моно-меткой.
+    </div>
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="status-bar"><span>14:32</span><div class="right">
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><rect x="0" y="7" width="2.5" height="4" rx=".5"/><rect x="4" y="5" width="2.5" height="6" rx=".5"/><rect x="8" y="2" width="2.5" height="9" rx=".5"/><rect x="12" y="0" width="2.5" height="11" rx=".5"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none" stroke="currentColor" stroke-width="1"><rect x=".5" y=".5" width="20" height="10" rx="2.5"/><rect x="2.5" y="2.5" width="14" height="6" rx="1" fill="currentColor"/><rect x="21" y="3.5" width="2" height="4" rx="1" fill="currentColor"/></svg>
+      </div></div>
+
+      <div class="topbar">
+        <button class="back"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        <div><div class="crumb">СЕГОДНЯ · ЗАПИСЬ</div><div class="title">Новое кормление</div></div>
+        <div class="spacer"></div>
+      </div>
+
+      <div class="sheet-grid">
+        <div class="field"><span class="lbl">ВРЕМЯ</span>
+          <div class="time-cell"><div class="t">14:32 <em>· сейчас · 27.05</em></div><button class="edit">Изм.</button></div>
+        </div>
+        <div class="field"><span class="lbl">ТИП</span>
+          <div class="seg"><button class="on">Основное</button><button>Докорм</button></div>
+        </div>
+        <div class="field"><span class="lbl">ДЛИТ-ТЬ · МИН</span>
+          <div class="chips"><button>10</button><button class="on">15</button><button>20</button><button>30</button><button class="ghost">+</button></div>
+        </div>
+        <div class="field"><span class="lbl">ОБЪЁМ · МЛ</span>
+          <div class="stepper">
+            <button><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+            <div class="value"><span class="big">60</span><span class="unit">мл</span></div>
+            <button><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+          <div class="hint">НОРМА: <strong>55–70 мл</strong> на кормление · день 47</div>
+        </div>
+        <div class="field"><span class="lbl">ЛЕКАРСТВО</span>
+          <div class="chips med-chips"><button class="on">Без</button><button>Креон</button><button>Витамин D</button><button>Эспумизан</button><button class="ghost">+</button></div>
+        </div>
+      </div>
+
+      <div class="sheet-action">
+        <button class="save"><span class="k">СОХР</span>Записать</button>
+        <button class="trash"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 12 WEIGHT SHEET ---------------------------- -->
+  <div class="group">
+    <div class="label">
+      <h3>Добавить вес <em>— sheet</em></h3>
+      <span class="ix">12 / WGT/REC</span>
+    </div>
+    <div class="desc">
+      Краткий лист: дата, граммы степпером с шагом 10, заметка. Активный
+      ребёнок и день жизни висят сверху подписью.
+    </div>
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="status-bar"><span>14:32</span><div class="right">
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><rect x="0" y="7" width="2.5" height="4" rx=".5"/><rect x="4" y="5" width="2.5" height="6" rx=".5"/><rect x="8" y="2" width="2.5" height="9" rx=".5"/><rect x="12" y="0" width="2.5" height="11" rx=".5"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none" stroke="currentColor" stroke-width="1"><rect x=".5" y=".5" width="20" height="10" rx="2.5"/><rect x="2.5" y="2.5" width="14" height="6" rx="1" fill="currentColor"/><rect x="21" y="3.5" width="2" height="4" rx="1" fill="currentColor"/></svg>
+      </div></div>
+
+      <div class="topbar">
+        <button class="back"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        <div><div class="crumb">ВЕС · ЗАПИСЬ</div><div class="title">Взвешивание</div></div>
+        <div class="spacer"></div>
+      </div>
+
+      <div class="sheet-grid">
+        <div class="field">
+          <span class="lbl">SUBJECT</span>
+          <div class="time-cell"><div class="t">Лёва <em>· день 47 · посл. 4 600 г</em></div></div>
+        </div>
+        <div class="field"><span class="lbl">ДАТА</span>
+          <div class="time-cell"><div class="t">27.05.2026 <em>· сегодня</em></div><button class="edit">Изм.</button></div>
+        </div>
+        <div class="field"><span class="lbl">ВЕС · ГРАММЫ</span>
+          <div class="stepper">
+            <button><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+            <div class="value"><span class="big">4 820</span><span class="unit">г</span></div>
+            <button><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+          <div class="hint">+220 г к прошлому · ↑ <strong>55 г/сут</strong></div>
+        </div>
+        <div class="field"><span class="lbl">ПРИРОСТ · ШАГ</span>
+          <div class="chips"><button>1</button><button>5</button><button class="on">10</button><button>50</button><button>100</button></div>
+        </div>
+        <div class="field"><span class="lbl">ЗАМЕТКА</span>
+          <input class="input" value="после кормления, голый">
+        </div>
+      </div>
+
+      <div class="sheet-action">
+        <button class="save"><span class="k">СОХР</span>Записать</button>
+        <button class="trash"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 13 MEDICATION SHEET ---------------------------- -->
+  <div class="group">
+    <div class="label">
+      <h3>Лекарство <em>— sheet</em></h3>
+      <span class="ix">13 / MED/REC</span>
+    </div>
+    <div class="desc">
+      Создание / редактирование. Название, дефолтная доза, единицы,
+      режим (стандарт / по симптомам). Чек «архивировать» — нижним рядом.
+    </div>
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="status-bar"><span>14:32</span><div class="right">
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><rect x="0" y="7" width="2.5" height="4" rx=".5"/><rect x="4" y="5" width="2.5" height="6" rx=".5"/><rect x="8" y="2" width="2.5" height="9" rx=".5"/><rect x="12" y="0" width="2.5" height="11" rx=".5"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none" stroke="currentColor" stroke-width="1"><rect x=".5" y=".5" width="20" height="10" rx="2.5"/><rect x="2.5" y="2.5" width="14" height="6" rx="1" fill="currentColor"/><rect x="21" y="3.5" width="2" height="4" rx="1" fill="currentColor"/></svg>
+      </div></div>
+
+      <div class="topbar">
+        <button class="back"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        <div><div class="crumb">ЛЕКАРСТВО · #01</div><div class="title">Креон</div></div>
+        <div class="spacer"></div>
+      </div>
+
+      <div class="sheet-grid">
+        <div class="field"><span class="lbl">НАЗВАНИЕ</span>
+          <input class="input focused" value="Креон">
+        </div>
+        <div class="field"><span class="lbl">ДОЗА · КАПЛИ</span>
+          <div class="chips"><button>1</button><button>2</button><button class="on">3</button><button>5</button><button class="ghost">+</button></div>
+        </div>
+        <div class="field"><span class="lbl">РЕЖИМ</span>
+          <div class="seg"><button class="on">Стандарт</button><button>По симптомам</button></div>
+        </div>
+        <div class="field"><span class="lbl">ЗАМЕТКА</span>
+          <input class="input placeholder" value="опционально, для шапки">
+        </div>
+        <div class="field" style="flex-direction:row; justify-content:space-between; align-items:center;">
+          <span class="lbl">АРХИВИРОВАТЬ</span>
+          <div class="toggle"></div>
+        </div>
+      </div>
+
+      <div class="sheet-action">
+        <button class="save"><span class="k">СОХР</span>Сохранить</button>
+        <button class="trash"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 14 BABIES (active list) -------------------- -->
+  <div class="group">
+    <div class="label">
+      <h3>Дети <em>— подопечные</em></h3>
+      <span class="ix">14 / SUBJECTS</span>
+    </div>
+    <div class="desc">
+      Активный «подопечный» — тёмный аватар и бейдж <em>АКТИВ</em>. Архив
+      доступен отдельной вкладкой/ссылкой.
+    </div>
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="status-bar"><span>14:32</span><div class="right">
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><rect x="0" y="7" width="2.5" height="4" rx=".5"/><rect x="4" y="5" width="2.5" height="6" rx=".5"/><rect x="8" y="2" width="2.5" height="9" rx=".5"/><rect x="12" y="0" width="2.5" height="11" rx=".5"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none" stroke="currentColor" stroke-width="1"><rect x=".5" y=".5" width="20" height="10" rx="2.5"/><rect x="2.5" y="2.5" width="14" height="6" rx="1" fill="currentColor"/><rect x="21" y="3.5" width="2" height="4" rx="1" fill="currentColor"/></svg>
+      </div></div>
+
+      <div class="topbar">
+        <button class="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <div><div class="crumb">LEON · ДЕТИ</div><div class="title">Дети</div></div>
+        <button class="right-action">+ ДОБ.</button>
+      </div>
+
+      <div class="tabs"><div class="tab on">Активные · 1</div><div class="tab">Архив · 2</div></div>
+
+      <div class="section-sep">АКТИВНЫЕ</div>
+      <div class="baby-row"><div class="av">Л</div><div><div class="name">Лёва</div><div class="sub">день 47 · 10/04/2026 · М · 4820г</div></div><span class="badge solid">АКТИВ</span></div>
+
+      <div style="padding: 32px 22px; font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-3); line-height:1.6; border-top: 1px dashed var(--line);">
+        <strong style="color:var(--ink); font-weight:600;">Один подопечный — норма.</strong><br>
+        Если ребёнок выбыл из активного наблюдения — переключите в архив через
+        sheet редактирования. Все кормления и веса сохранятся.
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 15 BABIES ARCHIVE -------------------- -->
+  <div class="group">
+    <div class="label">
+      <h3>Дети · архив <em>— файлы</em></h3>
+      <span class="ix">15 / SUBJ/ARCH</span>
+    </div>
+    <div class="desc">
+      Архивные карточки — outline-аватар, бейдж <em>АРХИВ</em>, приглушены.
+      Из контекстного меню — восстановление или удаление.
+    </div>
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="status-bar"><span>14:32</span><div class="right">
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><rect x="0" y="7" width="2.5" height="4" rx=".5"/><rect x="4" y="5" width="2.5" height="6" rx=".5"/><rect x="8" y="2" width="2.5" height="9" rx=".5"/><rect x="12" y="0" width="2.5" height="11" rx=".5"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none" stroke="currentColor" stroke-width="1"><rect x=".5" y=".5" width="20" height="10" rx="2.5"/><rect x="2.5" y="2.5" width="14" height="6" rx="1" fill="currentColor"/><rect x="21" y="3.5" width="2" height="4" rx="1" fill="currentColor"/></svg>
+      </div></div>
+
+      <div class="topbar">
+        <button class="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <div><div class="crumb">ДЕТИ · АРХИВ</div><div class="title">Архив</div></div>
+        <div class="spacer"></div>
+      </div>
+
+      <div class="tabs"><div class="tab">Активные · 1</div><div class="tab on">Архив · 2</div></div>
+
+      <div class="section-sep">АРХИВНЫЕ · 2</div>
+      <div class="baby-row"><div class="av archived">К</div><div><div class="name">Ким</div><div class="sub">арх · 12/06/2023 · М · до 420 д. · 7 980 г</div></div><span class="badge archived">АРХИВ</span></div>
+      <div class="baby-row"><div class="av archived">А</div><div><div class="name">Аня</div><div class="sub">арх · 04/02/2021 · Ж · до 612 д. · 9 240 г</div></div><span class="badge archived">АРХИВ</span></div>
+
+      <div style="padding: 24px 22px; font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-3); line-height:1.6;">
+        Кормления и веса архивных детей доступны только для чтения. Восстановите ребёнка,
+        чтобы продолжить запись.
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 16 ADD BABY (form) -------------------- -->
+  <div class="group">
+    <div class="label">
+      <h3>Новый ребёнок <em>— форма</em></h3>
+      <span class="ix">16 / SUBJ/NEW</span>
+    </div>
+    <div class="desc">
+      Полноэкранная форма. Имя, дата рождения, пол сегментом, стартовый вес,
+      смесь и таргет на сутки (можно оставить авто).
+    </div>
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="status-bar"><span>14:32</span><div class="right">
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><rect x="0" y="7" width="2.5" height="4" rx=".5"/><rect x="4" y="5" width="2.5" height="6" rx=".5"/><rect x="8" y="2" width="2.5" height="9" rx=".5"/><rect x="12" y="0" width="2.5" height="11" rx=".5"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none" stroke="currentColor" stroke-width="1"><rect x=".5" y=".5" width="20" height="10" rx="2.5"/><rect x="2.5" y="2.5" width="14" height="6" rx="1" fill="currentColor"/><rect x="21" y="3.5" width="2" height="4" rx="1" fill="currentColor"/></svg>
+      </div></div>
+
+      <div class="topbar">
+        <button class="back"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        <div><div class="crumb">ДЕТИ · НОВЫЙ</div><div class="title">Подопечный</div></div>
+        <div class="spacer"></div>
+      </div>
+
+      <div class="form-grid">
+        <div class="input-cell"><span class="lbl">ИМЯ</span><input class="input focused" value="Лёва"></div>
+        <div class="input-cell"><span class="lbl">ДАТА РОЖДЕНИЯ</span><input class="input" value="10.04.2026"></div>
+        <div class="input-cell"><span class="lbl">ПОЛ</span>
+          <div class="seg"><button class="on">М</button><button>Ж</button></div>
+        </div>
+        <div class="input-cell"><span class="lbl">СТАРТОВЫЙ ВЕС · Г</span>
+          <div class="stepper">
+            <button><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+            <div class="value"><span class="big">4 000</span><span class="unit">г</span></div>
+            <button><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+        </div>
+        <div class="input-cell"><span class="lbl">СМЕСЬ</span>
+          <div class="time-cell"><div class="t" style="font-size:15px;">NAN Pro 1 <em>· 67 ккал/100мл</em></div><button class="edit">Изм.</button></div>
+        </div>
+      </div>
+
+      <div class="sheet-action">
+        <button class="save"><span class="k">СОЗД</span>Создать</button>
+        <button class="trash"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+    </div></div>
+  </div>
+
+</div>
+
+<!-- =====================================================
+     SECTION III · STATES (empty, error, loading)
+     ===================================================== -->
+<div class="section-rule">
+  <span class="num">SECTION III</span>
+  <h2>Состояния <em>— первый запуск и обочина</em></h2>
+  <span class="count">3 SCREENS</span>
+</div>
+
+<div class="gallery">
+
+  <!-- 17 ONBOARDING / NO BABY -->
+  <div class="group">
+    <div class="label">
+      <h3>Первый запуск <em>— пусто</em></h3>
+      <span class="ix">17 / ONBOARD</span>
+    </div>
+    <div class="desc">
+      Нет ни одного подопечного. CTA — создать первого. Тон сдержанный,
+      без эмоджи и иллюстраций — список «что внутри».
+    </div>
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="status-bar"><span>14:32</span><div class="right">
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><rect x="0" y="7" width="2.5" height="4" rx=".5"/><rect x="4" y="5" width="2.5" height="6" rx=".5"/><rect x="8" y="2" width="2.5" height="9" rx=".5"/><rect x="12" y="0" width="2.5" height="11" rx=".5"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none" stroke="currentColor" stroke-width="1"><rect x=".5" y=".5" width="20" height="10" rx="2.5"/><rect x="2.5" y="2.5" width="14" height="6" rx="1" fill="currentColor"/><rect x="21" y="3.5" width="2" height="4" rx="1" fill="currentColor"/></svg>
+      </div></div>
+
+      <div class="onboard">
+        <div class="eyebrow">LEON · v0.4.2 · LEDGER</div>
+        <h1>Журнал кормлений <em>— строго по делу</em></h1>
+        <p>
+          Leon ведёт <strong style="color:var(--ink); font-weight:600;">табель</strong> для одного ребёнка: время,
+          длительность, объём, лекарства, вес. Без напоминаний, без советов,
+          без эмоций. Только данные и тренды.
+        </p>
+        <ul>
+          <li><span class="nx">01 ·</span>план и факт кормлений на сутки</li>
+          <li><span class="nx">02 ·</span>история всех дней, сравнение с целью</li>
+          <li><span class="nx">03 ·</span>вес с трендом и нормами набора</li>
+          <li><span class="nx">04 ·</span>лекарства, привязанные к кормлению</li>
+        </ul>
+        <button class="cta"><span class="k">СОЗД</span>Создать подопечного</button>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 18 EMPTY HISTORY -->
+  <div class="group">
+    <div class="label">
+      <h3>Пустая история <em>— первый день</em></h3>
+      <span class="ix">18 / EMPTY</span>
+    </div>
+    <div class="desc">
+      Подопечный есть, но кормлений ещё ноль. Подсказка как начать,
+      сетка табеля показана пунктиром.
+    </div>
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="status-bar"><span>14:32</span><div class="right">
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><rect x="0" y="7" width="2.5" height="4" rx=".5"/><rect x="4" y="5" width="2.5" height="6" rx=".5"/><rect x="8" y="2" width="2.5" height="9" rx=".5"/><rect x="12" y="0" width="2.5" height="11" rx=".5"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none" stroke="currentColor" stroke-width="1"><rect x=".5" y=".5" width="20" height="10" rx="2.5"/><rect x="2.5" y="2.5" width="14" height="6" rx="1" fill="currentColor"/><rect x="21" y="3.5" width="2" height="4" rx="1" fill="currentColor"/></svg>
+      </div></div>
+
+      <div class="strip">
+        <div class="left"><div class="k">27.05.2026 · СР</div><div class="date">День 01</div></div>
+        <div class="right"><div class="ix">РЕБЁНОК · 4 000 Г</div><div class="name">Лёва</div></div>
+      </div>
+
+      <div class="head">
+        <div class="row1">
+          <div class="num" style="color:var(--ink-4);">0</div>
+          <div class="of">МЛ · ИЗ <strong>—</strong></div>
+          <div class="pct" style="color:var(--ink-4);">0%</div>
+        </div>
+        <div>
+          <div class="bar" style="border-style:dashed;"></div>
+          <div class="ticks"><span>0</span><span>—</span><span>—</span><span>—</span><span>?</span></div>
+        </div>
+      </div>
+
+      <div class="schedule">
+        <div class="sched-head"><span class="num-col">№</span><span>ВРЕМЯ</span><span class="right">ДЛИТ.</span><span class="right">МЛ</span></div>
+        <div class="entry plan"><span class="ix">01</span><div><span class="t">—</span><div class="note">первое кормление</div></div><span class="dur">—</span><span class="vol">—</span></div>
+        <div class="entry plan"><span class="ix">02</span><div><span class="t">—</span><div class="note">—</div></div><span class="dur">—</span><span class="vol">—</span></div>
+        <div class="entry plan"><span class="ix">03</span><div><span class="t">—</span><div class="note">—</div></div><span class="dur">—</span><span class="vol">—</span></div>
+
+        <div style="padding: 24px 22px 0; font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-3); line-height:1.6;">
+          <strong style="color:var(--ink); font-weight:600;">Начните с первого.</strong><br>
+          Запишите кормление — Leon сразу пересчитает таргет на день и
+          расставит план оставшихся слотов до 23:00.
+        </div>
+      </div>
+
+      <div class="action">
+        <button class="pri"><span class="k">ЗАП</span>Первое кормление</button>
+        <button class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 19 LOADING / SKELETON -->
+  <div class="group">
+    <div class="label">
+      <h3>Загрузка <em>— скелетон</em></h3>
+      <span class="ix">19 / LOAD</span>
+    </div>
+    <div class="desc">
+      Скелетоны держат ту же ledger-сетку: индекс, время, объём, дельта.
+      Никаких округлых блоков — узкие шиммер-прямоугольники по местам.
+    </div>
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="status-bar"><span>14:32</span><div class="right">
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><rect x="0" y="7" width="2.5" height="4" rx=".5"/><rect x="4" y="5" width="2.5" height="6" rx=".5"/><rect x="8" y="2" width="2.5" height="9" rx=".5"/><rect x="12" y="0" width="2.5" height="11" rx=".5"/></svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none" stroke="currentColor" stroke-width="1"><rect x=".5" y=".5" width="20" height="10" rx="2.5"/><rect x="2.5" y="2.5" width="14" height="6" rx="1" fill="currentColor"/><rect x="21" y="3.5" width="2" height="4" rx="1" fill="currentColor"/></svg>
+      </div></div>
+
+      <div class="strip">
+        <div class="left"><div class="k">LOADING · DAY</div><div class="skel" style="height:14px; width:80px; margin-top:6px;"></div></div>
+        <div class="right"><div class="ix">РЕБЁНОК</div><div class="skel" style="height:16px; width:60px; margin-top:6px;"></div></div>
+      </div>
+
+      <div class="head">
+        <div class="row1">
+          <div class="skel" style="height:60px; width:170px;"></div>
+          <div></div>
+          <div class="skel" style="height:14px; width:40px;"></div>
+        </div>
+        <div class="skel" style="height:8px;"></div>
+      </div>
+
+      <div class="schedule">
+        <div class="sched-head"><span class="num-col">№</span><span>ВРЕМЯ</span><span class="right">ДЛИТ.</span><span class="right">МЛ</span></div>
+        <div class="entry"><span class="ix">01</span><div><div class="skel" style="height:14px; width:60px;"></div><div class="skel" style="height:10px; width:90px; margin-top:6px;"></div></div><div class="skel" style="height:12px; width:30px; margin-left:auto;"></div><div class="skel" style="height:14px; width:48px; margin-left:auto;"></div></div>
+        <div class="entry"><span class="ix">02</span><div><div class="skel" style="height:14px; width:60px;"></div><div class="skel" style="height:10px; width:110px; margin-top:6px;"></div></div><div class="skel" style="height:12px; width:30px; margin-left:auto;"></div><div class="skel" style="height:14px; width:48px; margin-left:auto;"></div></div>
+        <div class="entry"><span class="ix">03</span><div><div class="skel" style="height:14px; width:60px;"></div><div class="skel" style="height:10px; width:70px; margin-top:6px;"></div></div><div class="skel" style="height:12px; width:30px; margin-left:auto;"></div><div class="skel" style="height:14px; width:48px; margin-left:auto;"></div></div>
+        <div class="entry"><span class="ix">04</span><div><div class="skel" style="height:14px; width:60px;"></div><div class="skel" style="height:10px; width:80px; margin-top:6px;"></div></div><div class="skel" style="height:12px; width:30px; margin-left:auto;"></div><div class="skel" style="height:14px; width:48px; margin-left:auto;"></div></div>
+        <div class="entry"><span class="ix">05</span><div><div class="skel" style="height:14px; width:60px;"></div><div class="skel" style="height:10px; width:100px; margin-top:6px;"></div></div><div class="skel" style="height:12px; width:30px; margin-left:auto;"></div><div class="skel" style="height:14px; width:48px; margin-left:auto;"></div></div>
+      </div>
+    </div></div>
+  </div>
+
+</div>
+
+<!-- =====================================================
+     SECTION IV · UI KIT (атомарные компоненты)
+     ===================================================== -->
+<div class="section-rule">
+  <span class="num">SECTION IV</span>
+  <h2>UI Kit <em>— атомы и молекулы строгого стиля</em></h2>
+  <span class="count">20 BLOCKS</span>
+</div>
+
+<div class="kit-wrap">
+  <div class="kit-grid">
+
+    <!-- TOKENS: COLOR -->
+    <div class="kit-cell">
+      <div class="label"><span class="nm">Палитра</span><span class="ix">A / COLOR</span></div>
+      <div class="desc">
+        Бумажный off-white, угольная сетка из 6 ступеней, ржавый warn, болотный
+        good. Цвет используется через инверсию, не заливкой плашек.
+      </div>
+      <div class="sw-block">
+        <span data-h="#f4f3ef" style="background:#f4f3ef"></span>
+        <span data-h="#e6e4dd" style="background:#e6e4dd"></span>
+        <span data-h="#d6d4cd" style="background:#d6d4cd"></span>
+        <span data-h="#9a9893" style="background:#9a9893"></span>
+        <span data-h="#5b5b58" style="background:#5b5b58"></span>
+        <span data-h="#0e0e0e" style="background:#0e0e0e"></span>
+      </div>
+      <div class="sw-block" style="grid-template-columns: repeat(4, 1fr);">
+        <span data-h="navy" style="background:#1d2740"></span>
+        <span data-h="warn" style="background:#8a3a1f"></span>
+        <span data-h="good" style="background:#2c5b3a"></span>
+        <span data-h="ink" style="background:#0e0e0e"></span>
+      </div>
+    </div>
+
+    <!-- TOKENS: TYPE -->
+    <div class="kit-cell">
+      <div class="label"><span class="nm">Типографика</span><span class="ix">B / TYPE</span></div>
+      <div class="desc">
+        Inter Tight для UI, JetBrains Mono для меток/чисел/индексов, Instrument
+        Serif italic только на имени ребёнка и заголовках секций.
+      </div>
+      <div class="type-line">
+        <div class="meta">DISPLAY · INTER TIGHT 500</div>
+        <div class="type-display">438 <em>мл</em></div>
+      </div>
+      <div class="type-line">
+        <div class="meta">HEADING · INTER TIGHT 500</div>
+        <div class="type-h">История · день 45</div>
+      </div>
+      <div class="type-line">
+        <div class="meta">BODY · INTER TIGHT 400</div>
+        <div class="type-body">Журнал кормлений по дням и часам.</div>
+      </div>
+      <div class="type-line">
+        <div class="meta">MONO · JETBRAINS MONO 500</div>
+        <div class="type-mono">14:32 · #04 · 4 820 Г</div>
+      </div>
+    </div>
+
+    <!-- TOKENS: SPACING / RADIUS -->
+    <div class="kit-cell">
+      <div class="label"><span class="nm">Сетка и радиусы</span><span class="ix">C / GRID</span></div>
+      <div class="desc">
+        Хейрлайн 1 px, радиус 4 px (поля), 6 px (кнопки/чипы/cells), 38–48 px
+        (рамка телефона). Никаких 12 / 20 / pill.
+      </div>
+      <div class="stage">
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span style="width:40px; height:40px; background:var(--surface); border:1px solid var(--line); border-radius:4px;"></span>
+          <span class="type-mono">r4 · input</span>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span style="width:40px; height:40px; background:var(--surface); border:1px solid var(--line); border-radius:6px;"></span>
+          <span class="type-mono">r6 · button / cell</span>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span style="width:40px; height:40px; background:var(--ink); color:var(--bg); border-radius:6px; display:grid; place-items:center; font-family: 'JetBrains Mono', monospace; font-size:10px;">INK</span>
+          <span class="type-mono">inverse · accent</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUTTONS -->
+    <div class="kit-cell">
+      <div class="label"><span class="nm">Кнопки</span><span class="ix">D / BTN</span></div>
+      <div class="desc">
+        Primary — инверсия с моно-меткой слева. Secondary — белая по hairline.
+        Ghost / icon — моноширинная этикетка или 36 квадрат.
+      </div>
+      <div class="stage inline">
+        <button class="btn-pri"><span class="k">ЗАП</span>Записать кормление</button>
+        <button class="btn-sec">Отмена</button>
+        <button class="btn-ghost">+ ДОБ</button>
+        <button class="btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4v16h16v-7M18.5 2.5a2 2 0 0 1 2.8 2.8L12 14.5l-4 1 1-4z"/></svg></button>
+        <button class="btn-danger">Удалить</button>
+      </div>
+    </div>
+
+    <!-- SEGMENTED -->
+    <div class="kit-cell">
+      <div class="label"><span class="nm">Сегменты</span><span class="ix">E / SEG</span></div>
+      <div class="desc">
+        Двух- или трёхпозиционный переключатель внутри hairline-рамки.
+        Активная — инверсия, без скруглений-pill.
+      </div>
+      <div class="stage">
+        <div class="seg"><button class="on">Основное</button><button>Докорм</button></div>
+        <div class="seg" style="grid-template-columns: 1fr 1fr 1fr;"><button>М</button><button class="on">Ж</button><button>—</button></div>
+      </div>
+    </div>
+
+    <!-- CHIPS -->
+    <div class="kit-cell">
+      <div class="label"><span class="nm">Чипы</span><span class="ix">F / CHIP</span></div>
+      <div class="desc">
+        Моноширинные значения в hairline-рамке. Используются для длительностей,
+        шагов, лекарств. Активная инвертирована, добавление — dashed-ghost.
+      </div>
+      <div class="stage">
+        <div class="chips">
+          <button>10</button>
+          <button class="on">15</button>
+          <button>20</button>
+          <button>30</button>
+          <button class="ghost">+</button>
+        </div>
+        <div class="chips med-chips">
+          <button class="on">Без</button>
+          <button>Креон</button>
+          <button>Витамин D</button>
+          <button class="ghost">+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEPPER -->
+    <div class="kit-cell">
+      <div class="label"><span class="nm">Степпер</span><span class="ix">G / STEP</span></div>
+      <div class="desc">
+        Числовой ввод. Большое крупное значение по центру с моно-юнитом,
+        кнопки −/+ по бокам. Шаг задаётся чипами.
+      </div>
+      <div class="stage">
+        <div class="stepper">
+          <button><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+          <div class="value"><span class="big">60</span><span class="unit">мл</span></div>
+          <button><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- INPUTS -->
+    <div class="kit-cell">
+      <div class="label"><span class="nm">Поля ввода</span><span class="ix">H / INPUT</span></div>
+      <div class="desc">
+        Прямой прямоугольник 4 px, белая поверхность по hairline. Фокус — ink
+        border + inset 1 px. Подпись — моно сверху.
+      </div>
+      <div class="stage">
+        <div class="field-col">
+          <span class="lbl">ИМЯ</span>
+          <input class="input" value="Лёва">
+        </div>
+        <div class="field-col">
+          <span class="lbl">ДАТА</span>
+          <input class="input focused" value="10.04.2026">
+        </div>
+        <div class="field-col">
+          <span class="lbl">ЗАМЕТКА</span>
+          <input class="input placeholder" value="опционально">
+          <span class="hint">не больше 80 символов</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOGGLE / CHECK / RADIO -->
+    <div class="kit-cell">
+      <div class="label"><span class="nm">Тогглы / чек / радио</span><span class="ix">I / TOG</span></div>
+      <div class="desc">
+        Тогглы — лабораторные, ink-pill 38×22 с rounded handle. Чек и радио —
+        квадратные 20 px hairline, активные инвертированы.
+      </div>
+      <div class="stage">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <span style="font-family: 'JetBrains Mono', monospace; font-size:11px; color:var(--ink-3);">ON</span>
+          <div class="toggle on"></div>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size:11px; color:var(--ink-3);">OFF</span>
+          <div class="toggle"></div>
+        </div>
+        <div class="check-row">
+          <span class="b on"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span>
+          <span class="lbl">Архивировать после сохранения</span>
+        </div>
+        <div class="check-row">
+          <span class="r on"></span>
+          <span class="lbl">Авто-таргет по весу</span>
+        </div>
+        <div class="check-row">
+          <span class="r"></span>
+          <span class="lbl">Ручной таргет</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- BADGES -->
+    <div class="kit-cell">
+      <div class="label"><span class="nm">Бейджи</span><span class="ix">J / BADGE</span></div>
+      <div class="desc">
+        Только моно uppercase в прямоугольной hairline-рамке. Solid — для активного,
+        outline-ink — для нейтральных, цветные — для статусов.
+      </div>
+      <div class="stage inline">
+        <span class="badge solid">АКТИВ</span>
+        <span class="badge">ОСНОВНОЕ</span>
+        <span class="badge archived">АРХИВ</span>
+        <span class="badge good">+20 МЛ</span>
+        <span class="badge warn">−60 МЛ</span>
+        <span class="badge">№04</span>
+      </div>
+    </div>
+
+    <!-- PROGRESS BAR -->
+    <div class="kit-cell">
+      <div class="label"><span class="nm">Прогресс-бар</span><span class="ix">K / BAR</span></div>
+      <div class="desc">
+        Узкая лента 6 px, hairline-рамка. Заливка ink. Перебор — ржавая,
+        план — dashed. Тики моноширинные подписи.
+      </div>
+      <div class="stage">
+        <div>
+          <div class="pbar"><i></i></div>
+          <div class="pbar-ticks"><span>0</span><span>155</span><span>310</span><span>465</span><span>620</span></div>
+        </div>
+        <div>
+          <div class="pbar dashed"><i style="inset: 0 70% 0 0;"></i></div>
+          <div class="pbar-ticks"><span>план</span><span></span><span>30%</span></div>
+        </div>
+        <div>
+          <div class="pbar over"><i></i></div>
+          <div class="pbar-ticks"><span>0</span><span></span><span>620</span><span style="color:var(--warn);">+108%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- METRIC + DELTA -->
+    <div class="kit-cell">
+      <div class="label"><span class="nm">Метрика + дельта</span><span class="ix">L / KPI</span></div>
+      <div class="desc">
+        Крупное число с маленькой моно-единицей и моно-дельтой (good/warn).
+        Используется в шапке Today, Weight, History summary.
+      </div>
+      <div class="stage">
+        <div>
+          <div class="type-mono" style="font-size:9.5px; letter-spacing:0.18em; text-transform:uppercase; color:var(--ink-4);">ВЫПИТО · СЕГОДНЯ</div>
+          <div class="num-demo">438 <small>МЛ / 620</small></div>
+          <div class="type-mono" style="color:var(--warn); margin-top:4px;">−182 МЛ ДО ЦЕЛИ</div>
+        </div>
+        <div>
+          <div class="type-mono" style="font-size:9.5px; letter-spacing:0.18em; text-transform:uppercase; color:var(--ink-4);">ВЕС · ПОСЛ.</div>
+          <div class="num-demo">4 820 <small>Г</small></div>
+          <div class="type-mono" style="color:var(--good); margin-top:4px;">+220 Г · 4 ДН.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INDEX LIST -->
+    <div class="kit-cell">
+      <div class="label"><span class="nm">Список с индексом</span><span class="ix">M / LIST</span></div>
+      <div class="desc">
+        Базовый паттерн всего приложения: <em>#</em>, контент, монозначение справа.
+        Колонка <em>#</em> идёт сквозной нумерацией.
+      </div>
+      <div class="stage">
+        <div class="ix-list">
+          <span class="ix">№01</span><span class="lab">06:15 · основное</span><span class="val">60 мл</span>
+          <span class="ix">№02</span><span class="lab">09:00 · креон 3 к.</span><span class="val">60 мл</span>
+          <span class="ix">№03</span><span class="lab">11:45 · основное</span><span class="val">55 мл</span>
+          <span class="ix">№04</span><span class="lab">14:50 · сейчас</span><span class="val">— мл</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIME CELL -->
+    <div class="kit-cell">
+      <div class="label"><span class="nm">Time / Select cell</span><span class="ix">N / CELL</span></div>
+      <div class="desc">
+        Универсальная ячейка для значения в форме: крупное число/время слева,
+        моно-пояснение через <em>·</em>, моно-кнопка <code>Изм.</code> справа.
+      </div>
+      <div class="stage">
+        <div class="time-cell">
+          <div class="t">14:32 <em>· сейчас · 27.05</em></div>
+          <button class="edit">Изм.</button>
+        </div>
+        <div class="time-cell">
+          <div class="t" style="font-size:15px;">NAN Pro 1 <em>· 67 ккал/100мл</em></div>
+          <button class="edit">Изм.</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="kit-cell">
+      <div class="label"><span class="nm">Табы</span><span class="ix">O / TAB</span></div>
+      <div class="desc">
+        Моноширинные uppercase подписи, активная по нижней ink-линии. Никаких
+        капсул, заливок и иконок.
+      </div>
+      <div class="stage" style="padding:0; border:1px solid var(--line);">
+        <div class="tab-demo">
+          <div class="t on">Записи</div>
+          <div class="t">Аналитика</div>
+          <div class="t">Экспорт</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST + ALERT -->
+    <div class="kit-cell">
+      <div class="label"><span class="nm">Тост / алерт</span><span class="ix">P / FLASH</span></div>
+      <div class="desc">
+        Тост — инверсия с круглой моно-иконкой и моно UNDO. Алерт — белая
+        плашка с цветной левой полоской (ink / warn / good).
+      </div>
+      <div class="stage">
+        <div class="toast" style="position:static; left:auto; right:auto; top:auto;">
+          <div class="ic"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></div>
+          <div class="msg">Сохранено <em>· №04 · 60 мл · 14:32</em></div>
+          <span class="undo">UNDO</span>
+        </div>
+        <div class="alert warn">
+          <div class="ic warn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.4 0z"/></svg></div>
+          <div class="body">
+            <div class="ttl">Перебор по объёму</div>
+            <div class="msg">75 мл при норме 55–70 мл · день 47. Проверьте дозу.</div>
+          </div>
+          <span class="close">×</span>
+        </div>
+        <div class="alert good">
+          <div class="ic good"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></div>
+          <div class="body">
+            <div class="ttl">День закрыт в плюсе</div>
+            <div class="msg">640/620 мл · +20 · 8 кормлений. Все в норме.</div>
+          </div>
+          <span class="close">×</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ICONS -->
+    <div class="kit-cell">
+      <div class="label"><span class="nm">Иконы</span><span class="ix">Q / ICON</span></div>
+      <div class="desc">
+        Тонкие 1.5–1.6 stroke, прямые углы, монохром. Заливать никогда —
+        контур и точка. Размер 14–18 в UI, 30–36 в обводке.
+      </div>
+      <div class="stage">
+        <div class="icon-row">
+          <div class="it"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16"/><path d="M16 3v4M8 3v4M3 10h18"/></svg></div>
+          <div class="it"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></div>
+          <div class="it"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4v16h16v-7M18.5 2.5a2 2 0 0 1 2.8 2.8L12 14.5l-4 1 1-4z"/></svg></div>
+          <div class="it"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></div>
+          <div class="it"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>
+          <div class="it"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 12h14"/></svg></div>
+          <div class="it"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></div>
+          <div class="it"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>
+          <div class="it"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></div>
+          <div class="it"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></div>
+          <div class="it"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l3 2"/></svg></div>
+          <div class="it"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l5 5L21 5"/></svg></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAY ROW -->
+    <div class="kit-cell">
+      <div class="label"><span class="nm">Day-row</span><span class="ix">R / DAY</span></div>
+      <div class="desc">
+        Основной элемент списков. <em>#</em> · содержимое + meta · число · дельта.
+        Дельта окрашивается good / warn / zero. Используется в History и Today.
+      </div>
+      <div class="stage" style="padding:0; border:1px solid var(--line); background: var(--bg);">
+        <div class="day-row"><span class="ix">№46</span><div><div class="date">26 мая · вт</div><div class="meta">8 корм · ср. 15м</div></div><span class="ml">595/620</span><span class="delta warn">−25</span></div>
+        <div class="day-row"><span class="ix">№45</span><div><div class="date">25 мая · пн</div><div class="meta">8 корм · ср. 16м</div></div><span class="ml">640/620</span><span class="delta good">+20</span></div>
+        <div class="day-row"><span class="ix">№43</span><div><div class="date">23 мая · сб</div><div class="meta">8 корм · ср. 17м</div></div><span class="ml">620/620</span><span class="delta zero">0</span></div>
+      </div>
+    </div>
+
+    <!-- BABY ROW -->
+    <div class="kit-cell">
+      <div class="label"><span class="nm">Subject-row</span><span class="ix">S / SUBJ</span></div>
+      <div class="desc">
+        Карточка ребёнка. Тёмный квадратный аватар 36 + имя + моно-сабтайтл +
+        бейдж статуса. Архив — outline-аватар и приглушение.
+      </div>
+      <div class="stage" style="padding:0; border:1px solid var(--line); background: var(--bg);">
+        <div class="baby-row"><div class="av">Л</div><div><div class="name">Лёва</div><div class="sub">день 47 · 10/04/2026 · М · 4820г</div></div><span class="badge solid">АКТИВ</span></div>
+        <div class="baby-row"><div class="av archived">К</div><div><div class="name">Ким</div><div class="sub">арх · 12/06/2023 · М · до 420 д.</div></div><span class="badge archived">АРХИВ</span></div>
+      </div>
+    </div>
+
+    <!-- BOTTOM ACTION BAR -->
+    <div class="kit-cell">
+      <div class="label"><span class="nm">Bottom action bar</span><span class="ix">T / FAB</span></div>
+      <div class="desc">
+        Глобальный нижний бар: одна primary с моно-меткой + два квадратных
+        icon-button. Не floating — это часть screen flow.
+      </div>
+      <div class="stage">
+        <div style="display:grid; grid-template-columns: 1fr 52px 52px; gap: 8px;">
+          <button class="btn-pri" style="justify-content:space-between;"><span class="k">ЗАП</span>Записать кормление</button>
+          <button class="btn-icon" style="width:auto; height:auto;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16"/><path d="M16 3v4M8 3v4M3 10h18"/></svg></button>
+          <button class="btn-icon" style="width:auto; height:auto;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

@@ -18,6 +18,11 @@ export const DEFAULT_FORMULA_DENSITY: FormulaDensity = {
 
 const NEONATAL_MAX_AGE_DAYS = 14;
 const ML_PER_KG_FLAG_THRESHOLD = 200;
+// FAO/WHO/UNU 2004: CV(TEE/кг/сут) ≈ 15% — ±1 SD здоровой популяции.
+// https://www.fao.org/4/y5686e/y5686e05.htm
+const DAILY_ML_RANGE_FRACTION = 0.15;
+// AAP: практический верхний потолок суточного объёма смеси.
+const DAILY_ML_RANGE_HARD_CAP_ML = 960;
 
 function safeKcalPer100ml(kcalPer100ml: number): number {
   if (Number.isFinite(kcalPer100ml) && kcalPer100ml > 0) {
@@ -111,8 +116,10 @@ export function computeFeedingGuidance(
   const dailyKcal = dailyMl * (kcalPer100ml / 100);
 
   const dailyMlRange: [number, number] = [
-    floor10(dailyMl * 0.9),
-    ceil10(dailyMl * 1.1),
+    floor10(dailyMl * (1 - DAILY_ML_RANGE_FRACTION)),
+    ceil10(
+      Math.min(dailyMl * (1 + DAILY_ML_RANGE_FRACTION), DAILY_ML_RANGE_HARD_CAP_ML),
+    ),
   ];
 
   const range = feedCountRange(ageDays);
