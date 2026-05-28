@@ -32,10 +32,39 @@ export type FormulaDensity = {
   proteinGPer100kcal: number | null;
 };
 
-/** Флаг наблюдения по результату расчёта (PRD §5.1). */
-export type TargetFlag = { code: "ml_per_kg_high"; valueMlKg: number };
+/** Уровень флага наблюдения по результату расчёта. */
+export type TargetFlagSeverity = "info" | "warning";
 
-export type FeedingTarget = {
+/** Флаг наблюдения — дискриминированный союз по `code` (PRD §5.1). */
+export type TargetFlag =
+  | { code: "ml_per_kg_high"; severity: "warning"; valueMlKg: number }
+  | { code: "ml_per_kg_low"; severity: "info"; valueMlKg: number }
+  | {
+      code: "aap_soft_cap_exceeded";
+      severity: "warning";
+      source: "AAP";
+      valueMl: number;
+    }
+  | {
+      code: "density_out_of_codex_range";
+      severity: "warning";
+      kcalPer100ml: number;
+    }
+  | {
+      code: "large_single_feed_early_newborn";
+      severity: "info";
+      perFeedMl: number;
+      weightKg: number;
+    }
+  | {
+      code: "single_feed_unusually_large_for_weight";
+      severity: "info";
+      perFeedMl: number;
+      weightKg: number;
+    };
+
+export type EnergyTarget = {
+  mode: "energy";
   dailyMl: number;
   dailyMlRange: [number, number];
   mlPerFeed: number;
@@ -43,13 +72,28 @@ export type FeedingTarget = {
   feedCount: number;
   feedCountRange: [number, number];
   dailyKcal: number;
-  mode: "neonatal" | "energy";
+  /** AAP sanity-check по объёму (weight × 165). Второе число, легко скрыть. */
+  aapMl: number;
   protein: {
     gPerDay: number;
     gPerKgDay: number;
   } | null;
   flags: TargetFlag[];
 };
+
+export type NeonatalTarget = {
+  mode: "neonatal";
+  /** Плоский диапазон 30–60 мл на кормление. */
+  perFeedMlRange: [number, number];
+  feedCount: number;
+  feedCountRange: [number, number];
+  // Союз сужен: в неонатальном результате (0–13д) допустим только флаг зоны
+  // 0–7д — компилятор запрещает энергорежимные флаги (aap/ml_per_kg/density)
+  // и флаг 40×вес (он живёт в слое фактических кормлений, зона >14д).
+  flags: Extract<TargetFlag, { code: "large_single_feed_early_newborn" }>[];
+};
+
+export type FeedingTarget = EnergyTarget | NeonatalTarget;
 
 export type Slot = { time: Date; volumeMl: number };
 

@@ -52,7 +52,8 @@ export async function fetchDurationChips(): Promise<number[] | null> {
 type FeedingsAnalyticsItem = {
   dateISO: string;
   dol: number;
-  target: number;
+  target: number | null;
+  mode: "neonatal" | "energy";
   fact: number;
 };
 

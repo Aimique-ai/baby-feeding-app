@@ -1,5 +1,10 @@
 import { startOfLocalDay, isBirthday } from "./dayBoundary";
-import { ageCorridors, planRemainder, snackStretch } from "./remainderPlan";
+import {
+  ageCorridors,
+  intervalCorridors,
+  planRemainder,
+  snackStretch,
+} from "./remainderPlan";
 import type { Feeding, RemainderPlan } from "./types";
 
 const MS_PER_HOUR = 3600000;
@@ -14,23 +19,49 @@ export type PipelineResult = {
   plan: RemainderPlan;
 };
 
-export function runPipeline(args: {
-  facts: Feeding[];
-  target: number;
-  dateISO: string;
-  tz: string;
-  range: [number, number];
-  birthDate: Date;
-  prevMainCandidates: Feeding[];
-}): PipelineResult {
-  const { facts, target, dateISO, tz, range, birthDate, prevMainCandidates } =
-    args;
+type RunPipelineArgs =
+  | {
+      mode: "energy";
+      facts: Feeding[];
+      target: number;
+      dateISO: string;
+      tz: string;
+      range: [number, number];
+      birthDate: Date;
+      prevMainCandidates: Feeding[];
+    }
+  | {
+      mode: "neonatal";
+      facts: Feeding[];
+      perFeedRange: [number, number];
+      dateISO: string;
+      tz: string;
+      range: [number, number];
+      birthDate: Date;
+      prevMainCandidates: Feeding[];
+    };
+
+export function runPipeline(args: RunPipelineArgs): PipelineResult {
+  const { facts, dateISO, tz, range, birthDate, prevMainCandidates } = args;
 
   const dayStart = startOfLocalDay(dateISO, tz);
-  const { portionMin, intervalMax, intervalTarget } = ageCorridors({
-    range,
-    target,
-  });
+
+  // portionMin — порог "main vs snack". energy ⇒ target/maxC; neonatal ⇒
+  // нижний край perFeed (30). interval-коридоры одинаковы для обоих режимов.
+  let portionMin: number;
+  let intervalMax: number;
+  let intervalTarget: number;
+  if (args.mode === "energy") {
+    const corridors = ageCorridors({ range, target: args.target });
+    portionMin = corridors.portionMin;
+    intervalMax = corridors.intervalMax;
+    intervalTarget = corridors.intervalTarget;
+  } else {
+    const interval = intervalCorridors(range);
+    portionMin = args.perFeedRange[0];
+    intervalMax = interval.intervalMax;
+    intervalTarget = interval.intervalTarget;
+  }
 
   const isMainLike = (f: Feeding): boolean =>
     !f.isTopUp || (f.volumeMl ?? 0) >= portionMin;
@@ -88,17 +119,31 @@ export function runPipeline(args: {
 
   const tailAnchor = lastTailMove ?? prevMainAnchorFresh ?? dayAnchor;
 
-  const plan = planRemainder({
-    target,
-    consumed,
-    dayAnchor,
-    tailAnchor,
-    snackStretchHours,
-    lastFactAt,
-    range,
-    dateISO,
-    tz,
-  });
+  const plan =
+    args.mode === "energy"
+      ? planRemainder({
+          mode: "energy",
+          target: args.target,
+          consumed,
+          dayAnchor,
+          tailAnchor,
+          snackStretchHours,
+          lastFactAt,
+          range,
+          dateISO,
+          tz,
+        })
+      : planRemainder({
+          mode: "neonatal",
+          perFeedRange: args.perFeedRange,
+          dayAnchor,
+          tailAnchor,
+          snackStretchHours,
+          lastFactAt,
+          range,
+          dateISO,
+          tz,
+        });
 
   return {
     consumed,

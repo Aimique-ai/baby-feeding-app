@@ -8,7 +8,7 @@ import {
   startOfLocalDay,
 } from "@leon/domain/planning/dayBoundary";
 import { dayMetrics } from "@leon/domain/planning/metrics";
-import { computeTarget } from "@leon/domain/planning/target";
+import { computeTarget, resolveMode } from "@leon/domain/planning/target";
 import type { Feeding } from "@leon/domain/planning/types";
 import { dbConnect } from "../db/mongo.js";
 import { FeedingModel } from "../models/feeding.js";
@@ -89,23 +89,26 @@ historyRoute.get("/", async (c) => {
   const items: {
     dateISO: string;
     dol: number;
-    target: number;
+    target: number | null;
+    mode: "neonatal" | "energy";
     factOfDay: number;
     feedingsCount: number;
     topUpsCount: number;
     avgDurationMs: number | null;
-    deficit: number;
+    deficit: number | null;
   }[] = [];
 
   for (const dateISO of days) {
     const dayStart = startOfLocalDay(dateISO, tz);
     const facts = feedingsByDay.get(dateISO) ?? [];
+    const babyPlan = {
+      birthDate: babyBirthDate,
+      birthWeightGrams: baby.birthWeightGrams,
+    };
+    const mode = resolveMode(dateISO, babyPlan, weightsPlan, tz);
     const target = computeTarget(
       dateISO,
-      {
-        birthDate: babyBirthDate,
-        birthWeightGrams: baby.birthWeightGrams,
-      },
+      babyPlan,
       weightsPlan,
       tz,
       formulaDensity,
@@ -115,6 +118,7 @@ historyRoute.get("/", async (c) => {
       dateISO,
       dol: dayOfLife(babyBirthDate, dayStart, tz),
       target,
+      mode,
       ...m,
     });
   }

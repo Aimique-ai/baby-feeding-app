@@ -3,12 +3,13 @@ import { http } from "~/lib/http/client";
 export type HistoryDayItem = {
   dateISO: string;
   dol: number;
-  target: number;
+  target: number | null;
+  mode: "neonatal" | "energy";
   factOfDay: number;
   feedingsCount: number;
   topUpsCount: number;
   avgDurationMs: number | null;
-  deficit: number;
+  deficit: number | null;
 };
 
 export type HistoryPage = {

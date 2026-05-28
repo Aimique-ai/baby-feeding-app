@@ -47,7 +47,8 @@ export function FeedingTargetChart({
     if (!q.data) return [];
     return q.data.items.map((it) => ({
       date: it.dateISO.slice(5).replace("-", "."),
-      target: Math.round(it.target),
+      // Neonatal days have no target — null leaves a gap in the line.
+      target: it.target == null ? null : Math.round(it.target),
       fact: Math.round(it.fact),
     }));
   }, [q.data]);

@@ -43,18 +43,25 @@ export function HistoryList({ tz }: { tz: string }) {
     <div>
       <ul className="mt-4 space-y-2">
         {items.map((it) => {
+          const isNeonatal = it.target == null || it.deficit == null;
+          const deficit = it.deficit;
           const deficitClass =
-            it.deficit > 0
-              ? "text-destructive"
-              : it.deficit < 0
-                ? "text-emerald-600"
-                : "text-muted-foreground";
+            deficit == null
+              ? "text-muted-foreground"
+              : deficit > 0
+                ? "text-destructive"
+                : deficit < 0
+                  ? "text-emerald-600"
+                  : "text-muted-foreground";
+          const ariaLabel = isNeonatal
+            ? `День ${it.dol}, ${it.dateISO}, ${Math.round(it.factOfDay)} мл, ${it.feedingsCount} кормлений`
+            : `День ${it.dol}, ${it.dateISO}, ${Math.round(it.factOfDay)}/${Math.round(it.target as number)} мл`;
           return (
             <li key={it.dateISO}>
               <Link
                 to={`/history/${it.dateISO}`}
                 prefetch="none"
-                aria-label={`День ${it.dol}, ${it.dateISO}, ${Math.round(it.factOfDay)}/${Math.round(it.target)} мл`}
+                aria-label={ariaLabel}
                 className="block rounded-md border px-3 py-2 hover:bg-accent"
               >
                 <div className="flex items-baseline justify-between">
@@ -64,16 +71,24 @@ export function HistoryList({ tz }: { tz: string }) {
                   </span>
                 </div>
                 <div className="mt-1 flex items-baseline justify-between text-sm tabular-nums">
-                  <span>
-                    {fmtMl(it.factOfDay)} / {fmtMl(it.target)}
-                  </span>
-                  <span className={deficitClass}>
-                    {it.deficit > 0
-                      ? `−${fmtMl(it.deficit)}`
-                      : it.deficit < 0
-                        ? `+${fmtMl(-it.deficit)}`
-                        : "0"}
-                  </span>
+                  {isNeonatal ? (
+                    <span>
+                      {fmtMl(it.factOfDay)} · {it.feedingsCount} кормлений
+                    </span>
+                  ) : (
+                    <>
+                      <span>
+                        {fmtMl(it.factOfDay)} / {fmtMl(it.target as number)}
+                      </span>
+                      <span className={deficitClass}>
+                        {(deficit as number) > 0
+                          ? `−${fmtMl(deficit as number)}`
+                          : (deficit as number) < 0
+                            ? `+${fmtMl(-(deficit as number))}`
+                            : "0"}
+                      </span>
+                    </>
+                  )}
                 </div>
                 <div className="mt-0.5 text-xs text-muted-foreground">
                   {it.feedingsCount} кормлений + {it.topUpsCount} докормов · ср.{" "}

@@ -8,6 +8,20 @@ function clamp(v: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, v));
 }
 
+/** Target-free interval corridor — частота кормлений по возрастному диапазону. */
+export function intervalCorridors(range: [number, number]): {
+  intervalMin: number;
+  intervalMax: number;
+  intervalTarget: number;
+} {
+  const [minC, maxC] = range;
+  return {
+    intervalMin: 24 / (maxC + 0.5),
+    intervalMax: 24 / (minC - 0.5),
+    intervalTarget: 24 / Math.round((minC + maxC) / 2),
+  };
+}
+
 export function ageCorridors(args: {
   range: [number, number];
   target: number;
@@ -21,14 +35,12 @@ export function ageCorridors(args: {
   const { range, target } = args;
   const [minC, maxC] = range;
 
-  const intervalMin = 24 / (maxC + 0.5);
-  const intervalMax = 24 / (minC - 0.5);
-  const intervalTarget = 24 / Math.round((minC + maxC) / 2);
+  const interval = intervalCorridors(range);
 
   const portionMin = target / maxC;
   const portionMax = target / minC;
 
-  return { intervalMin, intervalMax, intervalTarget, portionMin, portionMax };
+  return { ...interval, portionMin, portionMax };
 }
 
 export function snackStretch(args: {
@@ -88,20 +100,35 @@ export function solveSlotCount(args: {
   };
 }
 
+type PortionArg =
+  | {
+      kind: "target";
+      remainingMl: number;
+      portionMin: number;
+      portionMax: number;
+    }
+  | { kind: "flat"; perFeedRange: [number, number] };
+
 export function placeSlots(args: {
   startOfLayout: Date;
   n: number;
   stepHours: number;
-  remainingMl: number;
-  portionMin: number;
-  portionMax: number;
+  portion: PortionArg;
 }): { today: Slot[]; horizonNode: Slot | null } {
-  const { startOfLayout, n, stepHours, remainingMl, portionMin, portionMax } =
-    args;
+  const { startOfLayout, n, stepHours, portion: portionArg } = args;
 
   if (n <= 0) return { today: [], horizonNode: null };
 
-  const portion = clamp(remainingMl / n, portionMin, portionMax);
+  const portion =
+    portionArg.kind === "target"
+      ? clamp(
+          portionArg.remainingMl / n,
+          portionArg.portionMin,
+          portionArg.portionMax,
+        )
+      : // flat: remainingMl никогда не читается; объём слота — нижний край
+        // диапазона (консервативный пол), диапазон сюрфейсится в UI отдельно.
+        portionArg.perFeedRange[0];
 
   const slotAt = (i: number): Slot => ({
     time: addMilliseconds(startOfLayout, i * stepHours * MS_PER_HOUR),
@@ -117,20 +144,33 @@ export function placeSlots(args: {
   return { today, horizonNode };
 }
 
-export function planRemainder(args: {
-  target: number;
-  consumed: number;
-  dayAnchor: Date;
-  tailAnchor: Date;
-  snackStretchHours: number;
-  lastFactAt: Date | null;
-  range: [number, number];
-  dateISO: string;
-  tz: string;
-}): RemainderPlan {
+type PlanRemainderArgs =
+  | {
+      mode: "energy";
+      target: number;
+      consumed: number;
+      dayAnchor: Date;
+      tailAnchor: Date;
+      snackStretchHours: number;
+      lastFactAt: Date | null;
+      range: [number, number];
+      dateISO: string;
+      tz: string;
+    }
+  | {
+      mode: "neonatal";
+      perFeedRange: [number, number];
+      dayAnchor: Date;
+      tailAnchor: Date;
+      snackStretchHours: number;
+      lastFactAt: Date | null;
+      range: [number, number];
+      dateISO: string;
+      tz: string;
+    };
+
+export function planRemainder(args: PlanRemainderArgs): RemainderPlan {
   const {
-    target,
-    consumed,
     dayAnchor,
     tailAnchor,
     snackStretchHours,
@@ -140,7 +180,6 @@ export function planRemainder(args: {
     tz,
   } = args;
 
-  const remainingMl = Math.max(0, target - consumed);
   const horizonEnd = addMilliseconds(dayAnchor, 24 * MS_PER_HOUR);
   const stretchedTail = addMilliseconds(
     tailAnchor,
@@ -160,15 +199,21 @@ export function planRemainder(args: {
     (horizonEnd.getTime() - startOfLayout.getTime()) / MS_PER_HOUR,
   );
 
-  const corridors = ageCorridors({ range, target });
+  const interval = intervalCorridors(range);
+
+  // tomorrowSlot объём: energy ⇒ portionMin; neonatal ⇒ нижний край perFeed (30).
+  const tomorrowVolumeMl =
+    args.mode === "energy"
+      ? args.target / range[1]
+      : args.perFeedRange[0];
 
   const projectedTomorrow = addMilliseconds(
     tailAnchor,
-    corridors.intervalTarget * MS_PER_HOUR,
+    interval.intervalTarget * MS_PER_HOUR,
   );
   const tomorrowSlot: Slot | null =
     localDateISO(projectedTomorrow, tz) !== dateISO
-      ? { time: projectedTomorrow, volumeMl: corridors.portionMin }
+      ? { time: projectedTomorrow, volumeMl: tomorrowVolumeMl }
       : null;
 
   if (horizonHours <= 0) {
@@ -185,18 +230,26 @@ export function planRemainder(args: {
 
   const { n, stepHours, reason } = solveSlotCount({
     horizonHours,
-    intervalMin: corridors.intervalMin,
-    intervalMax: corridors.intervalMax,
-    intervalTarget: corridors.intervalTarget,
+    intervalMin: interval.intervalMin,
+    intervalMax: interval.intervalMax,
+    intervalTarget: interval.intervalTarget,
   });
+
+  const portion: PortionArg =
+    args.mode === "energy"
+      ? {
+          kind: "target",
+          remainingMl: Math.max(0, args.target - args.consumed),
+          portionMin: args.target / range[1],
+          portionMax: args.target / range[0],
+        }
+      : { kind: "flat", perFeedRange: args.perFeedRange };
 
   const { today } = placeSlots({
     startOfLayout,
     n,
     stepHours,
-    remainingMl,
-    portionMin: corridors.portionMin,
-    portionMax: corridors.portionMax,
+    portion,
   });
 
   return {

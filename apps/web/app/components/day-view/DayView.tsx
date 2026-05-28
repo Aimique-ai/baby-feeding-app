@@ -31,7 +31,18 @@ import {
   computeFeedingGuidance,
   DEFAULT_FORMULA_DENSITY,
 } from "@leon/domain/planning/target";
-import type { FormulaDensity } from "@leon/domain/planning/types";
+import type {
+  FormulaDensity,
+  TargetFlag,
+} from "@leon/domain/planning/types";
+
+// AAP sanity-check по объёму — второе число рядом с FAO. Легко скрыть.
+const SHOW_AAP = true;
+
+// Single-feed sanity check (§7.5): >14д ⇒ фактический МАКС объём одного
+// кормления > 40 мл/кг → info (отлов ошибок ввода). Зоны 0–7д/8–14д — в движке.
+const NEONATAL_MAX_AGE_DAYS_UI = 14;
+const SINGLE_FEED_ML_PER_KG_CAP = 40;
 import { runPipeline } from "@leon/domain/planning/pipeline";
 import {
   addDaysISO,
@@ -76,6 +87,9 @@ type TimelineItem =
       id: string;
       time: Date;
       volumeMl: number;
+      // Neonatal: диапазон "30–60" вместо предписывающего числа; при наличии
+      // префилл формы не задаётся (родитель вводит реальный объём).
+      volumeRange?: [number, number];
       isTomorrow?: boolean;
     };
 
@@ -227,19 +241,31 @@ export function DayView({
       formulaDensity,
       storedPreferredFeedCount,
     );
-    const target = guidance.dailyMl;
     const dayStart = startOfLocalDay(dateISO, effectiveTz);
     const prevMainCandidates_d = prevMainCandidates.map(deserializeFeeding);
 
-    const result = runPipeline({
-      facts,
-      target,
-      dateISO,
-      tz: effectiveTz,
-      range: guidance.feedCountRange,
-      birthDate: baby.birthDate,
-      prevMainCandidates: prevMainCandidates_d,
-    });
+    const result =
+      guidance.mode === "energy"
+        ? runPipeline({
+            mode: "energy",
+            facts,
+            target: guidance.dailyMl,
+            dateISO,
+            tz: effectiveTz,
+            range: guidance.feedCountRange,
+            birthDate: baby.birthDate,
+            prevMainCandidates: prevMainCandidates_d,
+          })
+        : runPipeline({
+            mode: "neonatal",
+            facts,
+            perFeedRange: guidance.perFeedMlRange,
+            dateISO,
+            tz: effectiveTz,
+            range: guidance.feedCountRange,
+            birthDate: baby.birthDate,
+            prevMainCandidates: prevMainCandidates_d,
+          });
 
     const factsView: TimelineItem[] = facts.map((f) => {
       const raw = rawFeedingsById.get(f._id);
@@ -253,6 +279,10 @@ export function DayView({
         medicationDoseDrops: raw?.medicationDoseDrops ?? null,
       };
     });
+    // Неонатальный слот несёт диапазон 30–60, а не предписывающее число.
+    const neonatalRange: [number, number] | undefined =
+      guidance.mode === "neonatal" ? guidance.perFeedMlRange : undefined;
+
     // Плановые слоты — только для текущего дня. У прошедшего дня "будущих"
     // кормлений нет: история показывает только факты.
     const planView: TimelineItem[] =
@@ -262,6 +292,7 @@ export function DayView({
             id: `plan-${i}`,
             time: s.time,
             volumeMl: s.volumeMl,
+            volumeRange: neonatalRange,
           }))
         : [];
 
@@ -275,6 +306,7 @@ export function DayView({
         id: "plan-tomorrow",
         time: result.plan.tomorrowSlot.time,
         volumeMl: result.plan.tomorrowSlot.volumeMl,
+        volumeRange: neonatalRange,
         isTomorrow: true,
       });
     }
@@ -303,9 +335,24 @@ export function DayView({
       storedPreferredFeedCount !== null &&
       storedPreferredFeedCount !== guidance.feedCount;
 
-    return {
-      guidance,
-      target,
+    // Single-feed sanity check зоны >14д (§7.5): фактический МАКС объём одного
+    // не-докорм кормления против 40 мл/кг. Слой кормлений — здесь есть и факты,
+    // и вес. Цель — отлов ошибок ввода ("400 мл в одной бутылочке").
+    const ageDays = dol - 1;
+    const weightKg = currentWeight / 1000;
+    const maxSingleFeedMl = facts.reduce(
+      (mx, f) =>
+        !f.isTopUp && f.volumeMl != null && f.volumeMl > mx ? f.volumeMl : mx,
+      0,
+    );
+    const oversizedSingleFeed =
+      ageDays > NEONATAL_MAX_AGE_DAYS_UI &&
+      weightKg > 0 &&
+      maxSingleFeedMl > SINGLE_FEED_ML_PER_KG_CAP * weightKg
+        ? { perFeedMl: maxSingleFeedMl, weightKg }
+        : null;
+
+    const shared = {
       consumed: result.consumed,
       timeline,
       dol,
@@ -315,6 +362,35 @@ export function DayView({
       formulaName: serializedFormula?.name ?? null,
       storedPreferredFeedCount,
       showPreferredFeedCountBanner,
+      oversizedSingleFeed,
+    };
+
+    if (guidance.mode === "neonatal") {
+      return {
+        kind: "neonatal" as const,
+        guidance,
+        perFeedRange: guidance.perFeedMlRange,
+        feedCountRange: guidance.feedCountRange,
+        ...shared,
+      };
+    }
+
+    const target = guidance.dailyMl;
+    const progressPct = Math.min(
+      100,
+      Math.round((result.consumed / Math.max(1, target)) * 100),
+    );
+    const historicalStatus = historicalTargetStatus(
+      result.consumed,
+      guidance.dailyMlRange,
+    );
+    return {
+      kind: "energy" as const,
+      guidance,
+      target,
+      progressPct,
+      historicalStatus,
+      ...shared,
     };
   }, [
     feedingsQ.data,
@@ -333,7 +409,6 @@ export function DayView({
 
   const {
     guidance,
-    target,
     consumed,
     timeline,
     dol,
@@ -343,6 +418,7 @@ export function DayView({
     formulaName,
     storedPreferredFeedCount,
     showPreferredFeedCountBanner,
+    oversizedSingleFeed,
   } = derived;
 
   const feedCountOptions: number[] = [];
@@ -352,16 +428,7 @@ export function DayView({
   const isDegenerateRange =
     guidance.feedCountRange[0] === guidance.feedCountRange[1];
 
-  const progressPct = Math.min(
-    100,
-    Math.round((consumed / Math.max(1, target)) * 100),
-  );
-
   const next = nextPlanned(timeline);
-  const historicalStatus = historicalTargetStatus(
-    consumed,
-    guidance.dailyMlRange,
-  );
 
   return (
     <div className="mx-auto max-w-screen-sm px-4 py-4 space-y-6">
@@ -377,25 +444,54 @@ export function DayView({
           день {dol} · {currentWeightGrams} г ·{" "}
           {formulaName ?? "смесь не выбрана"}
         </div>
-        <div className="flex items-baseline gap-3">
-          <div className="text-3xl font-semibold tabular-nums">
-            {fmtMl(consumed)}
-          </div>
-          <div className="text-sm text-muted-foreground">
-            из {fmtMl(target)}
-          </div>
-        </div>
-        <Progress value={progressPct} aria-label={`Прогресс ${progressPct}%`} />
 
-        {mode === "live" && next && (
-          <Muted>
-            Следующее: {fmtHm(next.time, effectiveTz)} · {fmtMl(next.volumeMl)}
-          </Muted>
-        )}
-        {mode === "historical" && (
-          <p className={"text-sm " + historicalStatus.className}>
-            {historicalStatus.text}
-          </p>
+        {derived.kind === "energy" ? (
+          <>
+            <div className="flex items-baseline gap-3">
+              <div className="text-3xl font-semibold tabular-nums">
+                {fmtMl(consumed)}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                из {fmtMl(derived.target)}
+              </div>
+              {SHOW_AAP && (
+                // AAP sanity-check — easy to hide.
+                <div className="text-xs text-muted-foreground tabular-nums">
+                  проверка по объёму (AAP): {fmtMl(derived.guidance.aapMl)}
+                </div>
+              )}
+            </div>
+            <Progress
+              value={derived.progressPct}
+              aria-label={`Прогресс ${derived.progressPct}%`}
+            />
+            {mode === "live" && next && (
+              <Muted>
+                Следующее: {fmtHm(next.time, effectiveTz)} ·{" "}
+                {fmtMl(next.volumeMl)}
+              </Muted>
+            )}
+            {mode === "historical" && (
+              <p className={"text-sm " + derived.historicalStatus.className}>
+                {derived.historicalStatus.text}
+              </p>
+            )}
+          </>
+        ) : (
+          <>
+            <div className="flex items-baseline gap-3">
+              <div className="text-3xl font-semibold tabular-nums">
+                {fmtMl(consumed)}
+              </div>
+              <div className="text-sm text-muted-foreground tabular-nums">
+                съедено · {derived.guidance.feedCount} кормлений
+              </div>
+            </div>
+            <Muted>
+              В первые две недели нет суточного ориентира — ребёнок берёт сколько
+              нужно.
+            </Muted>
+          </>
         )}
       </header>
 
@@ -424,29 +520,56 @@ export function DayView({
 
       <section className="space-y-2 rounded-md border p-3">
         <h2 className="text-sm font-semibold">Рекомендация</h2>
-        <div className="flex items-baseline gap-3 tabular-nums">
-          <span className="text-lg font-semibold">
-            {guidance.mlPerFeedRange[0]}–{fmtMl(guidance.mlPerFeedRange[1])}
-          </span>
-          <span className="text-sm text-muted-foreground">
-            за {guidance.feedCountRange[0]}–{guidance.feedCountRange[1]}{" "}
-            кормлений
-          </span>
-        </div>
+        {derived.kind === "energy" ? (
+          <div className="flex items-baseline gap-3 tabular-nums">
+            <span className="text-lg font-semibold">
+              {derived.guidance.mlPerFeedRange[0]}–
+              {fmtMl(derived.guidance.mlPerFeedRange[1])}
+            </span>
+            <span className="text-sm text-muted-foreground">
+              за {guidance.feedCountRange[0]}–{guidance.feedCountRange[1]}{" "}
+              кормлений
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-baseline gap-3 tabular-nums">
+            <span className="text-lg font-semibold">
+              {derived.perFeedRange[0]}–{fmtMl(derived.perFeedRange[1])}
+            </span>
+            <span className="text-sm text-muted-foreground">
+              за {derived.feedCountRange[0]}–{derived.feedCountRange[1]}{" "}
+              кормлений
+            </span>
+          </div>
+        )}
         <Muted>
           Ребёнок берёт сколько нужно — кормление можно завершать по сигналам
           насыщения.
         </Muted>
-        {guidance.flags.some((f) => f.code === "ml_per_kg_high") && (
-          <p className="text-xs text-amber-600">
-            Суточный объём выше практического коридора.
+        {derived.guidance.flags.map((f) => (
+          <p
+            key={f.code}
+            className={
+              f.severity === "warning"
+                ? "text-xs text-amber-600"
+                : "text-xs text-blue-600"
+            }
+          >
+            {flagText(f)}
+          </p>
+        ))}
+        {oversizedSingleFeed && (
+          <p className="text-xs text-blue-600">
+            Одно кормление необычно велико для веса (
+            {fmtMl(oversizedSingleFeed.perFeedMl)}) — возможно, ошибка ввода,
+            проверьте.
           </p>
         )}
       </section>
 
       <Collapsible open={planOpen} onOpenChange={setPlanOpen}>
         <div className="flex items-center justify-between gap-2">
-          {guidance.protein ? (
+          {derived.kind === "energy" && derived.guidance.protein ? (
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1">
                 <ChevronDown
@@ -491,10 +614,10 @@ export function DayView({
             </DropdownMenu>
           )}
         </div>
-        {guidance.protein && (
+        {derived.kind === "energy" && derived.guidance.protein && (
           <CollapsibleContent className="mt-2">
             <p className="text-xs text-muted-foreground tabular-nums">
-              {guidance.protein.gPerKgDay.toFixed(1)} г/кг в сутки —
+              {derived.guidance.protein.gPerKgDay.toFixed(1)} г/кг в сутки —
               контрольный показатель, не цель по объёму.
             </p>
           </CollapsibleContent>
@@ -516,6 +639,9 @@ export function DayView({
               onClick={() => {
                 if (it.kind === "fact") {
                   onEditFeeding?.(it.id);
+                } else if (it.volumeRange) {
+                  // Neonatal: без предписывающего префилла — родитель вводит сам.
+                  onAddFeeding?.({ time: it.time });
                 } else {
                   onAddFeeding?.({
                     time: it.time,
@@ -541,7 +667,9 @@ export function DayView({
                         ? it.volumeMl != null
                           ? fmtMl(it.volumeMl)
                           : ""
-                        : fmtMl(it.volumeMl)
+                        : it.volumeRange
+                          ? `${it.volumeRange[0]}–${it.volumeRange[1]} мл`
+                          : fmtMl(it.volumeMl)
                     }`
               }
             >
@@ -552,7 +680,9 @@ export function DayView({
                     ? it.volumeMl != null
                       ? fmtMl(it.volumeMl)
                       : "по режиму"
-                    : fmtMl(it.volumeMl)}
+                    : it.volumeRange
+                      ? `${it.volumeRange[0]}–${it.volumeRange[1]} мл`
+                      : fmtMl(it.volumeMl)}
                   {it.kind === "fact" && it.isTopUp ? " · докорм" : ""}
                 </span>
                 {it.kind === "fact" && it.medicationId && (
@@ -571,6 +701,23 @@ export function DayView({
       </ul>
     </div>
   );
+}
+
+function flagText(f: TargetFlag): string {
+  switch (f.code) {
+    case "ml_per_kg_high":
+      return "Суточный объём выше практического коридора.";
+    case "ml_per_kg_low":
+      return "Суточный объём ниже практического коридора.";
+    case "aap_soft_cap_exceeded":
+      return `Суточный объём превышает практический потолок AAP (${fmtMl(f.valueMl)} > 960 мл).`;
+    case "density_out_of_codex_range":
+      return `Энергоплотность смеси вне диапазона Codex 60–70 ккал/100 мл (${f.kcalPer100ml}).`;
+    case "large_single_feed_early_newborn":
+      return `Крупное разовое кормление для первых дней (${fmtMl(f.perFeedMl)}) — кормите чаще, меньшим объёмом.`;
+    case "single_feed_unusually_large_for_weight":
+      return `Одно кормление необычно велико для веса (${fmtMl(f.perFeedMl)}) — возможно, ошибка ввода, проверьте.`;
+  }
 }
 
 function nextPlanned(items: TimelineItem[]): {
