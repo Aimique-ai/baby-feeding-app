@@ -2,14 +2,14 @@
  * One-shot seeder: upsert system formula presets.
  *
  * Usage:
- *   pnpm seed:formulas
+ *   pnpm --filter @leon/api seed:formulas
  *
  * Idempotent — uses `updateOne` with `$setOnInsert` keyed on `{ name, isSystem }`.
  * A repeated run neither duplicates the record nor overwrites manual edits.
  */
 import mongoose from "mongoose";
-import { dbConnect } from "../lib/mongodb";
-import { FormulaModel } from "../models/formula";
+import { dbConnect } from "../db/mongo.js";
+import { FormulaModel } from "../models/formula.js";
 
 async function main() {
   await dbConnect();

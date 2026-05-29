@@ -2,16 +2,16 @@
  * One-shot migration: backfill `currentFormulaId` on existing Baby docs.
  *
  * Usage:
- *   pnpm backfill:baby-formula
+ *   pnpm --filter @leon/api backfill:baby-formula
  *
- * Requires the system formula to be seeded first (`pnpm seed:formulas`).
+ * Requires the system formula to be seeded first (`pnpm --filter @leon/api seed:formulas`).
  * Idempotent — only touches non-archived babies where `currentFormulaId`
  * is null or missing. Assigns the system "Nan Optipro 1" formula.
  */
 import mongoose from "mongoose";
-import { dbConnect } from "../lib/mongodb";
-import { BabyModel } from "../models/baby";
-import { FormulaModel } from "../models/formula";
+import { dbConnect } from "../db/mongo.js";
+import { BabyModel } from "../models/baby.js";
+import { FormulaModel } from "../models/formula.js";
 
 async function main() {
   await dbConnect();
@@ -24,7 +24,7 @@ async function main() {
   if (!formula) {
     throw new Error(
       'backfill-baby-formula: system formula "Nan Optipro 1" not found — ' +
-        "run `pnpm seed:formulas` first",
+        "run `pnpm --filter @leon/api seed:formulas` first",
     );
   }
 

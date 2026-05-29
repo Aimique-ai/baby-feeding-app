@@ -1,14 +1,6 @@
 # Структура проекта
 
-Современная часть проекта живёт в `apps/` и `packages/` (монорепо на pnpm workspaces): React Router v7 фронтенд в `apps/web`, Hono API, shared-пакеты в `packages/`.
-
-Next.js-код в корне (`app/`, `pages/`, `lib/api/*`, `lib/*` вне packages) — **legacy**, оставшийся от прошлой архитектуры. Он будет удалён в ближайшее время. Не дорабатывай его, не добавляй туда новые фичи, не правь под актуальные требования. Все новые изменения — в `apps/` и `packages/`. Если задача формулируется как «поправь X», сначала проверь, есть ли X в `apps/`/`packages/` — почти всегда правки нужны там.
-
-<!-- BEGIN:nextjs-agent-rules -->
-## Legacy Next.js (на удаление)
-
-Это не тот Next.js, который ты знаешь — у local-копии могут быть свои breaking changes относительно твоих данных обучения. Но трогать его всё равно не надо: код уходит. Если пользователь явно просит правку в legacy-части, сначала уточни, не лучше ли мигрировать кусок в `apps/`/`packages/`.
-<!-- END:nextjs-agent-rules -->
+Проект — pnpm-монорепо (`apps/` + `packages/`): React Router v7 фронтенд в `apps/web`, Hono API в `apps/api`, shared-пакеты в `packages/` (`schemas`, `contracts`, `domain`).
 
 # Git
 

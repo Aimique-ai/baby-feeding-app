@@ -7,7 +7,9 @@
     "dev": "tsx watch --env-file=../../.env.local src/server.ts",
     "build": "tsup",
     "start": "node dist/index.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "seed:formulas": "tsx --env-file=../../.env.local src/scripts/seed-formulas.ts",
+    "backfill:baby-formula": "tsx --env-file=../../.env.local src/scripts/backfill-baby-formula.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.7",
