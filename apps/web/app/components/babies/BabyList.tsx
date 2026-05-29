@@ -68,6 +68,8 @@ export function BabyList({ babies: initialData, activeBabyId, tz }: Props) {
       qc.removeQueries({ queryKey: ["feedings"] });
       qc.removeQueries({ queryKey: ["weights"] });
       qc.removeQueries({ queryKey: ["medications"] });
+      qc.removeQueries({ queryKey: ["medication"] });
+      qc.removeQueries({ queryKey: ["history"] });
       qc.invalidateQueries({ queryKey: babiesKey });
       setCreateOpen(false);
       toast.success("Ребёнок создан");
@@ -92,6 +94,8 @@ export function BabyList({ babies: initialData, activeBabyId, tz }: Props) {
       qc.removeQueries({ queryKey: ["feedings"] });
       qc.removeQueries({ queryKey: ["weights"] });
       qc.removeQueries({ queryKey: ["medications"] });
+      qc.removeQueries({ queryKey: ["medication"] });
+      qc.removeQueries({ queryKey: ["history"] });
       qc.invalidateQueries({ queryKey: babiesKey });
       navigate("/");
     },

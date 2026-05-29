@@ -12,6 +12,8 @@ export const medicationsKey = (babyId: string) =>
   ["medications", babyId] as const;
 export const feedingsDurationChipsKey = (babyId: string) =>
   ["feedings", "duration-chips", babyId] as const;
+export const historyKey = (babyId: string, tz: string) =>
+  ["history", babyId, tz] as const;
 
 export const babiesKey = ["babies"] as const;
 export const archivedBabiesKey = ["babies", "archived"] as const;

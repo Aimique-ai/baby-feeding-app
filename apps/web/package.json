@@ -17,7 +17,6 @@
     "@react-router/node": "^7.1.1",
     "@react-router/serve": "^7.1.1",
     "@tanstack/react-query": "^5.100.14",
-    "@tanstack/react-query-devtools": "^5.100.14",
     "@vercel/react-router": "^1.3.1",
     "axios": "^1.7.9",
     "class-variance-authority": "^0.7.1",
@@ -40,6 +39,7 @@
   "devDependencies": {
     "@leon/typescript-config": "workspace:*",
     "@react-router/dev": "^7.1.1",
+    "@tanstack/react-query-devtools": "^5.100.14",
     "@tailwindcss/vite": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

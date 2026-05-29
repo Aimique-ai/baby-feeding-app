@@ -1,9 +1,11 @@
-
 import * as React from "react";
-import { FeedingSheet } from "./FeedingSheet";
 import { localDateISO } from "@leon/domain/planning/dayBoundary";
 import type { SerializedFeeding } from "@leon/contracts/serialized";
 import { getBrowserTz } from "@/lib/time/browserTz";
+
+const FeedingSheet = React.lazy(() =>
+  import("./FeedingSheet").then((m) => ({ default: m.FeedingSheet })),
+);
 
 type CreatePreset = {
   time?: Date;
@@ -13,7 +15,10 @@ type CreatePreset = {
 };
 
 type OpenCreate = (opts?: { dateISO?: string; preset?: CreatePreset }) => void;
-type OpenEdit = (opts: { feeding: SerializedFeeding; dateISO?: string }) => void;
+type OpenEdit = (opts: {
+  feeding: SerializedFeeding;
+  dateISO?: string;
+}) => void;
 
 type Ctx = {
   openCreate: OpenCreate;
@@ -58,7 +63,8 @@ export function FeedingSheetProvider({ babyId, tz, children }: Props) {
       setState({
         kind: "edit",
         dateISO:
-          opts.dateISO ?? localDateISO(new Date(opts.feeding.startAt), effectiveTz),
+          opts.dateISO ??
+          localDateISO(new Date(opts.feeding.startAt), effectiveTz),
         feeding: opts.feeding,
       });
       setSheetKey((k) => k + 1);
@@ -76,19 +82,21 @@ export function FeedingSheetProvider({ babyId, tz, children }: Props) {
     <FeedingSheetCtx.Provider value={ctx}>
       {children}
       {babyId && state && (
-        <FeedingSheet
-          key={sheetKey}
-          open={open}
-          onOpenChange={setOpen}
-          mode={
-            state.kind === "create"
-              ? { kind: "create", preset: state.preset }
-              : { kind: "edit", feeding: state.feeding }
-          }
-          dateISO={state.dateISO}
-          tz={effectiveTz}
-          babyId={babyId}
-        />
+        <React.Suspense fallback={null}>
+          <FeedingSheet
+            key={sheetKey}
+            open={open}
+            onOpenChange={setOpen}
+            mode={
+              state.kind === "create"
+                ? { kind: "create", preset: state.preset }
+                : { kind: "edit", feeding: state.feeding }
+            }
+            dateISO={state.dateISO}
+            tz={effectiveTz}
+            babyId={babyId}
+          />
+        </React.Suspense>
       )}
     </FeedingSheetCtx.Provider>
   );
@@ -96,7 +104,8 @@ export function FeedingSheetProvider({ babyId, tz, children }: Props) {
 
 export function useFeedingSheet(): Ctx {
   const c = React.useContext(FeedingSheetCtx);
-  if (!c) throw new Error("useFeedingSheet must be used inside FeedingSheetProvider");
+  if (!c)
+    throw new Error("useFeedingSheet must be used inside FeedingSheetProvider");
   return c;
 }
 

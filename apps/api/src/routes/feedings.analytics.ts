@@ -43,11 +43,23 @@ feedingsAnalyticsRoute.get("/", async (c) => {
     return c.json({ tz, items: [] });
   }
 
+  // Day window is pure (derived from today/birthDate/tz) so the feeding query
+  // is independent of the formula/weights reads — run all three in parallel.
+  const gte = startOfLocalDay(days[0], tz);
+  const lt = endOfLocalDay(days[days.length - 1], tz);
+
   await dbConnect();
-  const formulaDensity = await resolveFormulaDensity(baby.currentFormulaId);
-  const weights = await WeightModel.find({ babyId })
-    .select("date weightGrams")
-    .lean();
+  const [formulaDensity, weights, docs] = await Promise.all([
+    resolveFormulaDensity(baby.currentFormulaId),
+    WeightModel.find({ babyId }).select("date weightGrams").lean(),
+    FeedingModel.find({
+      babyId,
+      startAt: { $gte: gte, $lt: lt },
+    })
+      .select("startAt endAt volumeMl isTopUp")
+      .sort({ startAt: 1 })
+      .lean(),
+  ]);
   const weightsPlan = weights.map((w) => ({
     date: w.date,
     weightGrams: w.weightGrams,
@@ -55,16 +67,6 @@ feedingsAnalyticsRoute.get("/", async (c) => {
 
   const feedingsByDay = new Map<string, Feeding[]>();
   for (const dateISO of days) feedingsByDay.set(dateISO, []);
-
-  const gte = startOfLocalDay(days[0], tz);
-  const lt = endOfLocalDay(days[days.length - 1], tz);
-  const docs = await FeedingModel.find({
-    babyId,
-    startAt: { $gte: gte, $lt: lt },
-  })
-    .select("startAt endAt volumeMl isTopUp")
-    .sort({ startAt: 1 })
-    .lean();
 
   for (const doc of docs) {
     const iso = localDateISO(doc.startAt, tz);

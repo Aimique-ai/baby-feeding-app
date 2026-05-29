@@ -6,6 +6,8 @@ import { fmtMl } from "@/lib/format/ml";
 import { Muted } from "@/components/ui/typography";
 import { getBrowserTz } from "@/lib/time/browserTz";
 import { fetchHistoryPage } from "@/lib/api/history";
+import { useActiveBabyId } from "~/lib/baby/useActiveBaby";
+import { historyKey } from "@/components/day-view/feedingsKey";
 
 function fmtAvgDuration(ms: number | null): string {
   if (ms == null) return "—";
@@ -14,11 +16,15 @@ function fmtAvgDuration(ms: number | null): string {
 
 export function HistoryList({ tz }: { tz: string }) {
   const effectiveTz = getBrowserTz(tz);
+  const babyId = useActiveBabyId();
   const q = useInfiniteQuery({
-    queryKey: ["history", effectiveTz],
+    queryKey: babyId
+      ? historyKey(babyId, effectiveTz)
+      : (["history", "none", effectiveTz] as const),
     queryFn: ({ pageParam }) => fetchHistoryPage(pageParam),
     initialPageParam: null as string | null,
     getNextPageParam: (last) => last.nextCursor,
+    enabled: babyId != null,
   });
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
@@ -35,7 +41,7 @@ export function HistoryList({ tz }: { tz: string }) {
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, [q]);
+  }, [q.hasNextPage, q.isFetchingNextPage, q.fetchNextPage]);
 
   const items = q.data?.pages.flatMap((p) => p.items) ?? [];
 
