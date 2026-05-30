@@ -26,9 +26,7 @@ feedingsRoute.get("/", async (c) => {
   })
     .sort({ startAt: 1 })
     .lean();
-  return c.json(
-    docs.map(serializeFeeding),
-  );
+  return c.json(docs.map(serializeFeeding));
 });
 
 feedingsRoute.post("/", zValidator("json", feedingSchema), async (c) => {
@@ -38,18 +36,12 @@ feedingsRoute.post("/", zValidator("json", feedingSchema), async (c) => {
   const data = { ...parsed, babyId: new Types.ObjectId(baby._id) };
   if (data.medicationId) {
     const med = await MedicationModel.findById(data.medicationId).lean();
-    if (
-      !med ||
-      !med.babyId.equals(new Types.ObjectId(baby._id))
-    ) {
+    if (!med || !med.babyId.equals(new Types.ObjectId(baby._id))) {
       return c.json({ ok: false, error: "cross_baby_reference" }, 400);
     }
   }
   const created = await FeedingModel.create(data);
-  return c.json(
-    serializeFeeding(created.toObject()),
-    201,
-  );
+  return c.json(serializeFeeding(created.toObject()), 201);
 });
 
 function isValidId(id: string): boolean {
@@ -61,23 +53,18 @@ feedingsRoute.patch(
   zValidator("json", feedingPatchSchema),
   async (c) => {
     const id = c.req.param("id");
-    if (!isValidId(id)) return c.json({ ok: false, error: "feeding_not_found" }, 404);
+    if (!isValidId(id))
+      return c.json({ ok: false, error: "feeding_not_found" }, 404);
     const baby = c.get("baby");
     const parsed = c.req.valid("json");
     await dbConnect();
     const doc = await FeedingModel.findById(id).lean();
-    if (
-      !doc ||
-      !doc.babyId.equals(new Types.ObjectId(baby._id))
-    )
+    if (!doc || !doc.babyId.equals(new Types.ObjectId(baby._id)))
       return c.json({ ok: false, error: "feeding_not_found" }, 404);
 
     if (parsed.medicationId) {
       const med = await MedicationModel.findById(parsed.medicationId).lean();
-      if (
-        !med ||
-        !med.babyId.equals(new Types.ObjectId(baby._id))
-      ) {
+      if (!med || !med.babyId.equals(new Types.ObjectId(baby._id))) {
         return c.json({ ok: false, error: "cross_baby_reference" }, 400);
       }
     }
@@ -92,14 +79,12 @@ feedingsRoute.patch(
 
 feedingsRoute.delete("/:id", async (c) => {
   const id = c.req.param("id");
-  if (!isValidId(id)) return c.json({ ok: false, error: "feeding_not_found" }, 404);
+  if (!isValidId(id))
+    return c.json({ ok: false, error: "feeding_not_found" }, 404);
   const baby = c.get("baby");
   await dbConnect();
   const doc = await FeedingModel.findById(id).lean();
-  if (
-    !doc ||
-    !doc.babyId.equals(new Types.ObjectId(baby._id))
-  )
+  if (!doc || !doc.babyId.equals(new Types.ObjectId(baby._id)))
     return c.json({ ok: false, error: "feeding_not_found" }, 404);
   await FeedingModel.findByIdAndDelete(id);
   return c.json({ ok: true });

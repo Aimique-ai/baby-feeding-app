@@ -32,7 +32,5 @@ feedingsLastBeforeRoute.get("/", async (c) => {
     .sort({ startAt: -1 })
     .limit(limit)
     .lean();
-  return c.json(
-    docs.map(serializeFeeding),
-  );
+  return c.json(docs.map(serializeFeeding));
 });

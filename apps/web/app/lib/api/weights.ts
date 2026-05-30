@@ -13,10 +13,7 @@ export async function createWeight(body: unknown): Promise<Weight> {
   return weightResponseSchema.parse(res.data);
 }
 
-export async function patchWeight(
-  id: string,
-  body: unknown,
-): Promise<Weight> {
+export async function patchWeight(id: string, body: unknown): Promise<Weight> {
   const res = await http.patch(`/api/weights/${id}`, body);
   return weightResponseSchema.parse(res.data);
 }

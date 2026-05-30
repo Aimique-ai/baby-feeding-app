@@ -15,10 +15,7 @@ type CreatePreset = {
 };
 
 type OpenCreate = (opts?: { dateISO?: string; preset?: CreatePreset }) => void;
-type OpenEdit = (opts: {
-  feeding: Feeding;
-  dateISO?: string;
-}) => void;
+type OpenEdit = (opts: { feeding: Feeding; dateISO?: string }) => void;
 
 type Ctx = {
   openCreate: OpenCreate;

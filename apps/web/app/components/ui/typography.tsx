@@ -64,17 +64,12 @@ export function P({ className, ...props }: PProps) {
 
 export function Lead({ className, ...props }: PProps) {
   return (
-    <p
-      className={cn("text-xl text-muted-foreground", className)}
-      {...props}
-    />
+    <p className={cn("text-xl text-muted-foreground", className)} {...props} />
   );
 }
 
 export function Large({ className, ...props }: DivProps) {
-  return (
-    <div className={cn("text-lg font-semibold", className)} {...props} />
-  );
+  return <div className={cn("text-lg font-semibold", className)} {...props} />;
 }
 
 export function Small({
@@ -91,18 +86,10 @@ export function Small({
 
 export function Muted({ className, ...props }: PProps) {
   return (
-    <p
-      className={cn("text-sm text-muted-foreground", className)}
-      {...props}
-    />
+    <p className={cn("text-sm text-muted-foreground", className)} {...props} />
   );
 }
 
 export function FormError({ className, ...props }: PProps) {
-  return (
-    <p
-      className={cn("text-xs text-destructive", className)}
-      {...props}
-    />
-  );
+  return <p className={cn("text-xs text-destructive", className)} {...props} />;
 }

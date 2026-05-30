@@ -1,13 +1,8 @@
-
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useIsMobile } from "@/hooks/use-mobile";
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   Sheet,
@@ -61,10 +56,7 @@ import {
   fetchDurationChips as fetchDurationChipsApi,
   patchFeeding,
 } from "@/lib/api/feedings";
-import {
-  getMedication,
-  listMedications,
-} from "@/lib/api/medications";
+import { getMedication, listMedications } from "@/lib/api/medications";
 import { fromZonedTime, toZonedTime, format } from "date-fns-tz";
 import {
   feedingFormSchema,
@@ -128,8 +120,7 @@ export function FeedingSheet({
         startAt: new Date(f.startAt),
         durationMin: f.endAt
           ? Math.round(
-              (new Date(f.endAt).getTime() -
-                new Date(f.startAt).getTime()) /
+              (new Date(f.endAt).getTime() - new Date(f.startAt).getTime()) /
                 60000,
             )
           : "",
@@ -225,7 +216,9 @@ export function FeedingSheet({
       toast.error("Не удалось сохранить");
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: feedingsKey(babyId, dateISO, effectiveTz) });
+      qc.invalidateQueries({
+        queryKey: feedingsKey(babyId, dateISO, effectiveTz),
+      });
       qc.invalidateQueries({ queryKey: feedingsDurationChipsKey(babyId) });
       toast.success("Сохранено");
       onOpenChange(false);
@@ -238,7 +231,9 @@ export function FeedingSheet({
       return patchFeeding(mode.feeding._id, body);
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: feedingsKey(babyId, dateISO, effectiveTz) });
+      qc.invalidateQueries({
+        queryKey: feedingsKey(babyId, dateISO, effectiveTz),
+      });
       qc.invalidateQueries({ queryKey: feedingsDurationChipsKey(babyId) });
       toast.success("Сохранено");
       onOpenChange(false);
@@ -252,7 +247,9 @@ export function FeedingSheet({
       await deleteFeeding(mode.feeding._id);
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: feedingsKey(babyId, dateISO, effectiveTz) });
+      qc.invalidateQueries({
+        queryKey: feedingsKey(babyId, dateISO, effectiveTz),
+      });
       qc.invalidateQueries({ queryKey: feedingsDurationChipsKey(babyId) });
       toast.success("Удалено");
       setConfirmDelete(false);
@@ -298,7 +295,9 @@ export function FeedingSheet({
         >
           <SheetHeader>
             <SheetTitle>
-              {mode.kind === "edit" ? "Редактировать кормление" : "Новое кормление"}
+              {mode.kind === "edit"
+                ? "Редактировать кормление"
+                : "Новое кормление"}
             </SheetTitle>
           </SheetHeader>
 
@@ -357,7 +356,10 @@ export function FeedingSheet({
                                 <ChevronDown className="size-4 opacity-50" />
                               </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
+                            <PopoverContent
+                              className="w-auto p-0"
+                              align="start"
+                            >
                               <Calendar
                                 mode="single"
                                 selected={toZonedTime(field.value, effectiveTz)}
@@ -436,8 +438,7 @@ export function FeedingSheet({
                         size="sm"
                         spacing={2}
                         value={
-                          field.value !== "" &&
-                          chips.includes(field.value)
+                          field.value !== "" && chips.includes(field.value)
                             ? String(field.value)
                             : ""
                         }
@@ -544,9 +545,7 @@ export function FeedingSheet({
                             <NumberStepper
                               id="medDose"
                               value={field.value}
-                              onChange={(v) =>
-                                field.onChange(v === "" ? 1 : v)
-                              }
+                              onChange={(v) => field.onChange(v === "" ? 1 : v)}
                               min={1}
                               max={100}
                               step={1}

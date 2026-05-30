@@ -21,7 +21,9 @@ async function fetchFeedings(): Promise<SkeletonFeeding[]> {
 }
 
 async function postEcho(volumeMl: number): Promise<SkeletonFeeding> {
-  const r = await http.post<SkeletonFeeding>("/api/skeleton/echo", { volumeMl });
+  const r = await http.post<SkeletonFeeding>("/api/skeleton/echo", {
+    volumeMl,
+  });
   return r.data;
 }
 
@@ -46,10 +48,7 @@ export default function SkeletonPage() {
           </li>
         ))}
       </ul>
-      <Button
-        onClick={() => mutation.mutate()}
-        disabled={mutation.isPending}
-      >
+      <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>
         {mutation.isPending ? "Posting..." : "Post echo"}
       </Button>
     </main>

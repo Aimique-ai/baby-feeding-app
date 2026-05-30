@@ -2,8 +2,7 @@ export const feedingsKey = (babyId: string, dateISO: string, tz: string) =>
   ["feedings", "v3", babyId, dateISO, tz] as const;
 
 export const babyKey = (babyId: string) => ["baby", babyId] as const;
-export const weightsKey = (babyId: string) =>
-  ["weights", babyId] as const;
+export const weightsKey = (babyId: string) => ["weights", babyId] as const;
 export const weightsAnalyticsKey = (babyId: string, tz: string) =>
   ["weights", "analytics", babyId, tz] as const;
 export const feedingsAnalyticsKey = (babyId: string, tz: string) =>

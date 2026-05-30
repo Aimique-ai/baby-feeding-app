@@ -57,9 +57,7 @@ type MedicationDocLike = {
   createdAt: Date;
 };
 
-export function serializeMedication(
-  doc: MedicationDocLike,
-): Medication {
+export function serializeMedication(doc: MedicationDocLike): Medication {
   return {
     _id: doc._id.toString(),
     babyId: doc.babyId.toString(),

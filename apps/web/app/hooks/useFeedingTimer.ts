@@ -1,4 +1,3 @@
-
 import * as React from "react";
 
 const STORAGE_KEY = "leon:feedingTimer";
@@ -26,7 +25,10 @@ function readStored(): StoredPayload | null {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as StoredPayload;
-    if (typeof parsed.startedAt !== "string" || typeof parsed.babyId !== "string") {
+    if (
+      typeof parsed.startedAt !== "string" ||
+      typeof parsed.babyId !== "string"
+    ) {
       return null;
     }
     return parsed;
@@ -101,9 +103,7 @@ export function useFeedingTimer(babyId: string | null): FeedingTimer {
     const now = new Date();
     // Defend against clock skew producing a future startAt.
     const safeStart =
-      sa.getTime() > now.getTime() - 1000
-        ? new Date(now.getTime() - 1000)
-        : sa;
+      sa.getTime() > now.getTime() - 1000 ? new Date(now.getTime() - 1000) : sa;
     const durationMin = Math.max(
       1,
       Math.round((now.getTime() - safeStart.getTime()) / 60000),

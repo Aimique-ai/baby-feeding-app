@@ -1,4 +1,3 @@
-
 import { useQueryClient } from "@tanstack/react-query";
 import { DayView } from "./DayView";
 import { feedingsKey } from "./feedingsKey";
@@ -22,9 +21,7 @@ export function DayViewWithSheet(props: Props) {
   return (
     <DayView
       {...props}
-      onAddFeeding={(preset) =>
-        openCreate({ dateISO: props.dateISO, preset })
-      }
+      onAddFeeding={(preset) => openCreate({ dateISO: props.dateISO, preset })}
       onEditFeeding={(feedingId) => {
         const list = qc.getQueryData<Feeding[]>(
           feedingsKey(props.babyId, props.dateISO, effectiveTz),

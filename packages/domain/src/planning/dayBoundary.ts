@@ -25,7 +25,11 @@ export function addDaysISO(dateISO: string, days: number): string {
   return `${yy}-${mm}-${dd}`;
 }
 
-export function isBirthday(birthDate: Date, dateISO: string, tz: string): boolean {
+export function isBirthday(
+  birthDate: Date,
+  dateISO: string,
+  tz: string,
+): boolean {
   return localDateISO(birthDate, tz) === dateISO;
 }
 

@@ -6,9 +6,7 @@ function notifySameTab(newValue: string | null) {
   // origin tab, only in other tabs. Dispatch a synthetic one so listeners
   // registered via useSyncExternalStore re-run.
   try {
-    window.dispatchEvent(
-      new StorageEvent("storage", { key: KEY, newValue }),
-    );
+    window.dispatchEvent(new StorageEvent("storage", { key: KEY, newValue }));
   } catch {
     /* StorageEvent constructor may be unavailable in old environments */
   }

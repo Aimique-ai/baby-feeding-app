@@ -16,9 +16,7 @@ babiesRoute.get("/", async (c) => {
     ? { archivedAt: { $ne: null } }
     : { archivedAt: null };
   const docs = await BabyModel.find(filter).sort({ createdAt: 1 }).lean();
-  return c.json(
-    docs.map(serializeBaby),
-  );
+  return c.json(docs.map(serializeBaby));
 });
 
 babiesRoute.post("/", zValidator("json", babySchema), async (c) => {
@@ -29,10 +27,7 @@ babiesRoute.post("/", zValidator("json", babySchema), async (c) => {
   }
   try {
     const created = await BabyModel.create(parsed);
-    return c.json(
-      serializeBaby(created.toObject()),
-      201,
-    );
+    return c.json(serializeBaby(created.toObject()), 201);
   } catch (err) {
     if (
       typeof err === "object" &&
@@ -51,7 +46,8 @@ function isValidId(id: string): boolean {
 
 babiesRoute.patch("/:id", zValidator("json", babyPatchSchema), async (c) => {
   const id = c.req.param("id");
-  if (!isValidId(id)) return c.json({ ok: false, error: "baby_not_found" }, 404);
+  if (!isValidId(id))
+    return c.json({ ok: false, error: "baby_not_found" }, 404);
   const parsed = c.req.valid("json");
   await dbConnect();
   if (
@@ -64,14 +60,13 @@ babiesRoute.patch("/:id", zValidator("json", babyPatchSchema), async (c) => {
     new: true,
   }).lean();
   if (!updated) return c.json({ ok: false, error: "baby_not_found" }, 404);
-  return c.json(
-    serializeBaby(updated),
-  );
+  return c.json(serializeBaby(updated));
 });
 
 babiesRoute.delete("/:id", async (c) => {
   const id = c.req.param("id");
-  if (!isValidId(id)) return c.json({ ok: false, error: "baby_not_found" }, 404);
+  if (!isValidId(id))
+    return c.json({ ok: false, error: "baby_not_found" }, 404);
   await dbConnect();
   const updated = await BabyModel.findOneAndUpdate(
     { _id: new Types.ObjectId(id), archivedAt: null },
@@ -84,7 +79,8 @@ babiesRoute.delete("/:id", async (c) => {
 
 babiesRoute.post("/:id/restore", async (c) => {
   const id = c.req.param("id");
-  if (!isValidId(id)) return c.json({ ok: false, error: "baby_not_found" }, 404);
+  if (!isValidId(id))
+    return c.json({ ok: false, error: "baby_not_found" }, 404);
   await dbConnect();
   const updated = await BabyModel.findOneAndUpdate(
     { _id: new Types.ObjectId(id), archivedAt: { $ne: null } },
@@ -92,7 +88,5 @@ babiesRoute.post("/:id/restore", async (c) => {
     { new: true },
   ).lean();
   if (!updated) return c.json({ ok: false, error: "baby_not_found" }, 404);
-  return c.json(
-    serializeBaby(updated),
-  );
+  return c.json(serializeBaby(updated));
 });

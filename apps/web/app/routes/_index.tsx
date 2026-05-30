@@ -1,5 +1,8 @@
 import { Navigate, useLoaderData } from "react-router";
-import { startOfLocalDay, localDateISO } from "@leon/domain/planning/dayBoundary";
+import {
+  startOfLocalDay,
+  localDateISO,
+} from "@leon/domain/planning/dayBoundary";
 import { DayViewWithSheet } from "@/components/day-view/DayViewWithSheet";
 import { fetchLastFeedingBefore } from "~/lib/api/feedings";
 import type { Feeding } from "@leon/schemas/feeding";

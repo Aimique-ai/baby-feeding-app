@@ -21,9 +21,7 @@ medicationsRoute.get("/", async (c) => {
   })
     .sort({ createdAt: 1 })
     .lean();
-  return c.json(
-    docs.map(serializeMedication),
-  );
+  return c.json(docs.map(serializeMedication));
 });
 
 medicationsRoute.post("/", zValidator("json", medicationSchema), async (c) => {
@@ -44,10 +42,7 @@ medicationsRoute.post("/", zValidator("json", medicationSchema), async (c) => {
     ...parsed,
     babyId: new Types.ObjectId(baby._id),
   });
-  return c.json(
-    serializeMedication(created.toObject()),
-    201,
-  );
+  return c.json(serializeMedication(created.toObject()), 201);
 });
 
 function isValidId(id: string): boolean {
@@ -61,14 +56,9 @@ medicationsRoute.get("/:id", async (c) => {
   const baby = c.get("baby");
   await dbConnect();
   const doc = await MedicationModel.findById(id).lean();
-  if (
-    !doc ||
-    !doc.babyId.equals(new Types.ObjectId(baby._id))
-  )
+  if (!doc || !doc.babyId.equals(new Types.ObjectId(baby._id)))
     return c.json({ ok: false, error: "medication_not_found" }, 404);
-  return c.json(
-    serializeMedication(doc),
-  );
+  return c.json(serializeMedication(doc));
 });
 
 medicationsRoute.patch(
@@ -82,10 +72,7 @@ medicationsRoute.patch(
     const parsed = c.req.valid("json");
     await dbConnect();
     const doc = await MedicationModel.findById(id).lean();
-    if (
-      !doc ||
-      !doc.babyId.equals(new Types.ObjectId(baby._id))
-    )
+    if (!doc || !doc.babyId.equals(new Types.ObjectId(baby._id)))
       return c.json({ ok: false, error: "medication_not_found" }, 404);
     if (parsed.name !== undefined) {
       const collision = await MedicationModel.findOne({
@@ -116,10 +103,7 @@ medicationsRoute.delete("/:id", async (c) => {
   const baby = c.get("baby");
   await dbConnect();
   const doc = await MedicationModel.findById(id).lean();
-  if (
-    !doc ||
-    !doc.babyId.equals(new Types.ObjectId(baby._id))
-  )
+  if (!doc || !doc.babyId.equals(new Types.ObjectId(baby._id)))
     return c.json({ ok: false, error: "medication_not_found" }, 404);
   const updated = await MedicationModel.findByIdAndUpdate(
     id,

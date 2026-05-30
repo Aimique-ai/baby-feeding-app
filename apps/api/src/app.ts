@@ -34,7 +34,10 @@ export function createApp() {
   const babyScoped = new Hono<AppEnv>();
   babyScoped.use("*", activeBaby);
   // Order matters: nested paths first so the `/feedings` prefix doesn't swallow them.
-  babyScoped.route("/feedings/analytics/duration-chips", feedingsDurationChipsRoute);
+  babyScoped.route(
+    "/feedings/analytics/duration-chips",
+    feedingsDurationChipsRoute,
+  );
   babyScoped.route("/feedings/analytics", feedingsAnalyticsRoute);
   babyScoped.route("/feedings/last-before", feedingsLastBeforeRoute);
   babyScoped.route("/feedings", feedingsRoute);

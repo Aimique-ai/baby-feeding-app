@@ -18,9 +18,7 @@ export async function fetchLastFeedingBefore(
   return z.array(feedingResponseSchema).parse(res.data);
 }
 
-export async function listFeedingsByDate(
-  dateISO: string,
-): Promise<Feeding[]> {
+export async function listFeedingsByDate(dateISO: string): Promise<Feeding[]> {
   const res = await http.get("/api/feedings", {
     params: { date: dateISO },
   });

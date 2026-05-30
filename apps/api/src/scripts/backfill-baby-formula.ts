@@ -31,7 +31,10 @@ async function main() {
   const r = await BabyModel.updateMany(
     {
       archivedAt: null,
-      $or: [{ currentFormulaId: null }, { currentFormulaId: { $exists: false } }],
+      $or: [
+        { currentFormulaId: null },
+        { currentFormulaId: { $exists: false } },
+      ],
     },
     { $set: { currentFormulaId: formula._id } },
   );

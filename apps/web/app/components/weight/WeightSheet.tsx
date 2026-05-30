@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -40,11 +39,7 @@ import {
 import type { Weight } from "@leon/schemas/weight";
 import { localDateISO } from "@leon/domain/planning/dayBoundary";
 import { getBrowserTz } from "@/lib/time/browserTz";
-import {
-  createWeight,
-  deleteWeight,
-  patchWeight,
-} from "@/lib/api/weights";
+import { createWeight, deleteWeight, patchWeight } from "@/lib/api/weights";
 import { httpStatus } from "@/lib/api/errors";
 import {
   toWeightApiBody,
@@ -53,9 +48,7 @@ import {
   type WeightFormValues,
 } from "~/lib/forms/weightForm";
 
-type Mode =
-  | { kind: "create" }
-  | { kind: "edit"; weight: Weight };
+type Mode = { kind: "create" } | { kind: "edit"; weight: Weight };
 
 type Props = {
   open: boolean;
@@ -184,10 +177,7 @@ export function WeightSheet({ open, onOpenChange, mode, tz, babyId }: Props) {
             </SheetTitle>
           </SheetHeader>
           <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onValid)}
-              className="contents"
-            >
+            <form onSubmit={form.handleSubmit(onValid)} className="contents">
               <div className="space-y-4 px-4 py-2">
                 <FormField
                   control={form.control}

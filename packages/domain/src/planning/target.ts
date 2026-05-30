@@ -60,7 +60,9 @@ function resolveDayContext(
   const n = dayOfLife(baby.birthDate, dayStart, tz);
   const ageDays = n - 1;
 
-  const eligible = weights.filter((w) => w.date.getTime() <= dayStart.getTime());
+  const eligible = weights.filter(
+    (w) => w.date.getTime() <= dayStart.getTime(),
+  );
   const latestWeightGrams =
     eligible.length === 0
       ? baby.birthWeightGrams

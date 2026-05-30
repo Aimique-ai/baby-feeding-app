@@ -21,17 +21,12 @@ export async function getActiveBaby(): Promise<BabyWithFormula> {
   return babyWithFormulaResponseSchema.parse(res.data);
 }
 
-export async function createBaby(
-  body: unknown,
-): Promise<Baby> {
+export async function createBaby(body: unknown): Promise<Baby> {
   const res = await http.post("/api/babies", body);
   return babyResponseSchema.parse(res.data);
 }
 
-export async function patchBaby(
-  id: string,
-  body: unknown,
-): Promise<Baby> {
+export async function patchBaby(id: string, body: unknown): Promise<Baby> {
   const res = await http.patch(`/api/babies/${id}`, body);
   return babyResponseSchema.parse(res.data);
 }

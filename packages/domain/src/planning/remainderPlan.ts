@@ -203,9 +203,7 @@ export function planRemainder(args: PlanRemainderArgs): RemainderPlan {
 
   // tomorrowSlot volume: energy ⇒ portionMin; neonatal ⇒ lower edge of perFeed (30).
   const tomorrowVolumeMl =
-    args.mode === "energy"
-      ? args.target / range[1]
-      : args.perFeedRange[0];
+    args.mode === "energy" ? args.target / range[1] : args.perFeedRange[0];
 
   const projectedTomorrow = addMilliseconds(
     tailAnchor,
