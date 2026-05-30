@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,6 +5,12 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import { FormError } from "@/components/ui/typography";
 import {
   Form,
@@ -56,7 +61,13 @@ function pickDefaultFormulaId(formulas: Formula[]): string | null {
   return (system ?? formulas[0])._id;
 }
 
-export function BabyForm({ onSubmit, isPending, submitError, tz, baby }: Props) {
+export function BabyForm({
+  onSubmit,
+  isPending,
+  submitError,
+  tz,
+  baby,
+}: Props) {
   const effectiveTz = getBrowserTz(tz);
   const isEdit = baby != null;
 
@@ -109,10 +120,7 @@ export function BabyForm({ onSubmit, isPending, submitError, tz, baby }: Props) 
 
   return (
     <Form {...form}>
-      <form
-        className="space-y-4"
-        onSubmit={form.handleSubmit(onValid)}
-      >
+      <form className="space-y-4" onSubmit={form.handleSubmit(onValid)}>
         <FormField
           control={form.control}
           name="name"
@@ -197,40 +205,53 @@ export function BabyForm({ onSubmit, isPending, submitError, tz, baby }: Props) 
         <FormField
           control={form.control}
           name="currentFormulaId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel htmlFor="baby-formula">Смесь</FormLabel>
-              <FormControl>
-                <select
-                  id="baby-formula"
-                  className="border-input bg-transparent flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
-                  value={effectiveFormulaId ?? ""}
-                  disabled={formulasQuery.isLoading || formulas.length === 0}
-                  onChange={(e) => {
-                    setFormulaTouched(true);
-                    field.onChange(e.target.value || null);
-                  }}
-                  onBlur={field.onBlur}
-                  name={field.name}
-                  ref={field.ref}
-                >
-                  {formulas.map((f) => (
-                    <option key={f._id} value={f._id}>
-                      {f.brand ? `${f.brand} — ${f.name}` : f.name}
-                    </option>
-                  ))}
-                </select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          render={({ field }) => {
+            const selected = formulas.find((f) => f._id === effectiveFormulaId);
+            const selectedLabel = selected
+              ? selected.brand
+                ? `${selected.brand} — ${selected.name}`
+                : selected.name
+              : "Выберите смесь";
+            return (
+              <FormItem>
+                <FormLabel htmlFor="baby-formula">Смесь</FormLabel>
+                <FormControl>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        id="baby-formula"
+                        type="button"
+                        variant="outline"
+                        className="w-full justify-between font-normal"
+                        disabled={
+                          formulasQuery.isLoading || formulas.length === 0
+                        }
+                      >
+                        {selectedLabel}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+                      {formulas.map((f) => (
+                        <DropdownMenuItem
+                          key={f._id}
+                          onSelect={() => {
+                            setFormulaTouched(true);
+                            field.onChange(f._id);
+                          }}
+                        >
+                          {f.brand ? `${f.brand} — ${f.name}` : f.name}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
         {submitError && <FormError>{submitError}</FormError>}
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={isPending}
-        >
+        <Button type="submit" className="w-full" disabled={isPending}>
           {isEdit ? "Сохранить" : "Создать"}
         </Button>
       </form>

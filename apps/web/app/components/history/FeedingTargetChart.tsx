@@ -1,14 +1,8 @@
-
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   ChartContainer,
   ChartTooltip,
@@ -22,11 +16,11 @@ import { getFeedingsAnalytics } from "@/lib/api/feedings";
 const chartConfig = {
   target: {
     label: "Цель, мл",
-    color: "oklch(0.65 0.05 250)",
+    color: "var(--chart-2)",
   },
   fact: {
     label: "Факт, мл",
-    color: "oklch(0.7 0.18 250)",
+    color: "var(--chart-1)",
   },
 } satisfies ChartConfig;
 
@@ -56,8 +50,11 @@ export function FeedingTargetChart({
   if (q.isLoading) {
     return (
       <Card>
-        <CardContent className="py-6 text-sm text-muted-foreground">
-          Загружаем аналитику…
+        <CardHeader className="pb-2">
+          <Skeleton className="h-5 w-40" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-[260px] w-full" />
         </CardContent>
       </Card>
     );

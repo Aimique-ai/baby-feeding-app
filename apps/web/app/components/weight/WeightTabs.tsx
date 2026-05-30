@@ -1,6 +1,5 @@
-
 import { Link, useLocation } from "react-router";
-import { cn } from "@/lib/utils";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const TABS = [
   { href: "/weight", label: "Взвешивания" },
@@ -11,28 +10,16 @@ export function WeightTabs() {
   const pathname = useLocation().pathname;
 
   return (
-    <nav
-      aria-label="Разделы веса"
-      className="inline-flex h-9 w-fit items-center justify-center gap-1 rounded-lg bg-muted p-[3px] text-muted-foreground"
-    >
-      {TABS.map((t) => {
-        const active = pathname === t.href;
-        return (
-          <Link
-            key={t.href}
-            to={t.href}
-            prefetch="none"
-            aria-current={active ? "page" : undefined}
-            className={cn(
-              "inline-flex h-full items-center justify-center rounded-md border border-transparent px-3 py-1 text-sm font-medium whitespace-nowrap text-foreground/60 transition-all hover:text-foreground",
-              active &&
-                "bg-background text-foreground shadow-sm dark:border-input dark:bg-input/30",
-            )}
-          >
-            {t.label}
-          </Link>
-        );
-      })}
-    </nav>
+    <Tabs value={pathname}>
+      <TabsList aria-label="Разделы веса">
+        {TABS.map((t) => (
+          <TabsTrigger key={t.href} value={t.href} asChild>
+            <Link to={t.href} prefetch="none">
+              {t.label}
+            </Link>
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </Tabs>
   );
 }

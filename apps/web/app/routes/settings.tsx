@@ -1,5 +1,6 @@
 import { Check, Monitor, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { H4, Muted } from "@/components/ui/typography";
 import { useAppearance } from "~/providers/AppearanceProvider";
 import {
@@ -50,23 +51,21 @@ function SettingsForm() {
       <section>
         <H4 className="mb-1">Режим</H4>
         <Muted className="mb-4">Светлая, тёмная или по системе.</Muted>
-        <div className="flex flex-wrap gap-2">
-          {MODES.map(({ value, label, Icon }) => {
-            const active = theme === value;
-            return (
-              <Button
-                key={value}
-                type="button"
-                variant={active ? "default" : "outline"}
-                size="sm"
-                onClick={() => setTheme(value)}
-              >
-                <Icon className="size-4" aria-hidden />
-                {label}
-              </Button>
-            );
-          })}
-        </div>
+        <ToggleGroup
+          type="single"
+          variant="outline"
+          value={theme}
+          onValueChange={(v) => {
+            if (v) setTheme(v as typeof theme);
+          }}
+        >
+          {MODES.map(({ value, label, Icon }) => (
+            <ToggleGroupItem key={value} value={value}>
+              <Icon className="size-4" aria-hidden />
+              {label}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
       </section>
     </div>
   );
@@ -82,11 +81,11 @@ function PaletteCard({
   onSelect: (p: Palette) => void;
 }) {
   return (
-    <button
-      type="button"
+    <Button
+      variant="outline"
       onClick={() => onSelect(value)}
       aria-pressed={active}
-      className={`relative flex items-center gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-accent hover:text-accent-foreground ${
+      className={`h-auto w-full justify-start gap-3 p-3 text-left font-normal ${
         active ? "border-primary ring-2 ring-ring/40" : "border-border"
       }`}
     >
@@ -99,6 +98,6 @@ function PaletteCard({
       {active && (
         <Check className="ml-auto size-4 text-primary" aria-label="Выбрано" />
       )}
-    </button>
+    </Button>
   );
 }

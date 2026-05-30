@@ -1,4 +1,3 @@
-
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { formatInTimeZone } from "date-fns-tz";
@@ -13,6 +12,8 @@ import {
 import { Info } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tooltip,
   TooltipContent,
@@ -44,14 +45,14 @@ import type {
 const chartConfig = {
   weightGrams: {
     label: "Вес, г",
-    color: "oklch(0.7 0.18 250)",
+    color: "var(--chart-1)",
   },
 } satisfies ChartConfig;
 
 const percentileChartConfig = {
   percentile: {
     label: "Перцентиль",
-    color: "oklch(0.72 0.17 160)",
+    color: "var(--chart-3)",
   },
 } satisfies ChartConfig;
 
@@ -59,13 +60,14 @@ function InfoHint({ text }: { text: string }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="icon"
           aria-label="Подсказка"
-          className="text-muted-foreground hover:text-foreground"
+          className="size-auto p-0 text-muted-foreground hover:bg-transparent hover:text-foreground"
         >
-          <Info className="h-3 w-3" />
-        </button>
+          <Info className="size-3" />
+        </Button>
       </TooltipTrigger>
       <TooltipContent className="max-w-xs text-xs">{text}</TooltipContent>
     </Tooltip>
@@ -96,8 +98,7 @@ function wfaBadge(z: number): { label: string; variant: BadgeVariant } {
   if (z >= -2 && z <= 2) return { label: "Норма", variant: "default" };
   if (z < -2 && z >= -3) return { label: "Низкий вес", variant: "secondary" };
   if (z < -3) return { label: "Дефицит веса", variant: "destructive" };
-  if (z > 2 && z <= 3)
-    return { label: "Выше среднего", variant: "secondary" };
+  if (z > 2 && z <= 3) return { label: "Выше среднего", variant: "secondary" };
   return { label: "Избыток веса", variant: "destructive" };
 }
 
@@ -142,11 +143,26 @@ export function WeightAnalytics({
 
   if (q.isLoading || !analytics) {
     return (
-      <Card>
-        <CardContent className="py-6 text-sm text-muted-foreground">
-          Загружаем аналитику…
-        </CardContent>
-      </Card>
+      <section className="space-y-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {[0, 1, 2].map((i) => (
+            <Card key={i}>
+              <CardHeader className="pb-2">
+                <Skeleton className="h-5 w-28" />
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Skeleton className="h-7 w-20" />
+                <Skeleton className="h-3 w-32" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <Card>
+          <CardContent className="py-6">
+            <Skeleton className="h-[220px] w-full" />
+          </CardContent>
+        </Card>
+      </section>
     );
   }
 
@@ -291,7 +307,11 @@ export function WeightAnalytics({
                   return (
                     <TableRow key={p._id}>
                       <TableCell className="tabular-nums">
-                        {formatInTimeZone(new Date(p.date), effectiveTz, "dd.MM")}
+                        {formatInTimeZone(
+                          new Date(p.date),
+                          effectiveTz,
+                          "dd.MM",
+                        )}
                       </TableCell>
                       <TableCell className="text-right tabular-nums text-muted-foreground">
                         {p.ageDays} дн
@@ -400,11 +420,20 @@ export function WeightAnalytics({
               />
               <ReferenceLine
                 y={50}
-                stroke="oklch(0.65 0.05 250 / 0.4)"
+                stroke="var(--muted-foreground)"
+                strokeOpacity={0.4}
                 strokeDasharray="4 4"
               />
-              <ReferenceLine y={3} stroke="oklch(0.6 0.2 25 / 0.4)" />
-              <ReferenceLine y={97} stroke="oklch(0.6 0.2 25 / 0.4)" />
+              <ReferenceLine
+                y={3}
+                stroke="var(--destructive)"
+                strokeOpacity={0.4}
+              />
+              <ReferenceLine
+                y={97}
+                stroke="var(--destructive)"
+                strokeOpacity={0.4}
+              />
               <Line
                 type="monotone"
                 dataKey="percentile"

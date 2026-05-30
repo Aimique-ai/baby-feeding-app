@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from "react";
 import { Link } from "react-router";
 import { useInfiniteQuery } from "@tanstack/react-query";
@@ -33,7 +32,11 @@ export function HistoryList({ tz }: { tz: string }) {
     const el = sentinelRef.current;
     const obs = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && q.hasNextPage && !q.isFetchingNextPage) {
+        if (
+          entries[0].isIntersecting &&
+          q.hasNextPage &&
+          !q.isFetchingNextPage
+        ) {
           q.fetchNextPage();
         }
       },
@@ -57,7 +60,7 @@ export function HistoryList({ tz }: { tz: string }) {
               : deficit > 0
                 ? "text-destructive"
                 : deficit < 0
-                  ? "text-emerald-600"
+                  ? "text-success"
                   : "text-muted-foreground";
           const ariaLabel = isNeonatal
             ? `День ${it.dol}, ${it.dateISO}, ${Math.round(it.factOfDay)} мл, ${it.feedingsCount} кормлений`
@@ -106,9 +109,7 @@ export function HistoryList({ tz }: { tz: string }) {
         })}
       </ul>
       <div ref={sentinelRef} aria-hidden className="h-8" />
-      {q.isFetchingNextPage && (
-        <Muted className="text-center">Загрузка…</Muted>
-      )}
+      {q.isFetchingNextPage && <Muted className="text-center">Загрузка…</Muted>}
       {!q.hasNextPage && items.length > 0 && (
         <p className="text-center text-xs text-muted-foreground">
           Это начало истории.

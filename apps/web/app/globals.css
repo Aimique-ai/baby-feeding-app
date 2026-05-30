@@ -23,6 +23,19 @@
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.985 0 0);
+  /* Advisory (off-target/over-limit) — НЕ ошибка, мягче destructive. */
+  --warning: oklch(0.62 0.16 65);
+  --warning-foreground: oklch(0.985 0 0);
+  /* Positive / gain (прибавка веса, профицит). */
+  --success: oklch(0.6 0.14 150);
+  --success-foreground: oklch(0.985 0 0);
+  /* Informational hint (info-флаги, подсказки). */
+  --info: oklch(0.6 0.13 250);
+  --info-foreground: oklch(0.985 0 0);
+  /* Chart palette — token-driven so графики следуют теме. */
+  --chart-1: oklch(0.7 0.18 250);
+  --chart-2: oklch(0.65 0.05 250);
+  --chart-3: oklch(0.72 0.17 160);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --sidebar: hsl(0 0% 98%);
@@ -48,6 +61,15 @@
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
   --destructive-foreground: oklch(0.985 0 0);
+  --warning: oklch(0.78 0.15 75);
+  --warning-foreground: oklch(0.205 0 0);
+  --success: oklch(0.72 0.16 152);
+  --success-foreground: oklch(0.205 0 0);
+  --info: oklch(0.71 0.14 252);
+  --info-foreground: oklch(0.205 0 0);
+  --chart-1: oklch(0.7 0.18 250);
+  --chart-2: oklch(0.7 0.05 250);
+  --chart-3: oklch(0.72 0.17 160);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --sidebar: hsl(240 5.9% 10%);
@@ -74,6 +96,15 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);

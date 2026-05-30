@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { formatInTimeZone } from "date-fns-tz";
@@ -60,15 +59,15 @@ export function WeightList({
               delta == null || delta === 0
                 ? "text-muted-foreground"
                 : delta > 0
-                  ? "text-emerald-600"
+                  ? "text-success"
                   : "text-destructive";
             return (
               <li key={w._id}>
-                <button
-                  type="button"
+                <Button
+                  variant="outline"
                   onClick={() => setSheetMode({ kind: "edit", weight: w })}
                   aria-label={`Взвешивание ${dateLabel}, ${w.weightGrams} г`}
-                  className="block w-full rounded-md border px-3 py-2 text-left hover:bg-accent"
+                  className="h-auto w-full flex-col items-stretch gap-0 px-3 py-2 text-left font-normal"
                 >
                   <div className="flex items-baseline justify-between">
                     <span className="font-medium">{dateLabel}</span>
@@ -88,7 +87,7 @@ export function WeightList({
                             : "0"}
                     </span>
                   </div>
-                </button>
+                </Button>
               </li>
             );
           })}

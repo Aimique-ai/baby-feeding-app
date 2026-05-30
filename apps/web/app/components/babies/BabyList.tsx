@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { clearActiveBabyId, writeActiveBabyId } from "~/lib/baby/active";
@@ -7,6 +6,8 @@ import { toast } from "sonner";
 import { differenceInCalendarDays } from "date-fns";
 import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { Muted } from "@/components/ui/typography";
 import {
   Dialog,
@@ -129,7 +130,13 @@ export function BabyList({ babies: initialData, activeBabyId, tz }: Props) {
           >
             Архив →
           </Link>
-          <Button onClick={() => { setCreateError(null); setCreateOpen(true); setCreateSeq((s) => s + 1); }}>
+          <Button
+            onClick={() => {
+              setCreateError(null);
+              setCreateOpen(true);
+              setCreateSeq((s) => s + 1);
+            }}
+          >
             + Создать
           </Button>
         </div>
@@ -138,7 +145,14 @@ export function BabyList({ babies: initialData, activeBabyId, tz }: Props) {
       {list.length === 0 ? (
         <div className="flex flex-col items-center gap-4 py-12">
           <Muted>Нет детей.</Muted>
-          <Button size="lg" onClick={() => { setCreateError(null); setCreateOpen(true); setCreateSeq((s) => s + 1); }}>
+          <Button
+            size="lg"
+            onClick={() => {
+              setCreateError(null);
+              setCreateOpen(true);
+              setCreateSeq((s) => s + 1);
+            }}
+          >
             Создать ребёнка
           </Button>
         </div>
@@ -146,70 +160,81 @@ export function BabyList({ babies: initialData, activeBabyId, tz }: Props) {
         <ul className="space-y-2">
           {list.map((baby) => {
             const isActive = baby._id === activeBabyId;
-            const birthLocal = toZonedTime(new Date(baby.birthDate), effectiveTz);
+            const birthLocal = toZonedTime(
+              new Date(baby.birthDate),
+              effectiveTz,
+            );
             const nowLocal = toZonedTime(new Date(), effectiveTz);
             const ageDays = Math.max(
               0,
               differenceInCalendarDays(nowLocal, birthLocal),
             );
             return (
-              <li
-                key={baby._id}
-                className={
-                  "flex items-center justify-between rounded border px-3 py-2 " +
-                  (isActive ? "border-primary bg-primary/5" : "")
-                }
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{baby.name}</span>
-                    {isActive && (
-                      <span className="text-xs text-primary">✓ активный</span>
-                    )}
+              <li key={baby._id}>
+                <Card
+                  className={
+                    "flex flex-row items-center justify-between gap-2 px-3 py-2 shadow-none " +
+                    (isActive ? "border-primary bg-primary/5" : "")
+                  }
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{baby.name}</span>
+                      {isActive && (
+                        <Badge variant="outline" className="text-primary">
+                          ✓ активный
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {formatInTimeZone(
+                        new Date(baby.birthDate),
+                        effectiveTz,
+                        "dd.MM.yyyy",
+                      )}{" "}
+                      · день {ageDays}
+                    </p>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {formatInTimeZone(new Date(baby.birthDate), effectiveTz, "dd.MM.yyyy")} · день {ageDays}
-                  </p>
-                </div>
-                <div className="flex items-center gap-1">
-                  {!isActive &&
-                    (timerRunning ? (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span tabIndex={0}>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled
-                              aria-disabled="true"
-                            >
-                              Выбрать
-                            </Button>
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          Идёт кормление текущего ребёнка — остановите таймер
-                        </TooltipContent>
-                      </Tooltip>
-                    ) : (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => switchMutation.mutate(baby._id)}
-                        disabled={switchMutation.isPending}
-                      >
-                        Выбрать
-                      </Button>
-                    ))}
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => archiveMutation.mutate(baby._id)}
-                    disabled={archiveMutation.isPending}
-                  >
-                    В архив
-                  </Button>
-                </div>
+                  <div className="flex items-center gap-1">
+                    {!isActive &&
+                      (timerRunning ? (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span tabIndex={0}>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled
+                                aria-disabled="true"
+                              >
+                                Выбрать
+                              </Button>
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            Идёт кормление текущего ребёнка — остановите таймер
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => switchMutation.mutate(baby._id)}
+                          disabled={switchMutation.isPending}
+                        >
+                          Выбрать
+                        </Button>
+                      ))}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => archiveMutation.mutate(baby._id)}
+                      disabled={archiveMutation.isPending}
+                    >
+                      В архив
+                    </Button>
+                  </div>
+                </Card>
               </li>
             );
           })}

@@ -1,10 +1,13 @@
-
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatInTimeZone } from "date-fns-tz";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { H3, Muted } from "@/components/ui/typography";
-import { babiesKey, archivedBabiesKey } from "@/components/day-view/feedingsKey";
+import {
+  babiesKey,
+  archivedBabiesKey,
+} from "@/components/day-view/feedingsKey";
 import type { Baby } from "@leon/schemas/baby";
 import { getBrowserTz } from "@/lib/time/browserTz";
 import { listBabies, restoreBaby } from "@/lib/api/babies";
@@ -43,24 +46,27 @@ export function ArchivedBabyList({ babies: initialData, tz }: Props) {
       ) : (
         <ul className="space-y-2">
           {list.map((baby) => (
-            <li
-              key={baby._id}
-              className="flex items-center justify-between rounded border px-3 py-2"
-            >
-              <div>
-                <p className="font-medium">{baby.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {formatInTimeZone(new Date(baby.birthDate), effectiveTz, "dd.MM.yyyy")}
-                </p>
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => restore.mutate(baby._id)}
-                disabled={restore.isPending}
-              >
-                Восстановить
-              </Button>
+            <li key={baby._id}>
+              <Card className="flex flex-row items-center justify-between gap-2 px-3 py-2 shadow-none">
+                <div>
+                  <p className="font-medium">{baby.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatInTimeZone(
+                      new Date(baby.birthDate),
+                      effectiveTz,
+                      "dd.MM.yyyy",
+                    )}
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => restore.mutate(baby._id)}
+                  disabled={restore.isPending}
+                >
+                  Восстановить
+                </Button>
+              </Card>
             </li>
           ))}
         </ul>

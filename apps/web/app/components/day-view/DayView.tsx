@@ -1,4 +1,3 @@
-
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -9,6 +8,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,7 +19,12 @@ import { Progress } from "@/components/ui/progress";
 import { Muted } from "@/components/ui/typography";
 import { fmtMl, roundMl } from "@/lib/format/ml";
 import { fmtHm, fmtDateLong } from "@/lib/format/time";
-import { babyKey, feedingsKey, weightsKey, medicationsKey } from "./feedingsKey";
+import {
+  babyKey,
+  feedingsKey,
+  weightsKey,
+  medicationsKey,
+} from "./feedingsKey";
 import {
   deserializeBaby,
   deserializeFeeding,
@@ -31,10 +36,7 @@ import {
   computeFeedingGuidance,
   DEFAULT_FORMULA_DENSITY,
 } from "@leon/domain/planning/target";
-import type {
-  FormulaDensity,
-  TargetFlag,
-} from "@leon/domain/planning/types";
+import type { FormulaDensity, TargetFlag } from "@leon/domain/planning/types";
 
 // AAP sanity-check по объёму — второе число рядом с FAO. Легко скрыть.
 const SHOW_AAP = true;
@@ -65,10 +67,7 @@ type Props = {
   tz: string;
   babyId: string;
   prevMainCandidates: Feeding[];
-  onAddFeeding?: (preset?: {
-    time?: Date;
-    volumeMl?: number;
-  }) => void;
+  onAddFeeding?: (preset?: { time?: Date; volumeMl?: number }) => void;
   onEditFeeding?: (feedingId: string) => void;
 };
 
@@ -152,14 +151,14 @@ function historicalTargetStatus(
 
   if (consumed < low) {
     return {
-      className: "text-amber-600",
+      className: "text-warning",
       text: `Ниже дневного ориентира на ${fmtMl(low - consumed)}`,
     };
   }
 
   if (consumed > high) {
     return {
-      className: "text-amber-600",
+      className: "text-warning",
       text: `Выше дневного ориентира на ${fmtMl(consumed - high)}`,
     };
   }
@@ -209,12 +208,7 @@ export function DayView({
   });
 
   const derived = useMemo(() => {
-    if (
-      !feedingsQ.data ||
-      !babyQ.data ||
-      !weightsQ.data ||
-      !medicationsQ.data
-    )
+    if (!feedingsQ.data || !babyQ.data || !weightsQ.data || !medicationsQ.data)
       return null;
     const facts = feedingsQ.data.map(deserializeFeeding);
     const rawFeedingsById = new Map<string, Feeding>(
@@ -422,7 +416,11 @@ export function DayView({
   } = derived;
 
   const feedCountOptions: number[] = [];
-  for (let n = guidance.feedCountRange[0]; n <= guidance.feedCountRange[1]; n++) {
+  for (
+    let n = guidance.feedCountRange[0];
+    n <= guidance.feedCountRange[1];
+    n++
+  ) {
     feedCountOptions.push(n);
   }
   const isDegenerateRange =
@@ -488,84 +486,90 @@ export function DayView({
               </div>
             </div>
             <Muted>
-              В первые две недели нет суточного ориентира — ребёнок берёт сколько
-              нужно.
+              В первые две недели нет суточного ориентира — ребёнок берёт
+              сколько нужно.
             </Muted>
           </>
         )}
       </header>
 
       {showPreferredFeedCountBanner && (
-        <div className="rounded-md border border-amber-500 bg-amber-50 p-3 text-sm text-amber-900 space-y-2 dark:bg-amber-950 dark:text-amber-100">
-          <p>
-            Выбранное число кормлений ({storedPreferredFeedCount}) больше не
-            входит в возрастной диапазон [{guidance.feedCountRange[0]}–
-            {guidance.feedCountRange[1]}]. Сейчас применяется{" "}
-            {guidance.feedCount}.
-          </p>
-          {isDegenerateRange && (
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={updatePreferredFeedCount.isPending}
-              onClick={() =>
-                updatePreferredFeedCount.mutate(guidance.feedCountRange[0])
-              }
-            >
-              Применить {guidance.feedCountRange[0]}
-            </Button>
-          )}
-        </div>
+        <Card className="gap-2 border-warning bg-warning/10 py-3 text-sm text-warning shadow-none">
+          <CardContent className="space-y-2 px-3">
+            <p>
+              Выбранное число кормлений ({storedPreferredFeedCount}) больше не
+              входит в возрастной диапазон [{guidance.feedCountRange[0]}–
+              {guidance.feedCountRange[1]}]. Сейчас применяется{" "}
+              {guidance.feedCount}.
+            </p>
+            {isDegenerateRange && (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={updatePreferredFeedCount.isPending}
+                onClick={() =>
+                  updatePreferredFeedCount.mutate(guidance.feedCountRange[0])
+                }
+              >
+                Применить {guidance.feedCountRange[0]}
+              </Button>
+            )}
+          </CardContent>
+        </Card>
       )}
 
-      <section className="space-y-2 rounded-md border p-3">
-        <h2 className="text-sm font-semibold">Рекомендация</h2>
-        {derived.kind === "energy" ? (
-          <div className="flex items-baseline gap-3 tabular-nums">
-            <span className="text-lg font-semibold">
-              {derived.guidance.mlPerFeedRange[0]}–
-              {fmtMl(derived.guidance.mlPerFeedRange[1])}
-            </span>
-            <span className="text-sm text-muted-foreground">
-              за {guidance.feedCountRange[0]}–{guidance.feedCountRange[1]}{" "}
-              кормлений
-            </span>
-          </div>
-        ) : (
-          <div className="flex items-baseline gap-3 tabular-nums">
-            <span className="text-lg font-semibold">
-              {derived.perFeedRange[0]}–{fmtMl(derived.perFeedRange[1])}
-            </span>
-            <span className="text-sm text-muted-foreground">
-              за {derived.feedCountRange[0]}–{derived.feedCountRange[1]}{" "}
-              кормлений
-            </span>
-          </div>
-        )}
-        <Muted>
-          Ребёнок берёт сколько нужно — кормление можно завершать по сигналам
-          насыщения.
-        </Muted>
-        {derived.guidance.flags.map((f) => (
-          <p
-            key={f.code}
-            className={
-              f.severity === "warning"
-                ? "text-xs text-amber-600"
-                : "text-xs text-blue-600"
-            }
-          >
-            {flagText(f)}
-          </p>
-        ))}
-        {oversizedSingleFeed && (
-          <p className="text-xs text-blue-600">
-            Одно кормление необычно велико для веса (
-            {fmtMl(oversizedSingleFeed.perFeedMl)}) — возможно, ошибка ввода,
-            проверьте.
-          </p>
-        )}
-      </section>
+      <Card className="gap-2 py-3 shadow-none">
+        <CardHeader className="px-3">
+          <CardTitle className="text-sm font-semibold">Рекомендация</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 px-3">
+          {derived.kind === "energy" ? (
+            <div className="flex items-baseline gap-3 tabular-nums">
+              <span className="text-lg font-semibold">
+                {derived.guidance.mlPerFeedRange[0]}–
+                {fmtMl(derived.guidance.mlPerFeedRange[1])}
+              </span>
+              <span className="text-sm text-muted-foreground">
+                за {guidance.feedCountRange[0]}–{guidance.feedCountRange[1]}{" "}
+                кормлений
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-baseline gap-3 tabular-nums">
+              <span className="text-lg font-semibold">
+                {derived.perFeedRange[0]}–{fmtMl(derived.perFeedRange[1])}
+              </span>
+              <span className="text-sm text-muted-foreground">
+                за {derived.feedCountRange[0]}–{derived.feedCountRange[1]}{" "}
+                кормлений
+              </span>
+            </div>
+          )}
+          <Muted>
+            Ребёнок берёт сколько нужно — кормление можно завершать по сигналам
+            насыщения.
+          </Muted>
+          {derived.guidance.flags.map((f) => (
+            <p
+              key={f.code}
+              className={
+                f.severity === "warning"
+                  ? "text-xs text-warning"
+                  : "text-xs text-info"
+              }
+            >
+              {flagText(f)}
+            </p>
+          ))}
+          {oversizedSingleFeed && (
+            <p className="text-xs text-info">
+              Одно кормление необычно велико для веса (
+              {fmtMl(oversizedSingleFeed.perFeedMl)}) — возможно, ошибка ввода,
+              проверьте.
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       <Collapsible open={planOpen} onOpenChange={setPlanOpen}>
         <div className="flex items-center justify-between gap-2">
@@ -634,8 +638,8 @@ export function DayView({
             }
             role="listitem"
           >
-            <button
-              type="button"
+            <Button
+              variant="outline"
               onClick={() => {
                 if (it.kind === "fact") {
                   onEditFeeding?.(it.id);
@@ -650,12 +654,12 @@ export function DayView({
                 }
               }}
               className={
-                "flex w-full min-h-[44px] items-start justify-between rounded-md border px-3 py-2 text-left " +
+                "h-auto min-h-[44px] w-full items-start justify-between px-3 py-2 text-left font-normal " +
                 (it.kind === "fact"
-                  ? "border-foreground/20 bg-background"
+                  ? "border-solid border-foreground/20 bg-background dark:bg-background"
                   : it.isTomorrow
-                    ? "border-primary bg-primary/5 text-foreground"
-                    : "border-dashed text-muted-foreground")
+                    ? "border-solid border-primary bg-primary/5 text-foreground dark:bg-primary/10"
+                    : "border-dashed border-muted-foreground/40 bg-transparent text-muted-foreground dark:bg-transparent")
               }
               aria-label={
                 it.kind === "fact" && it.medicationId
@@ -673,7 +677,9 @@ export function DayView({
                     }`
               }
             >
-              <span className="tabular-nums">{fmtHm(it.time, effectiveTz)}</span>
+              <span className="tabular-nums">
+                {fmtHm(it.time, effectiveTz)}
+              </span>
               <div className="flex flex-col items-end gap-0.5">
                 <span className="text-sm tabular-nums">
                   {it.kind === "fact"
@@ -692,7 +698,7 @@ export function DayView({
                   </span>
                 )}
               </div>
-            </button>
+            </Button>
           </li>
         ))}
         {timeline.length === 0 && (

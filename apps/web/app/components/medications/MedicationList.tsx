@@ -1,9 +1,9 @@
-
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,8 +31,7 @@ export function MedicationList({ babyId }: { babyId: string }) {
     queryFn: listMedications,
   });
   const [sheet, setSheet] = useState<SheetState>(null);
-  const [confirmDelete, setConfirmDelete] =
-    useState<Medication | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<Medication | null>(null);
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteMedication(id),
@@ -51,34 +50,33 @@ export function MedicationList({ babyId }: { babyId: string }) {
       </header>
       <ul className="space-y-1">
         {(q.data ?? []).map((m) => (
-          <li
-            key={m._id}
-            className="flex items-center justify-between rounded border px-3 py-2 text-sm"
-          >
-            <div className="flex flex-col">
-              <span className="font-medium">{m.name}</span>
-              <span className="text-xs text-muted-foreground tabular-nums">
-                {m.defaultDoseDrops} капель
-              </span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Button
-                size="sm"
-                variant="ghost"
-                aria-label="Редактировать"
-                onClick={() => setSheet({ kind: "edit", medication: m })}
-              >
-                <Pencil className="size-4" aria-hidden />
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                aria-label="Удалить"
-                onClick={() => setConfirmDelete(m)}
-              >
-                <Trash2 className="size-4" aria-hidden />
-              </Button>
-            </div>
+          <li key={m._id}>
+            <Card className="flex flex-row items-center justify-between gap-2 px-3 py-2 text-sm shadow-none">
+              <div className="flex flex-col">
+                <span className="font-medium">{m.name}</span>
+                <span className="text-xs text-muted-foreground tabular-nums">
+                  {m.defaultDoseDrops} капель
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  aria-label="Редактировать"
+                  onClick={() => setSheet({ kind: "edit", medication: m })}
+                >
+                  <Pencil className="size-4" aria-hidden />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  aria-label="Удалить"
+                  onClick={() => setConfirmDelete(m)}
+                >
+                  <Trash2 className="size-4" aria-hidden />
+                </Button>
+              </div>
+            </Card>
           </li>
         ))}
         {(q.data?.length ?? 0) === 0 && (

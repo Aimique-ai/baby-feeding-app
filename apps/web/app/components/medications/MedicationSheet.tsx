@@ -1,4 +1,3 @@
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -13,6 +12,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NumberStepper } from "@/components/ui/number-stepper";
 import {
   Form,
   FormControl,
@@ -157,22 +157,14 @@ export function MedicationSheet({ state, onOpenChange, babyId }: Props) {
                   <FormItem>
                     <FormLabel>Доза, капель</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
+                      <NumberStepper
+                        id={field.name}
                         min={1}
                         max={100}
-                        inputMode="numeric"
                         value={field.value}
-                        onChange={(e) =>
-                          field.onChange(
-                            e.target.value === ""
-                              ? ""
-                              : Number(e.target.value),
-                          )
-                        }
-                        onBlur={field.onBlur}
-                        name={field.name}
-                        ref={field.ref}
+                        onChange={field.onChange}
+                        decrementLabel="Уменьшить дозу"
+                        incrementLabel="Увеличить дозу"
                       />
                     </FormControl>
                     <FormMessage />
