@@ -47,7 +47,6 @@ export const activeBaby: MiddlewareHandler<AppEnv> = async (c, next) => {
   await next();
 };
 
-/** Convenience: pull the ObjectId of the current active baby. */
 export function activeBabyObjectId(babyId: string): Types.ObjectId {
   return new Types.ObjectId(babyId);
 }

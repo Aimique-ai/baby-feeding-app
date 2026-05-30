@@ -8,7 +8,7 @@ function clamp(v: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, v));
 }
 
-/** Target-free interval corridor — частота кормлений по возрастному диапазону. */
+/** Target-free interval corridor — feeding frequency by age range. */
 export function intervalCorridors(range: [number, number]): {
   intervalMin: number;
   intervalMax: number;
@@ -126,8 +126,8 @@ export function placeSlots(args: {
           portionArg.portionMin,
           portionArg.portionMax,
         )
-      : // flat: remainingMl никогда не читается; объём слота — нижний край
-        // диапазона (консервативный пол), диапазон сюрфейсится в UI отдельно.
+      : // flat: remainingMl is never read; slot volume is the lower edge of the
+        // range (conservative floor), the range is surfaced in the UI separately.
         portionArg.perFeedRange[0];
 
   const slotAt = (i: number): Slot => ({
@@ -201,7 +201,7 @@ export function planRemainder(args: PlanRemainderArgs): RemainderPlan {
 
   const interval = intervalCorridors(range);
 
-  // tomorrowSlot объём: energy ⇒ portionMin; neonatal ⇒ нижний край perFeed (30).
+  // tomorrowSlot volume: energy ⇒ portionMin; neonatal ⇒ lower edge of perFeed (30).
   const tomorrowVolumeMl =
     args.mode === "energy"
       ? args.target / range[1]

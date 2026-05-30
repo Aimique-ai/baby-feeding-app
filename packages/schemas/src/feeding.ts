@@ -10,8 +10,6 @@ import { objectIdString } from "./objectId";
 
 const MAX_FEEDING_DURATION_MS = FEEDING_DURATION_MAX_MIN * 60 * 1000;
 
-// ── CREATE / PATCH ──────────────────────────────────────────────────────────
-
 const baseFeedingShape = {
   babyId: objectIdString.optional(),
   startAt: z.coerce.date(),
@@ -29,7 +27,7 @@ const baseFeedingShape = {
 } as const;
 
 // Predicates exported so the form layer can reuse the exact invariants
-// instead of re-deriving them (mirrors the form's medicationInvariantForm etc).
+// instead of re-deriving them.
 export const startAtNotFuture = (v: { startAt?: Date }) =>
   v.startAt ? v.startAt.getTime() <= Date.now() : true;
 
@@ -110,13 +108,8 @@ export const feedingPatchSchema = z
   });
 
 export type FeedingInput = z.infer<typeof feedingSchema>;
-/** Alias — identical to FeedingInput. */
 export type FeedingCreate = FeedingInput;
 export type FeedingPatchInput = z.infer<typeof feedingPatchSchema>;
-
-// ── RESPONSE ────────────────────────────────────────────────────────────────
-// Mirrors the old SerializedFeeding exactly. babyId required, _id required,
-// string dates via z.iso.datetime(), volume/medication fields nullable.
 
 export const feedingResponseSchema = z.object({
   _id: objectIdString,

@@ -1,10 +1,10 @@
 /**
- * Неонатальный режим (0–13 дней): плоский диапазон объёма на одно кормление.
+ * Neonatal regime (days 0–13): flat per-feed volume range.
  *
- * Спецификация: в первые две недели не задаём суточный ориентир и дефицит —
- * вместо этого фиксированный диапазон 30–60 мл на кормление при 8–12 кормлениях
- * в сутки. Расписание по времени управляется частотой, а не дефицитом
- * (target − consumed). Ребёнок берёт сколько нужно.
+ * Spec: during the first two weeks we don't set a daily target or deficit —
+ * instead a fixed range of 30–60 ml per feed at 8–12 feeds per day. The time
+ * schedule is driven by frequency, not by deficit (target − consumed). The baby
+ * takes as much as needed.
  */
 export const NEONATAL_PER_FEED_ML_RANGE: [number, number] = [30, 60];
 

@@ -46,8 +46,9 @@ export function runPipeline(args: RunPipelineArgs): PipelineResult {
 
   const dayStart = startOfLocalDay(dateISO, tz);
 
-  // portionMin — порог "main vs snack". energy ⇒ target/maxC; neonatal ⇒
-  // нижний край perFeed (30). interval-коридоры одинаковы для обоих режимов.
+  // portionMin — the "main vs snack" threshold. energy ⇒ target/maxC;
+  // neonatal ⇒ lower edge of perFeed (30). Interval corridors are the same
+  // for both modes.
   let portionMin: number;
   let intervalMax: number;
   let intervalTarget: number;

@@ -6,8 +6,9 @@ export type DayMetrics = {
   topUpsCount: number;
   avgDurationMs: number | null;
   deficit: number | null;
-  // Максимальный объём одного НЕ-докорм кормления за день (0 если нет).
-  // Для single-feed sanity check (§7.5, зона >14д): нужен максимум, не среднее.
+  // Largest volume of a single NON-top-up feeding for the day (0 if none).
+  // For the single-feed sanity check (§7.5, >14d zone): we need the max, not
+  // the average.
   maxSingleFeedMl: number;
 };
 

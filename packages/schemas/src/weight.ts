@@ -2,7 +2,6 @@ import { z } from "zod";
 import { MAX_WEIGHT_GRAMS } from "./constants";
 import { objectIdString } from "./objectId";
 
-// ── CREATE / PATCH ──────────────────────────────────────────────────────────
 // CREATE uses `dateISO` (YYYY-MM-DD calendar string); the server converts it to
 // a Date via fromZonedTime. The RESPONSE uses `date` (full ISO datetime string).
 // Do NOT conflate the two.
@@ -40,9 +39,7 @@ export const weightPatchSchema = z
 export type WeightInput = z.infer<typeof weightSchema>;
 export type WeightPatchInput = z.infer<typeof weightPatchSchema>;
 
-// ── RESPONSE ────────────────────────────────────────────────────────────────
-// Mirrors the old SerializedWeight exactly. NOTE: response field is `date`
-// (full ISO datetime string), not `dateISO`.
+// The response field is `date` (full ISO datetime string), not `dateISO`.
 
 export const weightResponseSchema = z.object({
   _id: objectIdString,

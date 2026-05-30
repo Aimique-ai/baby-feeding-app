@@ -21,19 +21,19 @@ export const DEFAULT_FORMULA_DENSITY: FormulaDensity = {
 const NEONATAL_MAX_AGE_DAYS = 14;
 const ML_PER_KG_HIGH_THRESHOLD = 200;
 const ML_PER_KG_LOW_THRESHOLD = 120;
-// Single-feed sanity check (§7.5, эвристика — НЕ клинический cap).
-// 0–7 дней: объём на кормление > 20 мл/кг → info (осторожность, Front Pediatr 2023).
+// Single-feed sanity check (§7.5, heuristic — NOT a clinical cap).
+// 0–7 days: per-feed volume > 20 ml/kg → info (caution, Front Pediatr 2023).
 const EARLY_NEWBORN_MAX_AGE_DAYS = 7;
 const EARLY_NEWBORN_PER_FEED_ML_PER_KG = 20;
-// FAO/WHO/UNU 2004: CV(TEE/кг/сут) ≈ 15% — ±1 SD здоровой популяции.
+// FAO/WHO/UNU 2004: CV(TEE/kg/day) ≈ 15% — ±1 SD of a healthy population.
 // https://www.fao.org/4/y5686e/y5686e05.htm
 const DAILY_ML_RANGE_FRACTION = 0.15;
-// AAP: практический верхний потолок суточного объёма смеси.
-// Используется ТОЛЬКО как порог мягкого флага — НЕ как клэмп диапазона.
+// AAP: practical upper ceiling for daily formula volume.
+// Used ONLY as a soft-flag threshold — NOT as a range clamp.
 const AAP_SOFT_CAP_ML = 960;
-// AAP sanity-check по объёму: weight_kg × 165 мл.
+// AAP volume sanity-check: weight_kg × 165 ml.
 const AAP_ML_PER_KG = 165;
-// Codex: допустимая энергоплотность готовой смеси 60–70 ккал/100 мл.
+// Codex: acceptable energy density of ready-to-feed formula is 60–70 kcal/100 ml.
 const CODEX_KCAL_MIN = 60;
 const CODEX_KCAL_MAX = 70;
 
@@ -76,8 +76,8 @@ function resolveDayContext(
 }
 
 /**
- * Единственный источник правила 14 дней (CANON-7). API-роуты должны
- * брать `mode` отсюда, а не выводить `ageDays < 14` у себя.
+ * Single source of the 14-day rule (CANON-7). API routes must take `mode`
+ * from here rather than deriving `ageDays < 14` themselves.
  */
 export function resolveMode(
   dateISO: string,
@@ -147,8 +147,8 @@ export function computeFeedingGuidance(
   if (mode === "neonatal") {
     const perFeedMlRange = neonatalPerFeedRange();
     const flags: NeonatalTarget["flags"] = [];
-    // Зона 0–7 дней: рекомендованный объём на кормление (нижний край, 30)
-    // против 20 мл/кг (§7.5). Зона 8–13д флага не даёт.
+    // Zone 0–7 days: recommended per-feed volume (lower bound, 30) vs
+    // 20 ml/kg (§7.5). The 8–13 day zone raises no flag.
     if (
       ageDays <= EARLY_NEWBORN_MAX_AGE_DAYS &&
       weightKg > 0 &&
@@ -175,7 +175,7 @@ export function computeFeedingGuidance(
   const kcalPer100ml = safeKcalPer100ml(formula.kcalPer100ml);
   const dailyKcal = dailyMl * (kcalPer100ml / 100);
 
-  // CANON-2: НЕТ клэмпа 960 на верхнюю границу — диапазон всегда брекетит dailyMl.
+  // CANON-2: NO 960 clamp on the upper bound — the range always brackets dailyMl.
   const dailyMlRange: [number, number] = [
     floor10(dailyMl * (1 - DAILY_ML_RANGE_FRACTION)),
     ceil10(dailyMl * (1 + DAILY_ML_RANGE_FRACTION)),
@@ -208,7 +208,7 @@ export function computeFeedingGuidance(
       flags.push({ code: "ml_per_kg_low", severity: "info", valueMlKg });
     }
   }
-  // CANON-2: флаг — единственный носитель сигнала "превышает 960".
+  // CANON-2: the flag is the only carrier of the "exceeds 960" signal.
   if (dailyMl > AAP_SOFT_CAP_ML) {
     flags.push({
       code: "aap_soft_cap_exceeded",
@@ -217,7 +217,7 @@ export function computeFeedingGuidance(
       valueMl: dailyMl,
     });
   }
-  // Codex density flag по сырой входной плотности (DEFAULT 67 не триггерит).
+  // Codex density flag on the raw input density (DEFAULT 67 does not trigger).
   const rawDensity = formula.kcalPer100ml;
   if (
     Number.isFinite(rawDensity) &&
@@ -229,9 +229,9 @@ export function computeFeedingGuidance(
       kcalPer100ml: rawDensity,
     });
   }
-  // Single-feed sanity check зоны >14д (40 мл/кг на ФАКТИЧЕСКОМ макс-кормлении)
-  // живёт в слое кормлений (DayView), не здесь — рекомендательный расчёт не
-  // видит реальных кормлений. См. §7.5 / план B6.
+  // Single-feed sanity check for the >14d zone (40 ml/kg on the ACTUAL max
+  // feed) lives in the feeding layer (DayView), not here — the recommendation
+  // calculation does not see real feeds. See §7.5 / plan B6.
 
   return {
     mode: "energy",

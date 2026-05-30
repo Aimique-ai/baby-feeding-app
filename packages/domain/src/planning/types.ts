@@ -25,17 +25,17 @@ export type Baby = {
 };
 
 /**
- * Энергоплотность смеси — параметр движка (PRD §5.1).
+ * Formula energy density — engine parameter (PRD §5.1).
  */
 export type FormulaDensity = {
   kcalPer100ml: number;
   proteinGPer100kcal: number | null;
 };
 
-/** Уровень флага наблюдения по результату расчёта. */
+/** Observation flag severity, derived from the computation result. */
 export type TargetFlagSeverity = "info" | "warning";
 
-/** Флаг наблюдения — дискриминированный союз по `code` (PRD §5.1). */
+/** Observation flag — discriminated union on `code` (PRD §5.1). */
 export type TargetFlag =
   | { code: "ml_per_kg_high"; severity: "warning"; valueMlKg: number }
   | { code: "ml_per_kg_low"; severity: "info"; valueMlKg: number }
@@ -72,7 +72,7 @@ export type EnergyTarget = {
   feedCount: number;
   feedCountRange: [number, number];
   dailyKcal: number;
-  /** AAP sanity-check по объёму (weight × 165). Второе число, легко скрыть. */
+  /** AAP sanity-check on volume (weight × 165). A second number, easy to hide. */
   aapMl: number;
   protein: {
     gPerDay: number;
@@ -83,13 +83,13 @@ export type EnergyTarget = {
 
 export type NeonatalTarget = {
   mode: "neonatal";
-  /** Плоский диапазон 30–60 мл на кормление. */
+  /** Flat range of 30–60 ml per feeding. */
   perFeedMlRange: [number, number];
   feedCount: number;
   feedCountRange: [number, number];
-  // Союз сужен: в неонатальном результате (0–13д) допустим только флаг зоны
-  // 0–7д — компилятор запрещает энергорежимные флаги (aap/ml_per_kg/density)
-  // и флаг 40×вес (он живёт в слое фактических кормлений, зона >14д).
+  // Union narrowed: a neonatal result (0–13d) allows only the 0–7d zone flag —
+  // the compiler forbids energy-mode flags (aap/ml_per_kg/density) and the
+  // 40×weight flag (which lives in the actual-feedings layer, zone >14d).
   flags: Extract<TargetFlag, { code: "large_single_feed_early_newborn" }>[];
 };
 

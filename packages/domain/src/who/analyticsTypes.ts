@@ -1,6 +1,6 @@
 /**
- * Клиент-совместимые типы для аналитики веса. Не импортируй из этого файла
- * server-only утилиты — только типы.
+ * Client-safe types for weight analytics. Do not import server-only utilities
+ * from this file — types only.
  */
 
 export type AnalyticsVelocitySource = "who-lms" | "who-early";

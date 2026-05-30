@@ -38,11 +38,11 @@ import {
 } from "@leon/domain/planning/target";
 import type { FormulaDensity, TargetFlag } from "@leon/domain/planning/types";
 
-// AAP sanity-check по объёму — второе число рядом с FAO. Легко скрыть.
+// AAP volume sanity-check — the second number alongside FAO. Easy to hide.
 const SHOW_AAP = true;
 
-// Single-feed sanity check (§7.5): >14д ⇒ фактический МАКС объём одного
-// кормления > 40 мл/кг → info (отлов ошибок ввода). Зоны 0–7д/8–14д — в движке.
+// Single-feed sanity check (§7.5): >14d ⇒ actual MAX volume of one feed
+// > 40 ml/kg → info (catches input errors). Zones 0–7d/8–14d live in the engine.
 const NEONATAL_MAX_AGE_DAYS_UI = 14;
 const SINGLE_FEED_ML_PER_KG_CAP = 40;
 import { runPipeline } from "@leon/domain/planning/pipeline";
@@ -86,8 +86,8 @@ type TimelineItem =
       id: string;
       time: Date;
       volumeMl: number;
-      // Neonatal: диапазон "30–60" вместо предписывающего числа; при наличии
-      // префилл формы не задаётся (родитель вводит реальный объём).
+      // Neonatal: a "30–60" range instead of a prescriptive number; when
+      // present the form prefill is omitted (parent enters the real volume).
       volumeRange?: [number, number];
       isTomorrow?: boolean;
     };
@@ -273,12 +273,12 @@ export function DayView({
         medicationDoseDrops: raw?.medicationDoseDrops ?? null,
       };
     });
-    // Неонатальный слот несёт диапазон 30–60, а не предписывающее число.
+    // A neonatal slot carries the 30–60 range, not a prescriptive number.
     const neonatalRange: [number, number] | undefined =
       guidance.mode === "neonatal" ? guidance.perFeedMlRange : undefined;
 
-    // Плановые слоты — только для текущего дня. У прошедшего дня "будущих"
-    // кормлений нет: история показывает только факты.
+    // Plan slots only for the current day. A past day has no "future" feeds:
+    // history shows facts only.
     const planView: TimelineItem[] =
       mode === "live"
         ? result.plan.slots.map((s, i) => ({
@@ -329,9 +329,9 @@ export function DayView({
       storedPreferredFeedCount !== null &&
       storedPreferredFeedCount !== guidance.feedCount;
 
-    // Single-feed sanity check зоны >14д (§7.5): фактический МАКС объём одного
-    // не-докорм кормления против 40 мл/кг. Слой кормлений — здесь есть и факты,
-    // и вес. Цель — отлов ошибок ввода ("400 мл в одной бутылочке").
+    // Single-feed sanity check, >14d zone (§7.5): actual MAX volume of one
+    // non-top-up feed against 40 ml/kg. The feedings layer has both facts and
+    // weight here. Goal: catch input errors ("400 ml in a single bottle").
     const ageDays = dol - 1;
     const weightKg = currentWeight / 1000;
     const maxSingleFeedMl = facts.reduce(
@@ -644,7 +644,7 @@ export function DayView({
                 if (it.kind === "fact") {
                   onEditFeeding?.(it.id);
                 } else if (it.volumeRange) {
-                  // Neonatal: без предписывающего префилла — родитель вводит сам.
+                  // Neonatal: no prescriptive prefill — parent enters it themselves.
                   onAddFeeding?.({ time: it.time });
                 } else {
                   onAddFeeding?.({

@@ -67,7 +67,7 @@ type Props = {
 
 type WeightApiBody = ReturnType<typeof toWeightApiBody>;
 
-// Ошибка с пометкой 409 — взвешивание на эту дату уже существует.
+// Marks a 409 — a weighing for this date already exists.
 class DuplicateDateError extends Error {}
 
 export function WeightSheet({ open, onOpenChange, mode, tz, babyId }: Props) {
@@ -113,9 +113,9 @@ export function WeightSheet({ open, onOpenChange, mode, tz, babyId }: Props) {
     }
   }
 
-  // POST /api/weights — upsert по (babyId, date): «создание» на уже
-  // существующую дату молча перезапишет вес этого дня. Это намеренно —
-  // редактирование происходит через клик по строке списка.
+  // POST /api/weights — upsert on (babyId, date): "creating" on an existing
+  // date silently overwrites that day's weight. This is intentional — editing
+  // happens via clicking a row in the list.
   const createMutation = useMutation({
     mutationFn: (body: WeightApiBody) => createWeight(body),
     onSuccess: () => {

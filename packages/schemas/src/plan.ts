@@ -4,9 +4,7 @@ import type { Weight } from "./weight";
 
 // Plan-shaped deserialized aliases (consumed by @leon/domain planning types).
 // Kept as distinct exports so the planning surface doesn't have to know about
-// the Mongo serialization shape directly. Moved verbatim from
-// @leon/contracts/serialized; the deserialize* functions now take the Zod
-// response types (Feeding/Baby/Weight) as their input.
+// the Mongo serialization shape directly.
 
 export type PlanFeeding = {
   _id: string;

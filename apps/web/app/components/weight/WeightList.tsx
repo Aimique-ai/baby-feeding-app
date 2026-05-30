@@ -25,7 +25,7 @@ export function WeightList({
   });
   const [sheetMode, setSheetMode] = useState<WeightSheetMode | null>(null);
 
-  // /api/weights отдаёт список, отсортированный по дате убыванию.
+  // /api/weights returns the list sorted by date descending.
   const weights = q.data ?? [];
   const birth = new Date(birthDate);
 
@@ -50,7 +50,7 @@ export function WeightList({
               "dd.MM.yyyy",
             );
             const dol = dayOfLife(birth, new Date(w.date), effectiveTz);
-            // Следующий элемент — хронологически предыдущее взвешивание.
+            // The next element is the chronologically previous weighing.
             const delta =
               i + 1 < weights.length
                 ? w.weightGrams - weights[i + 1].weightGrams

@@ -47,7 +47,7 @@ type Props = {
   isPending?: boolean;
   submitError?: string | null;
   tz: string;
-  /** Существующий ребёнок — режим редактирования. */
+  /** Existing baby — edit mode. */
   baby?: Baby;
 };
 
@@ -97,8 +97,8 @@ export function BabyForm({
     control: form.control,
     name: "currentFormulaId",
   });
-  // Эффективное значение смеси для отображения: явный выбор пользователя
-  // либо дефолт из списка.
+  // Effective formula for display: explicit user choice, or the default from
+  // the list.
   const effectiveFormulaId =
     formulaTouched || formulaFieldValue != null
       ? formulaFieldValue

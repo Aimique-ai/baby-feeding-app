@@ -1,26 +1,26 @@
 /**
- * Узлы возрастной кривой "целевая калорийность ккал/кг/сут" для энергорежима.
+ * Nodes of the age curve "target energy kcal/kg/day" for the energy mode.
  *
- * Источник: FAO/WHO/UNU 2004, Human Energy Requirements, Table 3.3 —
- * "Energy requirements of formula-fed infants" (mean по boys+girls).
- *   1 мес → 120 ккал/кг
- *   2 мес → 109 ккал/кг
- *   3 мес → 100 ккал/кг
- *   4 мес →  87 ккал/кг
- *   5 мес →  86 ккал/кг
- *   6 мес →  84 ккал/кг
+ * Source: FAO/WHO/UNU 2004, Human Energy Requirements, Table 3.3 —
+ * "Energy requirements of formula-fed infants" (mean of boys+girls).
+ *   1 mo → 120 kcal/kg
+ *   2 mo → 109 kcal/kg
+ *   3 mo → 100 kcal/kg
+ *   4 mo →  87 kcal/kg
+ *   5 mo →  86 kcal/kg
+ *   6 mo →  84 kcal/kg
  *
- * Это приложение исключительно про искусственное вскармливание, поэтому
- * берём именно formula-fed-кривую, а не breastfed (TEE у formula-fed
- * выше на 7–12% в первом полугодии — FAO 2004, гл. 3).
+ * This app is exclusively about formula feeding, so we use the formula-fed
+ * curve, not breastfed (TEE for formula-fed is 7–12% higher in the first
+ * half-year — FAO 2004, ch. 3).
  *
- * Интерполяция между узлами реконструирует непрерывную FAO-кривую; узлы —
- * это FAO/WHO/UNU 2004 formula-fed значения, привязанные к серединам
- * месячных интервалов. Узел "0 мес" = 120 — это плато до 1 мес.
+ * Interpolation between nodes reconstructs the continuous FAO curve; the
+ * nodes are FAO/WHO/UNU 2004 formula-fed values pinned to the midpoints of
+ * the monthly intervals. The "0 mo" node = 120 is the plateau before 1 mo.
  *
- * После 6 мес — плато 84 ккал/кг: FAO даёт схожие значения до 12 мес
- * (~79–84 ккал/кг), и приложение целевую группу старше полугода почти
- * не покрывает (вводится прикорм, смесь перестаёт быть основной едой).
+ * After 6 mo — plateau of 84 kcal/kg: FAO gives similar values up to 12 mo
+ * (~79–84 kcal/kg), and the app barely covers the target group older than
+ * six months (complementary foods begin, formula stops being the main food).
  *
  * https://www.fao.org/4/y5686e/y5686e05.htm
  * https://pmc.ncbi.nlm.nih.gov/articles/PMC8575726/

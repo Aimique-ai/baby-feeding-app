@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 type Props = {
   /** ISO date of "today" in local TZ; used as the localStorage dismissal key. */
   dateISO: string;
-  /** Days since last weighing. */
   daysSinceLastWeight: number;
 };
 

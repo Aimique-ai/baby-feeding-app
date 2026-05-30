@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 type Props = {
   id?: string;
-  /** Пустая строка — поле очищено пользователем (валидным числом ещё не стало). */
+  /** Empty string — the field was cleared by the user and is not yet a valid number. */
   value: number | "";
   onChange: (v: number | "") => void;
   min?: number;
@@ -29,7 +29,7 @@ export function NumberStepper({
   className,
 }: Props) {
   const clamp = (v: number) => Math.min(max, Math.max(min, v));
-  // При пустом поле кнопки −/+ отсчитывают от min: инкрементить нечего.
+  // When the field is empty, the −/+ buttons count from min: there is nothing to increment.
   const base = value === "" ? min : value;
   return (
     <div className={cn("flex items-center gap-2", className)}>
