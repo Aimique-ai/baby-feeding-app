@@ -1,8 +1,8 @@
-import type { SerializedBaby } from "@leon/contracts/serialized";
+import type { Baby } from "@leon/schemas/baby";
 
 export type AppVariables = {
   tz: string;
-  baby: SerializedBaby;
+  baby: Baby;
 };
 
 export type AppEnv = { Variables: AppVariables };

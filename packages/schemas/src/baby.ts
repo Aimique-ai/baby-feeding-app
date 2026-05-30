@@ -1,5 +1,9 @@
 import { z } from "zod";
 import { BIRTH_WEIGHT_MAX, BIRTH_WEIGHT_MIN } from "./constants";
+import { objectIdString } from "./objectId";
+import { formulaResponseSchema } from "./formula";
+
+// ── CREATE / PATCH ──────────────────────────────────────────────────────────
 
 /** ObjectId существующей смеси или null. Существование проверяется в route handler. */
 const currentFormulaId = z
@@ -26,3 +30,31 @@ export const babyPatchSchema = babySchema.partial();
 
 export type BabyInput = z.infer<typeof babySchema>;
 export type BabyPatchInput = z.infer<typeof babyPatchSchema>;
+
+// ── RESPONSE ────────────────────────────────────────────────────────────────
+// Mirrors the old SerializedBaby exactly: string dates via z.iso.datetime(),
+// _id present, all server-normalized fields required (nullable where the
+// serializer emits null).
+
+export const babyResponseSchema = z.object({
+  _id: objectIdString,
+  name: z.string(),
+  birthDate: z.iso.datetime(),
+  birthWeightGrams: z.number(),
+  sex: z.enum(["male", "female"]),
+  currentFormulaId: objectIdString.nullable(),
+  preferredFeedCount: z.number().nullable(),
+  archivedAt: z.iso.datetime().nullable(),
+});
+
+export type Baby = z.infer<typeof babyResponseSchema>;
+
+// ── RESPONSE: baby joined with its current formula ──────────────────────────
+// Replaces SerializedBabyWithFormula (was duplicated in contracts/serialized.ts
+// and apps/api/lib/serializeBabyWithFormula.ts).
+
+export const babyWithFormulaResponseSchema = babyResponseSchema.extend({
+  formula: formulaResponseSchema.nullable(),
+});
+
+export type BabyWithFormula = z.infer<typeof babyWithFormulaResponseSchema>;

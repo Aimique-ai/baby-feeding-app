@@ -6,12 +6,11 @@ import {
   MED_DOSE_MAX,
   MED_DOSE_MIN,
 } from "./constants";
+import { objectIdString } from "./objectId";
 
 const MAX_FEEDING_DURATION_MS = FEEDING_DURATION_MAX_MIN * 60 * 1000;
 
-const objectIdString = z
-  .string()
-  .regex(/^[a-fA-F0-9]{24}$/, "invalid ObjectId");
+// ── CREATE / PATCH ──────────────────────────────────────────────────────────
 
 const baseFeedingShape = {
   babyId: objectIdString.optional(),
@@ -29,20 +28,25 @@ const baseFeedingShape = {
     .optional(),
 } as const;
 
-const startAtNotFuture = (v: { startAt?: Date }) =>
+// Predicates exported so the form layer can reuse the exact invariants
+// instead of re-deriving them (mirrors the form's medicationInvariantForm etc).
+export const startAtNotFuture = (v: { startAt?: Date }) =>
   v.startAt ? v.startAt.getTime() <= Date.now() : true;
 
-const endAfterStart = (v: { startAt?: Date; endAt?: Date | null }) => {
+export const endAfterStart = (v: { startAt?: Date; endAt?: Date | null }) => {
   if (!v.endAt || !v.startAt) return true;
   return v.endAt.getTime() > v.startAt.getTime();
 };
 
-const durationWithinMax = (v: { startAt?: Date; endAt?: Date | null }) => {
+export const durationWithinMax = (v: {
+  startAt?: Date;
+  endAt?: Date | null;
+}) => {
   if (!v.endAt || !v.startAt) return true;
   return v.endAt.getTime() - v.startAt.getTime() <= MAX_FEEDING_DURATION_MS;
 };
 
-const medicationInvariantFull = (v: {
+export const medicationInvariantFull = (v: {
   medicationId?: string | null;
   medicationDoseDrops?: number | null;
 }) => {
@@ -51,7 +55,7 @@ const medicationInvariantFull = (v: {
   return hasId === hasDose;
 };
 
-const medicationInvariantPatch = (v: {
+export const medicationInvariantPatch = (v: {
   medicationId?: string | null;
   medicationDoseDrops?: number | null;
 }) => {
@@ -106,4 +110,23 @@ export const feedingPatchSchema = z
   });
 
 export type FeedingInput = z.infer<typeof feedingSchema>;
+/** Alias — identical to FeedingInput. */
+export type FeedingCreate = FeedingInput;
 export type FeedingPatchInput = z.infer<typeof feedingPatchSchema>;
+
+// ── RESPONSE ────────────────────────────────────────────────────────────────
+// Mirrors the old SerializedFeeding exactly. babyId required, _id required,
+// string dates via z.iso.datetime(), volume/medication fields nullable.
+
+export const feedingResponseSchema = z.object({
+  _id: objectIdString,
+  babyId: objectIdString,
+  startAt: z.iso.datetime(),
+  endAt: z.iso.datetime().nullable(),
+  volumeMl: z.number().nullable(),
+  isTopUp: z.boolean(),
+  medicationId: objectIdString.nullable(),
+  medicationDoseDrops: z.number().nullable(),
+});
+
+export type Feeding = z.infer<typeof feedingResponseSchema>;

@@ -1,5 +1,5 @@
 import type { MiddlewareHandler } from "hono";
-import { TZ_HEADER } from "@leon/contracts/headers";
+import { TZ_HEADER } from "@leon/schemas/headers";
 import type { AppEnv } from "../types.js";
 
 const DEFAULT_TZ = "UTC";

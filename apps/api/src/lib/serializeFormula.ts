@@ -1,4 +1,4 @@
-import type { SerializedFormula } from "@leon/contracts/serialized";
+import type { Formula } from "@leon/schemas/formula";
 
 type FormulaDocLike = {
   _id: { toString(): string };
@@ -13,7 +13,7 @@ type FormulaDocLike = {
   archivedAt?: Date | null;
 };
 
-export function serializeFormula(doc: FormulaDocLike): SerializedFormula {
+export function serializeFormula(doc: FormulaDocLike): Formula {
   return {
     _id: doc._id.toString(),
     name: doc.name,

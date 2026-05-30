@@ -1,7 +1,7 @@
 import { useLoaderData } from "react-router";
 import { http } from "~/lib/http/client";
 import { BabyList } from "@/components/babies/BabyList";
-import type { SerializedBaby } from "@leon/contracts/serialized";
+import type { Baby } from "@leon/schemas/baby";
 import { readActiveBabyId } from "~/lib/baby/active";
 import { getBrowserTz } from "~/lib/time/browserTz";
 
@@ -10,14 +10,14 @@ export function meta() {
 }
 
 type LoaderData = {
-  babies: SerializedBaby[];
+  babies: Baby[];
   activeBabyId: string | null;
   tz: string;
 };
 
 export async function clientLoader(): Promise<LoaderData> {
   const tz = getBrowserTz();
-  const res = await http.get<SerializedBaby[]>("/api/babies");
+  const res = await http.get<Baby[]>("/api/babies");
   return {
     babies: res.data,
     activeBabyId: readActiveBabyId(),

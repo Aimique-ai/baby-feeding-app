@@ -5,12 +5,12 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { H3, Muted } from "@/components/ui/typography";
 import { babiesKey, archivedBabiesKey } from "@/components/day-view/feedingsKey";
-import type { SerializedBaby } from "@leon/contracts/serialized";
+import type { Baby } from "@leon/schemas/baby";
 import { getBrowserTz } from "@/lib/time/browserTz";
 import { listBabies, restoreBaby } from "@/lib/api/babies";
 
 type Props = {
-  babies: SerializedBaby[];
+  babies: Baby[];
   tz: string;
 };
 

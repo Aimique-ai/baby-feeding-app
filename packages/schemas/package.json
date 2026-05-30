@@ -10,7 +10,11 @@
     "./formula": "./src/formula.ts",
     "./medication": "./src/medication.ts",
     "./weight": "./src/weight.ts",
-    "./constants": "./src/constants.ts"
+    "./constants": "./src/constants.ts",
+    "./objectId": "./src/objectId.ts",
+    "./analytics": "./src/analytics.ts",
+    "./plan": "./src/plan.ts",
+    "./headers": "./src/headers.ts"
   },
   "dependencies": {
     "zod": "^4.4.3"

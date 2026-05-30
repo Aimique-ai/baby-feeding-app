@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { DayView } from "./DayView";
 import { feedingsKey } from "./feedingsKey";
 import { useFeedingSheet } from "@/components/feeding-sheet/FeedingSheetProvider";
-import type { SerializedFeeding } from "@leon/contracts/serialized";
+import type { Feeding } from "@leon/schemas/feeding";
 import { getBrowserTz } from "@/lib/time/browserTz";
 
 type Props = {
@@ -11,7 +11,7 @@ type Props = {
   dateISO: string;
   tz: string;
   babyId: string;
-  prevMainCandidates: SerializedFeeding[];
+  prevMainCandidates: Feeding[];
 };
 
 export function DayViewWithSheet(props: Props) {
@@ -26,7 +26,7 @@ export function DayViewWithSheet(props: Props) {
         openCreate({ dateISO: props.dateISO, preset })
       }
       onEditFeeding={(feedingId) => {
-        const list = qc.getQueryData<SerializedFeeding[]>(
+        const list = qc.getQueryData<Feeding[]>(
           feedingsKey(props.babyId, props.dateISO, effectiveTz),
         );
         const feeding = list?.find((f) => f._id === feedingId);

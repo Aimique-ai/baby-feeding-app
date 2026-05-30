@@ -1,7 +1,7 @@
 import { useLoaderData } from "react-router";
 import { http } from "~/lib/http/client";
 import { ArchivedBabyList } from "@/components/babies/ArchivedBabyList";
-import type { SerializedBaby } from "@leon/contracts/serialized";
+import type { Baby } from "@leon/schemas/baby";
 import { getBrowserTz } from "~/lib/time/browserTz";
 
 export function meta() {
@@ -9,13 +9,13 @@ export function meta() {
 }
 
 type LoaderData = {
-  babies: SerializedBaby[];
+  babies: Baby[];
   tz: string;
 };
 
 export async function clientLoader(): Promise<LoaderData> {
   const tz = getBrowserTz();
-  const res = await http.get<SerializedBaby[]>("/api/babies", {
+  const res = await http.get<Baby[]>("/api/babies", {
     params: { includeArchived: true },
   });
   const archived = res.data.filter((b) => b.archivedAt != null);

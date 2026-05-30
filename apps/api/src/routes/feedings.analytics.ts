@@ -10,6 +10,7 @@ import {
 import { dayMetrics } from "@leon/domain/planning/metrics";
 import { computeTarget, resolveMode } from "@leon/domain/planning/target";
 import type { Feeding } from "@leon/domain/planning/types";
+import type { FeedingsAnalyticsItem } from "@leon/schemas/analytics";
 import { dbConnect } from "../db/mongo.js";
 import { FeedingModel } from "../models/feeding.js";
 import { WeightModel } from "../models/weight.js";
@@ -81,7 +82,7 @@ feedingsAnalyticsRoute.get("/", async (c) => {
     });
   }
 
-  const items = days.map((dateISO) => {
+  const items: FeedingsAnalyticsItem[] = days.map((dateISO) => {
     const dayStart = startOfLocalDay(dateISO, tz);
     const facts = feedingsByDay.get(dateISO) ?? [];
     const babyPlan = {

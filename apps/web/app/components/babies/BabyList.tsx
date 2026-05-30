@@ -26,13 +26,13 @@ import {
   babiesKey,
   archivedBabiesKey,
 } from "@/components/day-view/feedingsKey";
-import type { SerializedBaby } from "@leon/contracts/serialized";
+import type { Baby } from "@leon/schemas/baby";
 import { getBrowserTz } from "@/lib/time/browserTz";
 import { archiveBaby, createBaby, listBabies } from "@/lib/api/babies";
 import { httpStatus } from "@/lib/api/errors";
 
 type Props = {
-  babies: SerializedBaby[];
+  babies: Baby[];
   activeBabyId: string | null;
   tz: string;
 };

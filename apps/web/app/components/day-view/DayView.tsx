@@ -24,9 +24,9 @@ import {
   deserializeBaby,
   deserializeFeeding,
   deserializeWeight,
-  type SerializedBabyWithFormula,
-  type SerializedFeeding,
-} from "@leon/contracts/serialized";
+} from "@leon/schemas/plan";
+import type { BabyWithFormula } from "@leon/schemas/baby";
+import type { Feeding } from "@leon/schemas/feeding";
 import {
   computeFeedingGuidance,
   DEFAULT_FORMULA_DENSITY,
@@ -64,7 +64,7 @@ type Props = {
   dateISO: string;
   tz: string;
   babyId: string;
-  prevMainCandidates: SerializedFeeding[];
+  prevMainCandidates: Feeding[];
   onAddFeeding?: (preset?: {
     time?: Date;
     volumeMl?: number;
@@ -186,7 +186,7 @@ export function DayView({
     queryKey: feedingsKey(babyId, dateISO, effectiveTz),
     queryFn: () => listFeedingsByDate(dateISO),
   });
-  const babyQ = useQuery<SerializedBabyWithFormula>({
+  const babyQ = useQuery<BabyWithFormula>({
     queryKey: babyKey(babyId),
     queryFn: getActiveBaby,
   });
@@ -217,7 +217,7 @@ export function DayView({
     )
       return null;
     const facts = feedingsQ.data.map(deserializeFeeding);
-    const rawFeedingsById = new Map<string, SerializedFeeding>(
+    const rawFeedingsById = new Map<string, Feeding>(
       feedingsQ.data.map((f) => [f._id, f]),
     );
     const medMap = new Map<string, { name: string }>(

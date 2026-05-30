@@ -2,7 +2,7 @@ import { Navigate, useLoaderData } from "react-router";
 import { http } from "~/lib/http/client";
 import { WeightList } from "@/components/weight/WeightList";
 import { WeightTabs } from "@/components/weight/WeightTabs";
-import type { SerializedBaby } from "@leon/contracts/serialized";
+import type { Baby } from "@leon/schemas/baby";
 import { ensureActiveBabyId } from "~/lib/baby/ensureActive";
 import { getBrowserTz } from "~/lib/time/browserTz";
 
@@ -22,7 +22,7 @@ export async function clientLoader(): Promise<LoaderData> {
   if (!babyId) return { babyId: null, tz, birthDate: null };
   // ensureActiveBabyId already called /api/baby on cold cache; this re-call is
   // cheap (React Query staleTime not in scope here) and gives us birthDate.
-  const res = await http.get<SerializedBaby>("/api/baby");
+  const res = await http.get<Baby>("/api/baby");
   return { babyId, tz, birthDate: res.data.birthDate };
 }
 

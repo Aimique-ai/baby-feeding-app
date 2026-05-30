@@ -1,6 +1,6 @@
 import * as React from "react";
 import { localDateISO } from "@leon/domain/planning/dayBoundary";
-import type { SerializedFeeding } from "@leon/contracts/serialized";
+import type { Feeding } from "@leon/schemas/feeding";
 import { getBrowserTz } from "@/lib/time/browserTz";
 
 const FeedingSheet = React.lazy(() =>
@@ -16,7 +16,7 @@ type CreatePreset = {
 
 type OpenCreate = (opts?: { dateISO?: string; preset?: CreatePreset }) => void;
 type OpenEdit = (opts: {
-  feeding: SerializedFeeding;
+  feeding: Feeding;
   dateISO?: string;
 }) => void;
 
@@ -29,7 +29,7 @@ const FeedingSheetCtx = React.createContext<Ctx | null>(null);
 
 type SheetState =
   | { kind: "create"; dateISO: string; preset?: CreatePreset }
-  | { kind: "edit"; dateISO: string; feeding: SerializedFeeding };
+  | { kind: "edit"; dateISO: string; feeding: Feeding };
 
 type Props = {
   babyId: string | null;

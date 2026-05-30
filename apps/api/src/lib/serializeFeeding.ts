@@ -1,8 +1,6 @@
-import type {
-  SerializedFeeding,
-  SerializedWeight,
-  SerializedMedication,
-} from "@leon/contracts/serialized";
+import type { Feeding } from "@leon/schemas/feeding";
+import type { Weight } from "@leon/schemas/weight";
+import type { Medication } from "@leon/schemas/medication";
 
 // Structural shapes compatible with `.lean()` results. Optional/nullable fields
 // allow `undefined` so raw docs satisfy the shape without casts; the functions
@@ -18,7 +16,7 @@ type FeedingDocLike = {
   medicationDoseDrops?: number | null;
 };
 
-export function serializeFeeding(doc: FeedingDocLike): SerializedFeeding {
+export function serializeFeeding(doc: FeedingDocLike): Feeding {
   return {
     _id: doc._id.toString(),
     babyId: doc.babyId.toString(),
@@ -41,7 +39,7 @@ type WeightDocLike = {
   updatedAt?: Date;
 };
 
-export function serializeWeight(doc: WeightDocLike): SerializedWeight {
+export function serializeWeight(doc: WeightDocLike): Weight {
   return {
     _id: doc._id.toString(),
     babyId: doc.babyId.toString(),
@@ -61,7 +59,7 @@ type MedicationDocLike = {
 
 export function serializeMedication(
   doc: MedicationDocLike,
-): SerializedMedication {
+): Medication {
   return {
     _id: doc._id.toString(),
     babyId: doc.babyId.toString(),

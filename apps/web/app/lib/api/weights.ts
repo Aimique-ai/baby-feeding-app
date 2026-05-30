@@ -1,23 +1,24 @@
-import type { SerializedWeight } from "@leon/contracts/serialized";
+import { z } from "zod";
+import { weightResponseSchema, type Weight } from "@leon/schemas/weight";
 import type { WeightsAnalytics } from "@leon/domain/who/types";
 import { http } from "~/lib/http/client";
 
-export async function listWeights(): Promise<SerializedWeight[]> {
-  const res = await http.get<SerializedWeight[]>("/api/weights");
-  return res.data;
+export async function listWeights(): Promise<Weight[]> {
+  const res = await http.get("/api/weights");
+  return z.array(weightResponseSchema).parse(res.data);
 }
 
-export async function createWeight(body: unknown): Promise<SerializedWeight> {
-  const res = await http.post<SerializedWeight>("/api/weights", body);
-  return res.data;
+export async function createWeight(body: unknown): Promise<Weight> {
+  const res = await http.post("/api/weights", body);
+  return weightResponseSchema.parse(res.data);
 }
 
 export async function patchWeight(
   id: string,
   body: unknown,
-): Promise<SerializedWeight> {
-  const res = await http.patch<SerializedWeight>(`/api/weights/${id}`, body);
-  return res.data;
+): Promise<Weight> {
+  const res = await http.patch(`/api/weights/${id}`, body);
+  return weightResponseSchema.parse(res.data);
 }
 
 export async function deleteWeight(id: string): Promise<void> {

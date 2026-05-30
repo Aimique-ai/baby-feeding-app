@@ -1,9 +1,7 @@
 import { addDays, differenceInCalendarDays } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
-import type {
-  SerializedBaby,
-  SerializedWeight,
-} from "@leon/contracts/serialized";
+import type { Baby } from "@leon/schemas/baby";
+import type { Weight } from "@leon/schemas/weight";
 import {
   lookupCompletedEarlyVelocity,
   lookupCompletedMonthlyVelocityLMS,
@@ -58,8 +56,8 @@ function classifyEarly(
 }
 
 export function buildAnalytics(
-  baby: SerializedBaby,
-  weights: SerializedWeight[],
+  baby: Baby,
+  weights: Weight[],
   tz: string,
 ): WeightsAnalytics {
   const ascending = [...weights].sort(

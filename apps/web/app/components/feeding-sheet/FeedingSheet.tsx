@@ -52,10 +52,8 @@ import {
   medicationsKey,
 } from "@/components/day-view/feedingsKey";
 import { DEFAULT_DURATION_CHIPS } from "@leon/domain/feeding";
-import type {
-  SerializedFeeding,
-  SerializedMedication,
-} from "@leon/contracts/serialized";
+import type { Feeding } from "@leon/schemas/feeding";
+import type { Medication } from "@leon/schemas/medication";
 import { getBrowserTz } from "@/lib/time/browserTz";
 import {
   createFeeding,
@@ -86,7 +84,7 @@ type Mode =
         durationMin?: number;
       };
     }
-  | { kind: "edit"; feeding: SerializedFeeding };
+  | { kind: "edit"; feeding: Feeding };
 
 type Props = {
   open: boolean;
@@ -197,17 +195,17 @@ export function FeedingSheet({
     needArchivedFetch && archivedQ.data ? archivedQ.data : null;
 
   const createMutation = useMutation<
-    SerializedFeeding,
+    Feeding,
     Error,
     FeedingApiBody,
-    { prev: SerializedFeeding[] }
+    { prev: Feeding[] }
   >({
     mutationFn: (body) => createFeeding(body),
     onMutate: async (body) => {
       const key = feedingsKey(babyId, dateISO, effectiveTz);
       await qc.cancelQueries({ queryKey: key });
-      const prev = qc.getQueryData<SerializedFeeding[]>(key) ?? [];
-      const optimistic: SerializedFeeding = {
+      const prev = qc.getQueryData<Feeding[]>(key) ?? [];
+      const optimistic: Feeding = {
         _id: `temp-${body.startAt.getTime()}-${prev.length}`,
         babyId,
         startAt: body.startAt.toISOString(),
@@ -234,7 +232,7 @@ export function FeedingSheet({
     },
   });
 
-  const patchMutation = useMutation<SerializedFeeding, Error, FeedingApiBody>({
+  const patchMutation = useMutation<Feeding, Error, FeedingApiBody>({
     mutationFn: (body) => {
       if (mode.kind !== "edit") throw new Error("not edit mode");
       return patchFeeding(mode.feeding._id, body);
@@ -270,7 +268,7 @@ export function FeedingSheet({
 
   const showMedSection = activeMeds.length > 0 || archivedMed !== null;
 
-  function selectMed(m: SerializedMedication) {
+  function selectMed(m: Medication) {
     if (m._id === medicationId) return;
     form.setValue("medicationId", m._id);
     form.setValue("medDoseDrops", m.defaultDoseDrops);

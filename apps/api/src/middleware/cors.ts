@@ -1,5 +1,5 @@
 import { cors as honoCors } from "hono/cors";
-import { ACTIVE_BABY_HEADER, TZ_HEADER } from "@leon/contracts/headers";
+import { ACTIVE_BABY_HEADER, TZ_HEADER } from "@leon/schemas/headers";
 
 const origin = process.env.WEB_ORIGIN ?? "*";
 

@@ -15,14 +15,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { MedicationSheet } from "./MedicationSheet";
-import type { SerializedMedication } from "@leon/contracts/serialized";
+import type { Medication } from "@leon/schemas/medication";
 import { medicationsKey } from "@/components/day-view/feedingsKey";
 import { deleteMedication, listMedications } from "@/lib/api/medications";
 
 type SheetState =
   | null
   | { kind: "create" }
-  | { kind: "edit"; medication: SerializedMedication };
+  | { kind: "edit"; medication: Medication };
 
 export function MedicationList({ babyId }: { babyId: string }) {
   const qc = useQueryClient();
@@ -32,7 +32,7 @@ export function MedicationList({ babyId }: { babyId: string }) {
   });
   const [sheet, setSheet] = useState<SheetState>(null);
   const [confirmDelete, setConfirmDelete] =
-    useState<SerializedMedication | null>(null);
+    useState<Medication | null>(null);
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteMedication(id),

@@ -21,7 +21,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import type { SerializedMedication } from "@leon/contracts/serialized";
+import type { Medication } from "@leon/schemas/medication";
 import { medicationsKey } from "@/components/day-view/feedingsKey";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { createMedication, patchMedication } from "@/lib/api/medications";
@@ -36,7 +36,7 @@ import {
 type State =
   | null
   | { kind: "create" }
-  | { kind: "edit"; medication: SerializedMedication };
+  | { kind: "edit"; medication: Medication };
 
 type Props = {
   state: State;

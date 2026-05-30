@@ -1,5 +1,5 @@
 import axios, { type AxiosInstance } from "axios";
-import { ACTIVE_BABY_HEADER, TZ_HEADER } from "@leon/contracts/headers";
+import { ACTIVE_BABY_HEADER, TZ_HEADER } from "@leon/schemas/headers";
 import { getBrowserTz } from "~/lib/time/browserTz";
 import {
   clearActiveBabyId,

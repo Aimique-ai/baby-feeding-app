@@ -27,10 +27,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { getBrowserTz } from "@/lib/time/browserTz";
 import { listFormulas } from "@/lib/api/formulas";
-import type {
-  SerializedBaby,
-  SerializedFormula,
-} from "@leon/contracts/serialized";
+import type { Baby } from "@leon/schemas/baby";
+import type { Formula } from "@leon/schemas/formula";
 import {
   babyFormSchema,
   toBabyApiBody,
@@ -45,12 +43,12 @@ type Props = {
   submitError?: string | null;
   tz: string;
   /** Существующий ребёнок — режим редактирования. */
-  baby?: SerializedBaby;
+  baby?: Baby;
 };
 
 const DEFAULT_FORMULA_NAME = "Nan Optipro 1";
 
-function pickDefaultFormulaId(formulas: SerializedFormula[]): string | null {
+function pickDefaultFormulaId(formulas: Formula[]): string | null {
   if (formulas.length === 0) return null;
   const named = formulas.find((f) => f.name === DEFAULT_FORMULA_NAME);
   if (named) return named._id;

@@ -5,6 +5,7 @@ import {
   computeDurationChips,
 } from "@leon/domain/feeding";
 import { FEEDING_DURATION_MAX_MIN } from "@leon/schemas/constants";
+import type { DurationChips } from "@leon/schemas/analytics";
 import { dbConnect } from "../db/mongo.js";
 import { FeedingModel } from "../models/feeding.js";
 import type { AppEnv } from "../types.js";
@@ -28,10 +29,11 @@ feedingsDurationChipsRoute.get("/", async (c) => {
     .map((d) => Math.round((d.endAt.getTime() - d.startAt.getTime()) / 60000))
     .filter((v) => v >= 1 && v <= FEEDING_DURATION_MAX_MIN);
   c.header("Cache-Control", "private, max-age=60");
-  return c.json({
+  const body: DurationChips = {
     chips:
       durations.length > 0
         ? computeDurationChips(durations)
         : [...DEFAULT_DURATION_CHIPS],
-  });
+  };
+  return c.json(body);
 });

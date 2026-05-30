@@ -2,7 +2,7 @@ import { Navigate, useLoaderData, useParams } from "react-router";
 import { startOfLocalDay } from "@leon/domain/planning/dayBoundary";
 import { DayViewWithSheet } from "@/components/day-view/DayViewWithSheet";
 import { fetchLastFeedingBefore } from "~/lib/api/feedings";
-import type { SerializedFeeding } from "@leon/contracts/serialized";
+import type { Feeding } from "@leon/schemas/feeding";
 import { ensureActiveBabyId } from "~/lib/baby/ensureActive";
 import { getBrowserTz } from "~/lib/time/browserTz";
 
@@ -13,7 +13,7 @@ export function meta({ params }: { params: { date?: string } }) {
 type LoaderData = {
   babyId: string | null;
   tz: string;
-  prevMainCandidates: SerializedFeeding[];
+  prevMainCandidates: Feeding[];
 };
 
 export async function clientLoader({

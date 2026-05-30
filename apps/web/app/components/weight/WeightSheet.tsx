@@ -37,7 +37,7 @@ import {
   weightsAnalyticsKey,
   weightsKey,
 } from "@/components/day-view/feedingsKey";
-import type { SerializedWeight } from "@leon/contracts/serialized";
+import type { Weight } from "@leon/schemas/weight";
 import { localDateISO } from "@leon/domain/planning/dayBoundary";
 import { getBrowserTz } from "@/lib/time/browserTz";
 import {
@@ -55,7 +55,7 @@ import {
 
 type Mode =
   | { kind: "create" }
-  | { kind: "edit"; weight: SerializedWeight };
+  | { kind: "edit"; weight: Weight };
 
 type Props = {
   open: boolean;

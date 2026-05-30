@@ -1,6 +1,6 @@
 import type { MiddlewareHandler } from "hono";
 import { Types } from "mongoose";
-import { ACTIVE_BABY_HEADER } from "@leon/contracts/headers";
+import { ACTIVE_BABY_HEADER } from "@leon/schemas/headers";
 import { dbConnect } from "../db/mongo.js";
 import { BabyModel } from "../models/baby.js";
 import { serializeBaby } from "../lib/serializeBaby.js";

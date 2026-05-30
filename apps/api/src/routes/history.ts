@@ -10,6 +10,7 @@ import {
 import { dayMetrics } from "@leon/domain/planning/metrics";
 import { computeTarget, resolveMode } from "@leon/domain/planning/target";
 import type { Feeding } from "@leon/domain/planning/types";
+import type { HistoryItem } from "@leon/schemas/analytics";
 import { dbConnect } from "../db/mongo.js";
 import { FeedingModel } from "../models/feeding.js";
 import { WeightModel } from "../models/weight.js";
@@ -89,17 +90,7 @@ historyRoute.get("/", async (c) => {
     });
   }
 
-  const items: {
-    dateISO: string;
-    dol: number;
-    target: number | null;
-    mode: "neonatal" | "energy";
-    factOfDay: number;
-    feedingsCount: number;
-    topUpsCount: number;
-    avgDurationMs: number | null;
-    deficit: number | null;
-  }[] = [];
+  const items: HistoryItem[] = [];
 
   for (const dateISO of days) {
     const dayStart = startOfLocalDay(dateISO, tz);

@@ -1,9 +1,8 @@
 import { z } from "zod";
 import { MED_DOSE_MAX, MED_DOSE_MIN, MED_NAME_MAX } from "./constants";
+import { objectIdString } from "./objectId";
 
-const objectIdString = z
-  .string()
-  .regex(/^[a-fA-F0-9]{24}$/, "invalid ObjectId");
+// ── CREATE / PATCH ──────────────────────────────────────────────────────────
 
 export const medicationSchema = z.object({
   babyId: objectIdString.optional(),
@@ -15,3 +14,18 @@ export const medicationPatchSchema = medicationSchema.partial();
 
 export type MedicationInput = z.infer<typeof medicationSchema>;
 export type MedicationPatchInput = z.infer<typeof medicationPatchSchema>;
+
+// ── RESPONSE ────────────────────────────────────────────────────────────────
+// Mirrors the old SerializedMedication exactly: deletedAt nullable ISO datetime
+// string, createdAt required ISO datetime string.
+
+export const medicationResponseSchema = z.object({
+  _id: objectIdString,
+  babyId: objectIdString,
+  name: z.string(),
+  defaultDoseDrops: z.number(),
+  deletedAt: z.iso.datetime().nullable(),
+  createdAt: z.iso.datetime(),
+});
+
+export type Medication = z.infer<typeof medicationResponseSchema>;

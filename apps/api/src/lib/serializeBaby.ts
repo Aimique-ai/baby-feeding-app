@@ -1,4 +1,4 @@
-import type { SerializedBaby } from "@leon/contracts/serialized";
+import type { Baby } from "@leon/schemas/baby";
 
 // Structural shape compatible with `BabyModel.find().lean()` results. Optional
 // fields are typed `T | null | undefined` so a raw lean doc satisfies the shape
@@ -14,7 +14,7 @@ type BabyDocLike = {
   archivedAt?: Date | null;
 };
 
-export function serializeBaby(doc: BabyDocLike): SerializedBaby {
+export function serializeBaby(doc: BabyDocLike): Baby {
   return {
     _id: doc._id.toString(),
     name: doc.name,
