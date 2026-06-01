@@ -1,6 +1,6 @@
 import { Navigate, useLoaderData } from "react-router";
-import { WeightAnalytics } from "@/components/weight/WeightAnalytics";
-import { WeightTabs } from "@/components/weight/WeightTabs";
+import { WeightAnalytics } from "~/features/WeightAnalytics";
+import { WeightTabs } from "~/features/WeightTabs";
 import { ensureActiveBabyId } from "~/lib/baby/ensureActive";
 import { getBrowserTz } from "~/lib/time/browserTz";
 

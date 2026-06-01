@@ -25,6 +25,6 @@
     "@leon/eslint-config": "workspace:*",
     "@leon/typescript-config": "workspace:*",
     "eslint": "^9.0.0",
-    "typescript": "^5"
+    "typescript": "^6"
   }
 }

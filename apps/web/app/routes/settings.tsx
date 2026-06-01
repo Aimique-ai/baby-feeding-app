@@ -1,8 +1,8 @@
 import { Check, Monitor, Moon, Sun } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { H4, Muted } from "@/components/ui/typography";
-import { useAppearance } from "~/providers/AppearanceProvider";
+import { Button } from "~/components/ui/button";
+import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
+import { H4, Muted } from "~/components/ui/typography";
+import { useAppearance } from "~/providers/appearanceContext";
 import {
   PALETTES,
   PALETTE_LABELS,

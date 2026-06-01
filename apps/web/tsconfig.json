@@ -2,10 +2,8 @@
   "extends": "@leon/typescript-config/react.json",
   "compilerOptions": {
     "types": ["node", "vite/client", "@react-router/node"],
-    "baseUrl": ".",
     "paths": {
-      "~/*": ["./app/*"],
-      "@/*": ["./app/*"]
+      "~/*": ["./app/*"]
     },
     "rootDirs": [".", "./.react-router/types"]
   },

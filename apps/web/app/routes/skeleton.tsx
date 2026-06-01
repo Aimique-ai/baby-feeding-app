@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { H1 } from "@/components/ui/typography";
+import { Button } from "~/components/ui/button";
+import { H1 } from "~/components/ui/typography";
 import { http } from "~/lib/http/client";
 
 export function meta() {

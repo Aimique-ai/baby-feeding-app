@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   DEFAULT_PALETTE,
   PALETTES,
@@ -13,26 +6,41 @@ import {
   isPalette,
   type Palette,
 } from "~/lib/palette";
-
-type ThemeIntent = "light" | "dark" | "system";
-type ResolvedTheme = "light" | "dark";
+import {
+  AppearanceContext,
+  type AppearanceContextValue,
+  type ResolvedTheme,
+  type ThemeIntent,
+} from "./appearanceContext";
 
 const THEME_KEY = "leon-theme";
 const PALETTES_SET = new Set<string>(PALETTES);
 
-type AppearanceContextValue = {
-  theme: ThemeIntent;
-  resolvedTheme: ResolvedTheme;
-  setTheme: (theme: ThemeIntent) => void;
-  palette: Palette;
-  setPalette: (palette: Palette) => void;
-};
-
-const AppearanceContext = createContext<AppearanceContextValue | null>(null);
-
 function readSystemPrefersDark(): boolean {
   if (typeof window === "undefined") return false;
   return window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
+
+function readStoredTheme(): ThemeIntent {
+  if (typeof window === "undefined") return "system";
+  try {
+    const raw = window.localStorage.getItem(THEME_KEY);
+    if (raw === "light" || raw === "dark" || raw === "system") return raw;
+  } catch {
+    /* storage unavailable */
+  }
+  return "system";
+}
+
+function readStoredPalette(): Palette {
+  if (typeof window === "undefined") return DEFAULT_PALETTE;
+  try {
+    const raw = window.localStorage.getItem(PALETTE_STORAGE_KEY);
+    if (raw && PALETTES_SET.has(raw)) return raw as Palette;
+  } catch {
+    /* storage unavailable */
+  }
+  return DEFAULT_PALETTE;
 }
 
 function applyTheme(resolved: ResolvedTheme) {
@@ -52,27 +60,13 @@ export function AppearanceProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [theme, setThemeState] = useState<ThemeIntent>("system");
-  const [systemDark, setSystemDark] = useState(false);
-  const [palette, setPaletteState] = useState<Palette>(DEFAULT_PALETTE);
-
-  // Initial read from localStorage on mount. The pre-paint inline script in
-  // root.tsx has already set the visible attributes; this just syncs React state.
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(THEME_KEY);
-      if (raw === "light" || raw === "dark" || raw === "system") {
-        setThemeState(raw);
-      }
-      const rawPalette = window.localStorage.getItem(PALETTE_STORAGE_KEY);
-      if (rawPalette && PALETTES_SET.has(rawPalette)) {
-        setPaletteState(rawPalette as Palette);
-      }
-    } catch {
-      /* storage unavailable */
-    }
-    setSystemDark(readSystemPrefersDark());
-  }, []);
+  // Lazy initializers read synchronously from localStorage / matchMedia on the
+  // client (and fall back to defaults on the server). The pre-paint inline
+  // script in root.tsx has already set the visible attributes; this just seeds
+  // React state without an extra mount-time setState + cascading re-render.
+  const [theme, setThemeState] = useState<ThemeIntent>(readStoredTheme);
+  const [systemDark, setSystemDark] = useState(readSystemPrefersDark);
+  const [palette, setPaletteState] = useState<Palette>(readStoredPalette);
 
   // Track OS dark-mode flips while the app is open.
   useEffect(() => {
@@ -139,12 +133,4 @@ export function AppearanceProvider({
       {children}
     </AppearanceContext.Provider>
   );
-}
-
-export function useAppearance(): AppearanceContextValue {
-  const value = useContext(AppearanceContext);
-  if (!value) {
-    throw new Error("useAppearance must be used inside AppearanceProvider");
-  }
-  return value;
 }

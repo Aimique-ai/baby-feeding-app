@@ -1,5 +1,5 @@
 import { Navigate, useLoaderData } from "react-router";
-import { MedicationList } from "@/components/medications/MedicationList";
+import { MedicationList } from "~/features/MedicationList";
 import { ensureActiveBabyId } from "~/lib/baby/ensureActive";
 
 export function meta() {

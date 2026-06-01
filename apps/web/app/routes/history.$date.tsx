@@ -1,6 +1,6 @@
 import { Navigate, useLoaderData, useParams } from "react-router";
 import { startOfLocalDay } from "@leon/domain/planning/dayBoundary";
-import { DayViewWithSheet } from "@/components/day-view/DayViewWithSheet";
+import { DayViewWithSheet } from "~/features/DayViewWithSheet";
 import { fetchLastFeedingBefore } from "~/lib/api/feedings";
 import type { Feeding } from "@leon/schemas/feeding";
 import { ensureActiveBabyId } from "~/lib/baby/ensureActive";

@@ -1,6 +1,6 @@
 import { Navigate, useLoaderData } from "react-router";
-import { FeedingTargetChart } from "@/components/history/FeedingTargetChart";
-import { HistoryTabs } from "@/components/history/HistoryTabs";
+import { FeedingTargetChart } from "~/features/FeedingTargetChart";
+import { HistoryTabs } from "~/features/HistoryTabs";
 import { ensureActiveBabyId } from "~/lib/baby/ensureActive";
 import { getBrowserTz } from "~/lib/time/browserTz";
 

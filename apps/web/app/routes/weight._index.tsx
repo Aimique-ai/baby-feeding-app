@@ -1,7 +1,7 @@
 import { Navigate, useLoaderData } from "react-router";
 import { http } from "~/lib/http/client";
-import { WeightList } from "@/components/weight/WeightList";
-import { WeightTabs } from "@/components/weight/WeightTabs";
+import { WeightList } from "~/features/WeightList";
+import { WeightTabs } from "~/features/WeightTabs";
 import type { Baby } from "@leon/schemas/baby";
 import { ensureActiveBabyId } from "~/lib/baby/ensureActive";
 import { getBrowserTz } from "~/lib/time/browserTz";

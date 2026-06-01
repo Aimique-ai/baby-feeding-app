@@ -1,5 +1,5 @@
 import * as React from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "~/lib/utils";
 
 type DivProps = React.HTMLAttributes<HTMLDivElement>;
 type HProps = React.HTMLAttributes<HTMLHeadingElement>;

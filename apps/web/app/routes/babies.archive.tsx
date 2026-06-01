@@ -1,6 +1,6 @@
 import { useLoaderData } from "react-router";
 import { http } from "~/lib/http/client";
-import { ArchivedBabyList } from "@/components/babies/ArchivedBabyList";
+import { ArchivedBabyList } from "~/features/ArchivedBabyList";
 import type { Baby } from "@leon/schemas/baby";
 import { getBrowserTz } from "~/lib/time/browserTz";
 

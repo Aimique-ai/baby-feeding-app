@@ -1,5 +1,5 @@
-import { HistoryList } from "@/components/history/HistoryList";
-import { HistoryTabs } from "@/components/history/HistoryTabs";
+import { HistoryList } from "~/features/HistoryList";
+import { HistoryTabs } from "~/features/HistoryTabs";
 import { getBrowserTz } from "~/lib/time/browserTz";
 
 export function meta() {

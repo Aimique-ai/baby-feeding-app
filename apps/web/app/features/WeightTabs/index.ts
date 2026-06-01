@@ -1,0 +1,1 @@
+export { WeightTabs } from "./WeightTabs";

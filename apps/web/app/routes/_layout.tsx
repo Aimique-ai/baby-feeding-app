@@ -1,10 +1,10 @@
 import { Outlet } from "react-router";
 import { Toaster } from "sonner";
-import { SideNav } from "@/components/SideNav";
-import { AppHeader } from "@/components/AppHeader";
-import { FeedingSheetProvider } from "@/components/feeding-sheet/FeedingSheetProvider";
-import { FeedingTimerProvider } from "@/components/feeding-sheet/FeedingTimerProvider";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { SideNav } from "~/components/SideNav";
+import { AppHeader } from "~/components/AppHeader";
+import { FeedingSheetProvider } from "~/features/FeedingSheetProvider";
+import { FeedingTimerProvider } from "~/features/FeedingTimerProvider";
+import { SidebarInset, SidebarProvider } from "~/components/ui/sidebar";
 import { useActiveBabyId } from "~/lib/baby/useActiveBaby";
 import { getBrowserTz } from "~/lib/time/browserTz";
 
