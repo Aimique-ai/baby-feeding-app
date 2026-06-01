@@ -1,6 +1,15 @@
-// Shared ESLint flat-config base. Apps/packages layer their own overrides on top.
-export default [
+import js from "@eslint/js";
+import globals from "globals";
+import tseslint from "typescript-eslint";
+import { defineConfig, globalIgnores } from "eslint/config";
+
+export default defineConfig([
+  globalIgnores(["dist"]),
   {
-    ignores: ["**/dist/**", "**/build/**", "**/node_modules/**"],
+    files: ["**/*.{ts,tsx}"],
+    extends: [js.configs.recommended, tseslint.configs.recommended],
+    languageOptions: {
+      globals: globals.browser,
+    },
   },
-];
+]);

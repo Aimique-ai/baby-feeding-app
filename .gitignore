@@ -51,3 +51,7 @@ docs/db-dump/
 
 # Claude Code scheduler lock (machine-local)
 .claude/scheduled_tasks.lock
+
+# turborepo
+.turbo
+**/.turbo

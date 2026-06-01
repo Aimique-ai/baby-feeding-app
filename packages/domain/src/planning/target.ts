@@ -1,6 +1,5 @@
 import type {
   Baby,
-  EnergyTarget,
   FeedingTarget,
   FormulaDensity,
   NeonatalTarget,

@@ -26,25 +26,22 @@ export function HistoryList({ tz }: { tz: string }) {
     enabled: babyId != null,
   });
 
+  const { hasNextPage, isFetchingNextPage, fetchNextPage } = q;
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (!sentinelRef.current) return;
     const el = sentinelRef.current;
     const obs = new IntersectionObserver(
       (entries) => {
-        if (
-          entries[0].isIntersecting &&
-          q.hasNextPage &&
-          !q.isFetchingNextPage
-        ) {
-          q.fetchNextPage();
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
         }
       },
       { rootMargin: "200px" },
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, [q.hasNextPage, q.isFetchingNextPage, q.fetchNextPage]);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const items = q.data?.pages.flatMap((p) => p.items) ?? [];
 
