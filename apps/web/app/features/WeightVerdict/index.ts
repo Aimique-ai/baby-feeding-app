@@ -1,0 +1,1 @@
+export { WeightVerdict } from "./WeightVerdict";

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { weightResponseSchema, type Weight } from "@leon/schemas/weight";
+import { weightsAnalyticsResponseSchema } from "@leon/schemas/analytics";
 import type { WeightsAnalytics } from "@leon/domain/who/types";
 import { http } from "~/lib/http/client";
 
@@ -23,6 +24,6 @@ export async function deleteWeight(id: string): Promise<void> {
 }
 
 export async function getWeightsAnalytics(): Promise<WeightsAnalytics> {
-  const res = await http.get<WeightsAnalytics>("/api/weights/analytics");
-  return res.data;
+  const res = await http.get("/api/weights/analytics");
+  return weightsAnalyticsResponseSchema.parse(res.data) as WeightsAnalytics;
 }

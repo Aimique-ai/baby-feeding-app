@@ -14,7 +14,8 @@
     "./time": "./src/time/index.ts",
     "./feeding": "./src/feeding/durationChips.ts",
     "./who": "./src/who/index.ts",
-    "./who/types": "./src/who/analyticsTypes.ts"
+    "./who/types": "./src/who/analyticsTypes.ts",
+    "./who/*": "./src/who/*.ts"
   },
   "dependencies": {
     "@leon/schemas": "workspace:*",

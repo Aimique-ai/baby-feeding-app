@@ -48,7 +48,9 @@ import {
   type WeightFormValues,
 } from "~/lib/forms/weightForm";
 
-type Mode = { kind: "create" } | { kind: "edit"; weight: Weight };
+type Mode =
+  | { kind: "create"; prefillDateISO?: string }
+  | { kind: "edit"; weight: Weight };
 
 type Props = {
   open: boolean;
@@ -76,7 +78,8 @@ export function WeightSheet({ open, onOpenChange, mode, tz, babyId }: Props) {
       };
     }
     return {
-      dateISO: localDateISO(new Date(), effectiveTz),
+      // The prefilled date stays editable: a parent may have weighed earlier/later.
+      dateISO: mode.prefillDateISO ?? localDateISO(new Date(), effectiveTz),
       grams: 3400,
     };
   })();

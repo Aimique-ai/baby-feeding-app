@@ -52,6 +52,7 @@ import {
   localDateISO,
   startOfLocalDay,
 } from "@leon/domain/planning/dayBoundary";
+import { nextTargetWeighIn } from "@leon/domain/who";
 import { WeighInBanner } from "~/features/WeighInBanner";
 import { getBrowserTz } from "~/lib/time/browserTz";
 import { listFeedingsByDate } from "~/lib/api/feedings";
@@ -324,6 +325,20 @@ export function DayView({
         )
       : 0;
 
+    // Targeted reminder: ~2–3 days before the nearest uncovered WHO interval
+    // boundary, name the metric that this weigh-in would unlock.
+    const nextWeighIn = nextTargetWeighIn({
+      birthDate: baby.birthDate,
+      tz: effectiveTz,
+      weighingDates: weights.map((w) => w.date),
+      now: dayStart,
+    });
+    const upcomingWindow = [0, 1, 2, 3].map((d) => addDaysISO(dateISO, d));
+    const targetedWeighIn =
+      nextWeighIn !== null && upcomingWindow.includes(nextWeighIn.dateISO)
+        ? { dateISO: nextWeighIn.dateISO, metric: nextWeighIn.metric }
+        : null;
+
     const showPreferredFeedCountBanner =
       mode === "live" &&
       storedPreferredFeedCount !== null &&
@@ -352,6 +367,7 @@ export function DayView({
       dol,
       currentWeightGrams: currentWeight,
       daysSinceLastWeight,
+      targetedWeighIn,
       medMap,
       formulaName: serializedFormula?.name ?? null,
       storedPreferredFeedCount,
@@ -408,6 +424,7 @@ export function DayView({
     dol,
     currentWeightGrams,
     daysSinceLastWeight,
+    targetedWeighIn,
     medMap,
     formulaName,
     storedPreferredFeedCount,
@@ -434,6 +451,7 @@ export function DayView({
         <WeighInBanner
           dateISO={dateISO}
           daysSinceLastWeight={daysSinceLastWeight}
+          targetedWeighIn={targetedWeighIn}
         />
       )}
       <header className="space-y-2">
