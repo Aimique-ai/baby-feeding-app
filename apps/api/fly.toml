@@ -1,0 +1,34 @@
+# workspace packages), but this config and the Dockerfile live in apps/api.
+# Deploy by passing the repo root as the working directory (= build context):
+#   fly deploy . -a leon-api --config apps/api/fly.toml
+# (run from the repo root)
+
+app = "leon-api"
+primary_region = "fra"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  # CORS allowlist for the browser frontend. Set to the Vercel web origin once
+  # known (replaces the "*" default in middleware/cors.ts), e.g.:
+  # WEB_ORIGIN = "https://leon-web.vercel.app"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    method = "GET"
+    path = "/api/health/live"
+    interval = "15s"
+    timeout = "2s"
+    grace_period = "10s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

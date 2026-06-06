@@ -1,0 +1,38 @@
+# Build context for apps/api/Dockerfile (context = repo root).
+# Keep it lean: the Dockerfile copies only what it needs, and node_modules /
+# build artifacts are regenerated inside the image.
+
+# Dependencies & build outputs (reinstalled / rebuilt in-image)
+**/node_modules
+**/dist
+**/build
+**/.turbo
+.turbo
+
+# Other apps not part of the API image
+apps/web
+apps/mobile
+
+# Native mobile artifacts (can be gigabytes)
+**/ios
+**/android
+**/.expo
+
+# VCS & tooling
+.git
+.github
+.vscode
+.agents
+.omc
+.claude
+
+# Local env & secrets — never bake into an image
+.env
+.env.*
+
+# Docs, design, misc
+docs
+.design
+README.md
+**/*.md
+**/.DS_Store

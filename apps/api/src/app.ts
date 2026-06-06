@@ -3,6 +3,7 @@ import { corsMw } from "./middleware/cors.js";
 import { tz } from "./middleware/tz.js";
 import { activeBaby } from "./middleware/activeBaby.js";
 import { onError } from "./middleware/errors.js";
+import { healthLiveRoute } from "./routes/health.live.js";
 import { healthRoute } from "./routes/health.js";
 import { healthDbRoute } from "./routes/health.db.js";
 import { babiesRoute } from "./routes/babies.js";
@@ -25,6 +26,7 @@ export function createApp() {
   app.use("*", corsMw);
   app.use("*", tz);
 
+  app.route("/api/health/live", healthLiveRoute);
   app.route("/api/health", healthRoute);
   app.route("/api/health/db", healthDbRoute);
   app.route("/api/babies", babiesRoute);
