@@ -1,15 +1,19 @@
-# Структура проекта
+# Project structure
 
-Проект — pnpm-монорепо (`apps/` + `packages/`): React Router v7 фронтенд в `apps/web`, Hono API в `apps/api`, shared-пакеты в `packages/` (`schemas`, `contracts`, `domain`).
+The project is a pnpm monorepo (`apps/` + `packages/`): a React Router v7 frontend in `apps/web`, a Hono API in `apps/api`, and shared packages in `packages/` (`schemas`, `contracts`, `domain`).
 
 # Git
 
-Никогда не коммить самостоятельно. Не выполняй `git commit`, `git push`, `git reset`, `git rebase` и подобные операции, изменяющие историю или индекс, без явного запроса пользователя. Вноси правки в файлы и оставляй их незакоммиченными — пользователь сам решает, что и когда коммитить.
+Never commit on your own. Do not run `git commit`, `git push`, `git reset`, `git rebase`, or similar operations that change history or the index without an explicit request from the user. Make edits to files and leave them uncommitted — the user decides what and when to commit.
 
-# Тесты
+# Tests
 
-Сейчас идут плотные эксперименты с алгоритмами планирования — тесты пока не пишем. Не создавай `*.test.ts` файлы и не предлагай добавить покрытие, пока пользователь явно не попросит.
+We're in the middle of heavy experimentation with planning algorithms — no tests for now. Do not create `*.test.ts` files and do not suggest adding coverage until the user explicitly asks.
 
-# Время и даты
+# Time and dates
 
-При работе с датами, временем, календарными днями, timezone, кормлениями, весом, историей или днём жизни используй project skill `leon-time-conventions`.
+When working with dates, time, calendar days, timezones, feedings, weight, history, or day-of-life, use the project skill `leon-time-conventions`.
+
+# Code comments
+
+Code comments must be in English only. This applies to inline comments, JSDoc, and file headers. (Documentation in `.md` files and chat messages may be in any language.)
