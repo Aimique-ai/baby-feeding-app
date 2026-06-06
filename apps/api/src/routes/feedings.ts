@@ -7,9 +7,26 @@ import { dbConnect } from "../db/mongo.js";
 import { FeedingModel } from "../models/feeding.js";
 import { MedicationModel } from "../models/medication.js";
 import { serializeFeeding } from "../lib/serializeFeeding.js";
+import { rescheduleReminderForBaby } from "../scheduler/reschedule.js";
+import type { Baby } from "@leon/schemas/baby";
 import type { AppEnv } from "../types.js";
 
 export const feedingsRoute = new Hono<AppEnv>();
+
+// Reschedule the baby's reminder after a feeding mutation. Failures here must
+// NOT fail the API response (the mutation already succeeded). The loud,
+// uniquely-prefixed error makes a silent miss visible — most likely cause is
+// Redis down or the WRONG RUNTIME (Vercel has no worker/Redis); see Risk 1.
+async function safeReschedule(baby: Baby, tz: string): Promise<void> {
+  try {
+    await rescheduleReminderForBaby(baby, tz);
+  } catch (err) {
+    console.error(
+      "[reminders] reschedule failed — Redis down or WRONG RUNTIME (Vercel?)",
+      err,
+    );
+  }
+}
 
 feedingsRoute.get("/", async (c) => {
   const dateISO = c.req.query("date");
@@ -41,6 +58,7 @@ feedingsRoute.post("/", zValidator("json", feedingSchema), async (c) => {
     }
   }
   const created = await FeedingModel.create(data);
+  await safeReschedule(baby, c.get("tz"));
   return c.json(serializeFeeding(created.toObject()), 201);
 });
 
@@ -73,6 +91,7 @@ feedingsRoute.patch(
       new: true,
     }).lean();
     if (!updated) return c.json({ ok: false, error: "feeding_not_found" }, 404);
+    await safeReschedule(baby, c.get("tz"));
     return c.json(serializeFeeding(updated));
   },
 );
@@ -87,5 +106,6 @@ feedingsRoute.delete("/:id", async (c) => {
   if (!doc || !doc.babyId.equals(new Types.ObjectId(baby._id)))
     return c.json({ ok: false, error: "feeding_not_found" }, 404);
   await FeedingModel.findByIdAndDelete(id);
+  await safeReschedule(baby, c.get("tz"));
   return c.json({ ok: true });
 });

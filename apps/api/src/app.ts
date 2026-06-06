@@ -14,10 +14,12 @@ import { feedingsRoute } from "./routes/feedings.js";
 import { feedingsAnalyticsRoute } from "./routes/feedings.analytics.js";
 import { feedingsDurationChipsRoute } from "./routes/feedings.duration-chips.js";
 import { feedingsLastBeforeRoute } from "./routes/feedings.last-before.js";
+import { feedingsPlanRoute } from "./routes/feedings.plan.js";
 import { historyRoute } from "./routes/history.js";
 import { medicationsRoute } from "./routes/medications.js";
 import { weightsRoute } from "./routes/weights.js";
 import { weightsAnalyticsRoute } from "./routes/weights.analytics.js";
+import { pushRoute } from "./routes/push.js";
 import type { AppEnv } from "./types.js";
 
 export function createApp() {
@@ -32,6 +34,7 @@ export function createApp() {
   app.route("/api/babies", babiesRoute);
   app.route("/api/formulas", formulasRoute);
   app.route("/api/skeleton/echo", skeletonEchoRoute);
+  app.route("/api/push", pushRoute);
 
   const babyScoped = new Hono<AppEnv>();
   babyScoped.use("*", activeBaby);
@@ -42,6 +45,7 @@ export function createApp() {
   );
   babyScoped.route("/feedings/analytics", feedingsAnalyticsRoute);
   babyScoped.route("/feedings/last-before", feedingsLastBeforeRoute);
+  babyScoped.route("/feedings/plan", feedingsPlanRoute);
   babyScoped.route("/feedings", feedingsRoute);
   babyScoped.route("/baby", babyRoute);
   babyScoped.route("/history", historyRoute);

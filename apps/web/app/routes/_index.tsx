@@ -1,11 +1,6 @@
 import { Navigate, useLoaderData } from "react-router";
-import {
-  startOfLocalDay,
-  localDateISO,
-} from "@leon/domain/planning/dayBoundary";
+import { localDateISO } from "@leon/domain/planning/dayBoundary";
 import { DayViewWithSheet } from "~/features/DayViewWithSheet";
-import { fetchLastFeedingBefore } from "~/lib/api/feedings";
-import type { Feeding } from "@leon/schemas/feeding";
 import { ensureActiveBabyId } from "~/lib/baby/ensureActive";
 import { getBrowserTz } from "~/lib/time/browserTz";
 
@@ -17,30 +12,19 @@ type LoaderData = {
   babyId: string | null;
   dateISO: string;
   tz: string;
-  prevMainCandidates: Feeding[];
 };
 
 export async function clientLoader(): Promise<LoaderData> {
   const tz = getBrowserTz();
   const dateISO = localDateISO(new Date(), tz);
   const babyId = await ensureActiveBabyId();
-  if (!babyId) return { babyId: null, dateISO, tz, prevMainCandidates: [] };
-  const dayStart = startOfLocalDay(dateISO, tz);
-  const prevMainCandidates = await fetchLastFeedingBefore(dayStart, babyId);
-  return { babyId, dateISO, tz, prevMainCandidates };
+  return { babyId, dateISO, tz };
 }
 
 export default function TodayPage() {
-  const { babyId, dateISO, tz, prevMainCandidates } =
-    useLoaderData<typeof clientLoader>();
+  const { babyId, dateISO, tz } = useLoaderData<typeof clientLoader>();
   if (!babyId) return <Navigate to="/babies" replace />;
   return (
-    <DayViewWithSheet
-      mode="live"
-      dateISO={dateISO}
-      tz={tz}
-      babyId={babyId}
-      prevMainCandidates={prevMainCandidates}
-    />
+    <DayViewWithSheet mode="live" dateISO={dateISO} tz={tz} babyId={babyId} />
   );
 }

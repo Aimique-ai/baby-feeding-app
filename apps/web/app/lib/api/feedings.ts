@@ -5,17 +5,20 @@ import {
   type FeedingsAnalyticsResponse,
   durationChipsSchema,
 } from "@leon/schemas/analytics";
+import {
+  feedingPlanResponseSchema,
+  deserializeFeedingPlan,
+  type DeserializedFeedingPlan,
+} from "@leon/schemas/plan";
 import { http } from "~/lib/http/client";
 
-export async function fetchLastFeedingBefore(
-  at: Date,
-  _babyId: string,
-  limit = 5,
-): Promise<Feeding[]> {
-  const res = await http.get("/api/feedings/last-before", {
-    params: { at: at.toISOString(), limit },
+export async function fetchFeedingPlan(
+  dateISO: string,
+): Promise<DeserializedFeedingPlan> {
+  const res = await http.get("/api/feedings/plan", {
+    params: { date: dateISO },
   });
-  return z.array(feedingResponseSchema).parse(res.data);
+  return deserializeFeedingPlan(feedingPlanResponseSchema.parse(res.data));
 }
 
 export async function listFeedingsByDate(dateISO: string): Promise<Feeding[]> {

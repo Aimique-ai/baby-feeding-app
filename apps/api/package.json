@@ -18,17 +18,21 @@
     "@hono/zod-validator": "^0.8.0",
     "@leon/domain": "workspace:*",
     "@leon/schemas": "workspace:*",
+    "bullmq": "^5.78.0",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
     "hono": "^4.6.14",
+    "ioredis": "^5.10.1",
     "mongoose": "^9.6.1",
     "tsx": "^4.21.0",
+    "web-push": "^3.6.7",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@leon/eslint-config": "workspace:*",
     "@leon/typescript-config": "workspace:*",
     "@types/node": "^20",
+    "@types/web-push": "^3.6.4",
     "eslint": "^9.0.0",
     "tsup": "^8.3.5",
     "typescript": "^6"

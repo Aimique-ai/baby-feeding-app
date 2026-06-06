@@ -10,7 +10,6 @@ type Props = {
   dateISO: string;
   tz: string;
   babyId: string;
-  prevMainCandidates: Feeding[];
 };
 
 export function DayViewWithSheet(props: Props) {

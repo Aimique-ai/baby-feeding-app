@@ -9,6 +9,7 @@ import {
   PALETTE_SWATCH,
   type Palette,
 } from "~/lib/palette";
+import { PushSetup } from "~/features/PushSetup";
 
 export function meta() {
   return [{ title: "Настройки — Leon" }];
@@ -67,6 +68,8 @@ function SettingsForm() {
           ))}
         </ToggleGroup>
       </section>
+
+      <PushSetup />
     </div>
   );
 }

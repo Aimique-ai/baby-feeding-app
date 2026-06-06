@@ -1,8 +1,5 @@
 import { Navigate, useLoaderData, useParams } from "react-router";
-import { startOfLocalDay } from "@leon/domain/planning/dayBoundary";
 import { DayViewWithSheet } from "~/features/DayViewWithSheet";
-import { fetchLastFeedingBefore } from "~/lib/api/feedings";
-import type { Feeding } from "@leon/schemas/feeding";
 import { ensureActiveBabyId } from "~/lib/baby/ensureActive";
 import { getBrowserTz } from "~/lib/time/browserTz";
 
@@ -13,7 +10,6 @@ export function meta({ params }: { params: { date?: string } }) {
 type LoaderData = {
   babyId: string | null;
   tz: string;
-  prevMainCandidates: Feeding[];
 };
 
 export async function clientLoader({
@@ -24,30 +20,20 @@ export async function clientLoader({
   const tz = getBrowserTz();
   const dateISO = params.date ?? "";
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateISO)) {
-    return { babyId: null, tz, prevMainCandidates: [] };
+    return { babyId: null, tz };
   }
   const babyId = await ensureActiveBabyId();
-  if (!babyId) return { babyId: null, tz, prevMainCandidates: [] };
-  const dayStart = startOfLocalDay(dateISO, tz);
-  const prevMainCandidates = await fetchLastFeedingBefore(dayStart, babyId);
-  return { babyId, tz, prevMainCandidates };
+  return { babyId, tz };
 }
 
 export default function HistoryDayPage() {
   const { date } = useParams<{ date: string }>();
-  const { babyId, tz, prevMainCandidates } =
-    useLoaderData<typeof clientLoader>();
+  const { babyId, tz } = useLoaderData<typeof clientLoader>();
   if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     return <Navigate to="/history" replace />;
   }
   if (!babyId) return <Navigate to="/babies" replace />;
   return (
-    <DayViewWithSheet
-      mode="historical"
-      dateISO={date}
-      tz={tz}
-      babyId={babyId}
-      prevMainCandidates={prevMainCandidates}
-    />
+    <DayViewWithSheet mode="historical" dateISO={date} tz={tz} babyId={babyId} />
   );
 }

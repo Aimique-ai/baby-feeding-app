@@ -18,6 +18,7 @@
     "./objectId": "./src/objectId.ts",
     "./analytics": "./src/analytics.ts",
     "./plan": "./src/plan.ts",
+    "./push": "./src/push.ts",
     "./headers": "./src/headers.ts"
   },
   "dependencies": {

@@ -22,6 +22,7 @@ import { fmtHm, fmtDateLong } from "~/lib/format/time";
 import {
   babyKey,
   feedingsKey,
+  feedingsPlanKey,
   weightsKey,
   medicationsKey,
 } from "~/lib/queryKeys";
@@ -32,11 +33,7 @@ import {
 } from "@leon/schemas/plan";
 import type { BabyWithFormula } from "@leon/schemas/baby";
 import type { Feeding } from "@leon/schemas/feeding";
-import {
-  computeFeedingGuidance,
-  DEFAULT_FORMULA_DENSITY,
-} from "@leon/domain/planning/target";
-import type { FormulaDensity, TargetFlag } from "@leon/domain/planning/types";
+import type { TargetFlag } from "@leon/domain/planning/types";
 
 // AAP volume sanity-check — the second number alongside FAO. Easy to hide.
 const SHOW_AAP = true;
@@ -45,7 +42,6 @@ const SHOW_AAP = true;
 // > 40 ml/kg → info (catches input errors). Zones 0–7d/8–14d live in the engine.
 const NEONATAL_MAX_AGE_DAYS_UI = 14;
 const SINGLE_FEED_ML_PER_KG_CAP = 40;
-import { runPipeline } from "@leon/domain/planning/pipeline";
 import {
   addDaysISO,
   dayOfLife,
@@ -55,7 +51,7 @@ import {
 import { nextTargetWeighIn } from "@leon/domain/who";
 import { WeighInBanner } from "~/features/WeighInBanner";
 import { getBrowserTz } from "~/lib/time/browserTz";
-import { listFeedingsByDate } from "~/lib/api/feedings";
+import { fetchFeedingPlan, listFeedingsByDate } from "~/lib/api/feedings";
 import { listWeights } from "~/lib/api/weights";
 import { listMedications } from "~/lib/api/medications";
 import { getActiveBaby, patchBaby } from "~/lib/api/babies";
@@ -67,7 +63,6 @@ type Props = {
   dateISO: string;
   tz: string;
   babyId: string;
-  prevMainCandidates: Feeding[];
   onAddFeeding?: (preset?: { time?: Date; volumeMl?: number }) => void;
   onEditFeeding?: (feedingId: string) => void;
 };
@@ -175,7 +170,6 @@ export function DayView({
   dateISO,
   tz,
   babyId,
-  prevMainCandidates,
   onAddFeeding,
   onEditFeeding,
 }: Props) {
@@ -185,6 +179,10 @@ export function DayView({
   const feedingsQ = useQuery({
     queryKey: feedingsKey(babyId, dateISO, effectiveTz),
     queryFn: () => listFeedingsByDate(dateISO),
+  });
+  const planQ = useQuery({
+    queryKey: feedingsPlanKey(babyId, dateISO, effectiveTz),
+    queryFn: () => fetchFeedingPlan(dateISO),
   });
   const babyQ = useQuery<BabyWithFormula>({
     queryKey: babyKey(babyId),
@@ -209,7 +207,13 @@ export function DayView({
   });
 
   const derived = useMemo(() => {
-    if (!feedingsQ.data || !babyQ.data || !weightsQ.data || !medicationsQ.data)
+    if (
+      !feedingsQ.data ||
+      !babyQ.data ||
+      !weightsQ.data ||
+      !medicationsQ.data ||
+      !planQ.data
+    )
       return null;
     const facts = feedingsQ.data.map(deserializeFeeding);
     const rawFeedingsById = new Map<string, Feeding>(
@@ -221,46 +225,11 @@ export function DayView({
     const baby = deserializeBaby(babyQ.data);
     const serializedFormula = babyQ.data.formula;
     const weights = weightsQ.data.map(deserializeWeight);
-    const formulaDensity: FormulaDensity = serializedFormula
-      ? {
-          kcalPer100ml: serializedFormula.kcalPer100mlReady,
-          proteinGPer100kcal: serializedFormula.proteinGPer100kcal,
-        }
-      : DEFAULT_FORMULA_DENSITY;
     const storedPreferredFeedCount = babyQ.data.preferredFeedCount ?? null;
-    const guidance = computeFeedingGuidance(
-      dateISO,
-      baby,
-      weights,
-      effectiveTz,
-      formulaDensity,
-      storedPreferredFeedCount,
-    );
+    const plan = planQ.data;
+    const guidance = plan.guidance;
+    const consumed = plan.consumed;
     const dayStart = startOfLocalDay(dateISO, effectiveTz);
-    const prevMainCandidates_d = prevMainCandidates.map(deserializeFeeding);
-
-    const result =
-      guidance.mode === "energy"
-        ? runPipeline({
-            mode: "energy",
-            facts,
-            target: guidance.dailyMl,
-            dateISO,
-            tz: effectiveTz,
-            range: guidance.feedCountRange,
-            birthDate: baby.birthDate,
-            prevMainCandidates: prevMainCandidates_d,
-          })
-        : runPipeline({
-            mode: "neonatal",
-            facts,
-            perFeedRange: guidance.perFeedMlRange,
-            dateISO,
-            tz: effectiveTz,
-            range: guidance.feedCountRange,
-            birthDate: baby.birthDate,
-            prevMainCandidates: prevMainCandidates_d,
-          });
 
     const factsView: TimelineItem[] = facts.map((f) => {
       const raw = rawFeedingsById.get(f._id);
@@ -282,7 +251,7 @@ export function DayView({
     // history shows facts only.
     const planView: TimelineItem[] =
       mode === "live"
-        ? result.plan.slots.map((s, i) => ({
+        ? plan.slots.map((s, i) => ({
             kind: "plan",
             id: `plan-${i}`,
             time: s.time,
@@ -295,12 +264,12 @@ export function DayView({
       (a, b) => a.time.getTime() - b.time.getTime(),
     );
 
-    if (mode === "live" && result.plan.tomorrowSlot) {
+    if (mode === "live" && plan.tomorrowSlot) {
       timeline.push({
         kind: "plan",
         id: "plan-tomorrow",
-        time: result.plan.tomorrowSlot.time,
-        volumeMl: result.plan.tomorrowSlot.volumeMl,
+        time: plan.tomorrowSlot.time,
+        volumeMl: plan.tomorrowSlot.volumeMl,
         volumeRange: neonatalRange,
         isTomorrow: true,
       });
@@ -362,7 +331,7 @@ export function DayView({
         : null;
 
     const shared = {
-      consumed: result.consumed,
+      consumed,
       timeline,
       dol,
       currentWeightGrams: currentWeight,
@@ -388,10 +357,10 @@ export function DayView({
     const target = guidance.dailyMl;
     const progressPct = Math.min(
       100,
-      Math.round((result.consumed / Math.max(1, target)) * 100),
+      Math.round((consumed / Math.max(1, target)) * 100),
     );
     const historicalStatus = historicalTargetStatus(
-      result.consumed,
+      consumed,
       guidance.dailyMlRange,
     );
     return {
@@ -407,10 +376,10 @@ export function DayView({
     babyQ.data,
     weightsQ.data,
     medicationsQ.data,
+    planQ.data,
     dateISO,
     effectiveTz,
     mode,
-    prevMainCandidates,
   ]);
 
   if (!derived) {
