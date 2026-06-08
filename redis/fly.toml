@@ -1,0 +1,16 @@
+# Standalone Redis for the BullMQ reminder queue. Deploy with `fly deploy` from
+# this dir. No volume: queue state is recomputable from Mongo (see reschedule.ts).
+#
+# Internal-only, NO [[services]]: Redis is reached over 6PN directly on the
+# machine at redis://leon-redis.internal:6379, bypassing fly-proxy (which would
+# reset a raw TCP/Redis stream). No public IP — never exposed to the internet.
+
+app = "leon-redis"
+primary_region = "fra"
+
+[build]
+  image = "redis:7-alpine"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

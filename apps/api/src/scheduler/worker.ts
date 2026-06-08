@@ -15,8 +15,10 @@ const MS_PER_MIN = 60_000;
 // `tz` carried in the payload (Baby has no tz, and there's no request context
 // here). Skips loudly-but-harmlessly if the baby was fed / plan moved (the slot
 // drifted past TOLERANCE_MIN) or the slot is already in the past ("stale").
-export async function processReminder(job: Job<ReminderPayload>): Promise<void> {
-  const { babyId, tz, targetSlotISO } = job.data;
+export async function processReminder(
+  job: Job<ReminderPayload>,
+): Promise<void> {
+  const { babyId, tz, targetSlotISO, test } = job.data;
   const now = new Date();
 
   await dbConnect();
@@ -28,6 +30,19 @@ export async function processReminder(job: Job<ReminderPayload>): Promise<void> 
     return;
   }
   const baby = serializeBaby(doc);
+
+  if (test) {
+    await sendPushToBaby(babyId, {
+      title: "Test",
+      body: "Message",
+      babyId,
+      url: `/?baby=${babyId}`,
+    });
+    console.log(
+      `[reminders] sent (test) ${JSON.stringify({ jobId: job.id, babyId })}`,
+    );
+    return;
+  }
 
   const dateISO = localDateISO(now, tz);
   const { result } = await buildFeedingPlan(baby, dateISO, tz);
@@ -66,7 +81,5 @@ export async function processReminder(job: Job<ReminderPayload>): Promise<void> 
     babyId,
     url: `/?baby=${babyId}`,
   });
-  console.log(
-    `[reminders] sent ${JSON.stringify({ jobId: job.id, babyId })}`,
-  );
+  console.log(`[reminders] sent ${JSON.stringify({ jobId: job.id, babyId })}`);
 }

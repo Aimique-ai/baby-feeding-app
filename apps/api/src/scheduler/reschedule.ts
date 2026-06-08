@@ -11,6 +11,9 @@ export type ReminderPayload = {
   babyId: string;
   tz: string;
   targetSlotISO: string;
+  // Set by the debug enqueue endpoint to bypass fire-time plan re-validation,
+  // so the job always delivers — used to smoke-test the queue→worker→push path.
+  test?: boolean;
 };
 
 export type NextReminder = { fireAt: Date; targetSlot: Date };
