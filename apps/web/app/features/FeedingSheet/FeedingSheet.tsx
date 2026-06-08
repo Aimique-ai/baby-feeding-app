@@ -216,10 +216,7 @@ export function FeedingSheet({
       toast.error("Не удалось сохранить");
     },
     onSuccess: () => {
-      qc.invalidateQueries({
-        queryKey: feedingsKey(babyId, dateISO, effectiveTz),
-      });
-      qc.invalidateQueries({ queryKey: feedingsDurationChipsKey(babyId) });
+      qc.invalidateQueries({ queryKey: ["feedings"] });
       toast.success("Сохранено");
       onOpenChange(false);
     },
@@ -231,10 +228,7 @@ export function FeedingSheet({
       return patchFeeding(mode.feeding._id, body);
     },
     onSuccess: () => {
-      qc.invalidateQueries({
-        queryKey: feedingsKey(babyId, dateISO, effectiveTz),
-      });
-      qc.invalidateQueries({ queryKey: feedingsDurationChipsKey(babyId) });
+      qc.invalidateQueries({ queryKey: ["feedings"] });
       toast.success("Сохранено");
       onOpenChange(false);
     },
@@ -247,10 +241,7 @@ export function FeedingSheet({
       await deleteFeeding(mode.feeding._id);
     },
     onSuccess: () => {
-      qc.invalidateQueries({
-        queryKey: feedingsKey(babyId, dateISO, effectiveTz),
-      });
-      qc.invalidateQueries({ queryKey: feedingsDurationChipsKey(babyId) });
+      qc.invalidateQueries({ queryKey: ["feedings"] });
       toast.success("Удалено");
       setConfirmDelete(false);
       onOpenChange(false);
