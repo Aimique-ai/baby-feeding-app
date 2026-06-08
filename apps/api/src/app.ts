@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { serveStatic } from "@hono/node-server/serve-static";
 import { corsMw } from "./middleware/cors.js";
 import { tz } from "./middleware/tz.js";
 import { activeBaby } from "./middleware/activeBaby.js";
@@ -53,6 +54,14 @@ export function createApp() {
   babyScoped.route("/weights/analytics", weightsAnalyticsRoute);
   babyScoped.route("/weights", weightsRoute);
   app.route("/api", babyScoped);
+
+  app.all("/api/*", (c) => c.json({ error: "Not Found" }, 404));
+
+  if (process.env.NODE_ENV === "production") {
+    const WEB_ROOT = process.env.WEB_ROOT ?? "./client";
+    app.use("*", serveStatic({ root: WEB_ROOT }));
+    app.get("*", serveStatic({ path: "index.html", root: WEB_ROOT }));
+  }
 
   app.onError(onError);
   return app;

@@ -1,4 +1,4 @@
-# Build context for apps/api/Dockerfile (context = repo root).
+# Build context for the root Dockerfile (context = repo root).
 # Keep it lean: the Dockerfile copies only what it needs, and node_modules /
 # build artifacts are regenerated inside the image.
 
@@ -9,8 +9,7 @@
 **/.turbo
 .turbo
 
-# Other apps not part of the API image
-apps/web
+# Other apps not in the server image (web is kept — built in-image)
 apps/mobile
 
 # Native mobile artifacts (can be gigabytes)
@@ -29,6 +28,8 @@ apps/mobile
 # Local env & secrets — never bake into an image
 .env
 .env.*
+
+fly.toml
 
 # Docs, design, misc
 docs

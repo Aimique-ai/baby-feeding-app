@@ -1,8 +1,7 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  // index.ts → Vercel (fetch handler); main.ts → Fly (standalone server).
-  entry: ["src/index.ts", "src/main.ts"],
+  entry: ["src/main.ts"],
   format: ["esm"],
   target: "node20",
   outDir: "dist",

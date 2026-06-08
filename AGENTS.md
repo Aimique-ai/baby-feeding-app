@@ -17,3 +17,5 @@ When working with dates, time, calendar days, timezones, feedings, weight, histo
 # Code comments
 
 Code comments must be in English only. This applies to inline comments, JSDoc, and file headers. (Documentation in `.md` files and chat messages may be in any language.)
+
+Do not generate comment slop. A comment that restates what the code plainly does is noise — delete it. Comment only the non-obvious: an ADR-style "why this and not the obvious alternative", a constraint or gotcha that isn't visible from the code, or a genuinely important caveat. Never narrate changes or history (e.g. "was Vercel, now Fly, so we moved this folder") — that belongs in git, not the source. When in doubt, leave it out.
