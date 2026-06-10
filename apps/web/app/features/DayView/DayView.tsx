@@ -1,24 +1,18 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "~/components/ui/collapsible";
+import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
-import { Progress } from "~/components/ui/progress";
+  ToggleGroup,
+  ToggleGroupItem,
+} from "~/components/ui/toggle-group";
 import { Muted } from "~/components/ui/typography";
 import { fmtMl, roundMl } from "~/lib/format/ml";
+import { fmtAge } from "~/lib/format/age";
 import { fmtHm, fmtDateLong } from "~/lib/format/time";
+import { FeedingSignalsSheet } from "~/features/FeedingSignalsSheet";
 import {
   babyKey,
   feedingsKey,
@@ -34,9 +28,6 @@ import {
 import type { BabyWithFormula } from "@leon/schemas/baby";
 import type { Feeding } from "@leon/schemas/feeding";
 import type { TargetFlag } from "@leon/domain/planning/types";
-
-// AAP volume sanity-check — the second number alongside FAO. Easy to hide.
-const SHOW_AAP = true;
 
 // Single-feed sanity check (§7.5): >14d ⇒ actual MAX volume of one feed
 // > 40 ml/kg → info (catches input errors). Zones 0–7d/8–14d live in the engine.
@@ -145,23 +136,16 @@ function historicalTargetStatus(
 ): { className: string; text: string } {
   const [low, high] = dailyMlRange;
 
-  if (consumed < low) {
+  if (consumed < low || consumed > high) {
     return {
-      className: "text-warning",
-      text: `Ниже дневного ориентира на ${fmtMl(low - consumed)}`,
-    };
-  }
-
-  if (consumed > high) {
-    return {
-      className: "text-warning",
-      text: `Выше дневного ориентира на ${fmtMl(consumed - high)}`,
+      className: "text-muted-foreground",
+      text: `Обычно у детей этого веса около ${fmtMl(low)}–${fmtMl(high)}`,
     };
   }
 
   return {
     className: "text-muted-foreground",
-    text: "В дневном ориентире",
+    text: "В рамках обычного для этого веса",
   };
 }
 
@@ -174,7 +158,7 @@ export function DayView({
   onEditFeeding,
 }: Props) {
   const effectiveTz = getBrowserTz(tz);
-  const [planOpen, setPlanOpen] = useState(false);
+  const [signalsOpen, setSignalsOpen] = useState(false);
 
   const feedingsQ = useQuery({
     queryKey: feedingsKey(babyId, dateISO, effectiveTz),
@@ -276,6 +260,7 @@ export function DayView({
     }
 
     const dol = dayOfLife(baby.birthDate, dayStart, effectiveTz);
+    const ageLabel = fmtAge(baby.birthDate, dayStart, effectiveTz);
     const eligibleWeights = weights.filter(
       (w) => w.date.getTime() <= dayStart.getTime(),
     );
@@ -334,6 +319,7 @@ export function DayView({
       consumed,
       timeline,
       dol,
+      ageLabel,
       currentWeightGrams: currentWeight,
       daysSinceLastWeight,
       targetedWeighIn,
@@ -355,10 +341,6 @@ export function DayView({
     }
 
     const target = guidance.dailyMl;
-    const progressPct = Math.min(
-      100,
-      Math.round((consumed / Math.max(1, target)) * 100),
-    );
     const historicalStatus = historicalTargetStatus(
       consumed,
       guidance.dailyMlRange,
@@ -367,7 +349,6 @@ export function DayView({
       kind: "energy" as const,
       guidance,
       target,
-      progressPct,
       historicalStatus,
       ...shared,
     };
@@ -390,7 +371,7 @@ export function DayView({
     guidance,
     consumed,
     timeline,
-    dol,
+    ageLabel,
     currentWeightGrams,
     daysSinceLastWeight,
     targetedWeighIn,
@@ -425,31 +406,19 @@ export function DayView({
       )}
       <header className="space-y-2">
         <DayNav dateISO={dateISO} tz={effectiveTz} />
-        <div className="text-center text-xs text-muted-foreground">
-          день {dol} · {currentWeightGrams} г ·{" "}
+        <div className="text-center text-xs text-muted-foreground tabular-nums">
+          {ageLabel} · {currentWeightGrams} г ·{" "}
           {formulaName ?? "смесь не выбрана"}
         </div>
 
         {derived.kind === "energy" ? (
           <>
-            <div className="flex items-baseline gap-3">
-              <div className="text-3xl font-semibold tabular-nums">
-                {fmtMl(consumed)}
-              </div>
+            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 tabular-nums">
+              <div className="text-3xl font-semibold">{fmtMl(consumed)}</div>
               <div className="text-sm text-muted-foreground">
-                из {fmtMl(derived.target)}
+                съедено · ориентир ≈{fmtMl(derived.target)}
               </div>
-              {SHOW_AAP && (
-                // AAP sanity-check — easy to hide.
-                <div className="text-xs text-muted-foreground tabular-nums">
-                  проверка по объёму (AAP): {fmtMl(derived.guidance.aapMl)}
-                </div>
-              )}
             </div>
-            <Progress
-              value={derived.progressPct}
-              aria-label={`Прогресс ${derived.progressPct}%`}
-            />
             {mode === "live" && next && (
               <Muted>
                 Следующее: {fmtHm(next.time, effectiveTz)} ·{" "}
@@ -463,20 +432,10 @@ export function DayView({
             )}
           </>
         ) : (
-          <>
-            <div className="flex items-baseline gap-3">
-              <div className="text-3xl font-semibold tabular-nums">
-                {fmtMl(consumed)}
-              </div>
-              <div className="text-sm text-muted-foreground tabular-nums">
-                съедено · {derived.guidance.feedCount} кормлений
-              </div>
-            </div>
-            <Muted>
-              В первые две недели нет суточного ориентира — ребёнок берёт
-              сколько нужно.
-            </Muted>
-          </>
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 tabular-nums">
+            <div className="text-3xl font-semibold">{fmtMl(consumed)}</div>
+            <div className="text-sm text-muted-foreground">съедено сегодня</div>
+          </div>
         )}
       </header>
 
@@ -505,115 +464,109 @@ export function DayView({
         </Card>
       )}
 
-      <Card className="gap-2 py-3 shadow-none">
-        <CardHeader className="px-3">
-          <CardTitle className="text-sm font-semibold">Рекомендация</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 px-3">
-          {derived.kind === "energy" ? (
-            <div className="flex items-baseline gap-3 tabular-nums">
-              <span className="text-lg font-semibold">
-                {derived.guidance.mlPerFeedRange[0]}–
-                {fmtMl(derived.guidance.mlPerFeedRange[1])}
-              </span>
-              <span className="text-sm text-muted-foreground">
-                за {guidance.feedCountRange[0]}–{guidance.feedCountRange[1]}{" "}
-                кормлений
-              </span>
-            </div>
-          ) : (
-            <div className="flex items-baseline gap-3 tabular-nums">
-              <span className="text-lg font-semibold">
-                {derived.perFeedRange[0]}–{fmtMl(derived.perFeedRange[1])}
-              </span>
-              <span className="text-sm text-muted-foreground">
-                за {derived.feedCountRange[0]}–{derived.feedCountRange[1]}{" "}
-                кормлений
-              </span>
-            </div>
-          )}
-          <Muted>
-            Ребёнок берёт сколько нужно — кормление можно завершать по сигналам
-            насыщения.
-          </Muted>
-          {derived.guidance.flags.map((f) => (
-            <p
-              key={f.code}
-              className={
-                f.severity === "warning"
-                  ? "text-xs text-warning"
-                  : "text-xs text-info"
-              }
+      {mode === "live" && (
+        <Card className="gap-2 border-primary/30 py-3 shadow-none">
+          <CardHeader className="px-4">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Сколько давать
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 px-4">
+            {(() => {
+              const perFeed =
+                derived.kind === "energy"
+                  ? derived.guidance.mlPerFeedRange
+                  : derived.perFeedRange;
+              const feeds =
+                derived.kind === "energy"
+                  ? guidance.feedCountRange
+                  : derived.feedCountRange;
+              return (
+                <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-1 tabular-nums">
+                  <span className="text-4xl font-bold leading-none tracking-tight">
+                    {perFeed[0]}–{perFeed[1]}
+                  </span>
+                  <span className="text-base font-medium text-muted-foreground">
+                    мл
+                  </span>
+                  <span className="px-1 text-lg text-muted-foreground">×</span>
+                  <span className="text-xl font-semibold leading-none">
+                    {feeds[0]}–{feeds[1]}
+                  </span>
+                  <span className="text-sm font-medium text-muted-foreground">
+                    раз/день
+                  </span>
+                </div>
+              );
+            })()}
+            <Muted>
+              {derived.kind === "neonatal"
+                ? "В первые две недели нет суточного ориентира — ребёнок берёт сколько нужно."
+                : "По требованию — кормление можно завершать по сигналам ребёнка."}
+            </Muted>
+            <button
+              type="button"
+              onClick={() => setSignalsOpen(true)}
+              className="group inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline hover:underline-offset-2"
             >
-              {flagText(f)}
-            </p>
-          ))}
-          {oversizedSingleFeed && (
-            <p className="text-xs text-info">
-              Одно кормление необычно велико для веса (
-              {fmtMl(oversizedSingleFeed.perFeedMl)}) — возможно, ошибка ввода,
-              проверьте.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+              Сигналы голода и сытости
+              <ArrowUpRight
+                className="size-4 transition-transform group-hover:translate-x-px group-hover:-translate-y-px"
+                aria-hidden
+              />
+            </button>
+            {derived.guidance.flags.map((f) => (
+              <p
+                key={f.code}
+                className={
+                  f.severity === "warning"
+                    ? "text-xs text-warning"
+                    : "text-xs text-info"
+                }
+              >
+                {flagText(f)}
+              </p>
+            ))}
+            {oversizedSingleFeed && (
+              <p className="text-xs text-info">
+                Одно кормление необычно велико для веса (
+                {fmtMl(oversizedSingleFeed.perFeedMl)}) — возможно, ошибка
+                ввода, проверьте.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
-      <Collapsible open={planOpen} onOpenChange={setPlanOpen}>
-        <div className="flex items-center justify-between gap-2">
-          {derived.kind === "energy" && derived.guidance.protein ? (
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1">
-                <ChevronDown
-                  className={
-                    "size-4 transition-transform " +
-                    (planOpen ? "rotate-180" : "")
-                  }
-                  aria-hidden
-                />
-                Белок
-              </Button>
-            </CollapsibleTrigger>
-          ) : (
-            <span />
-          )}
-          {mode === "live" && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="gap-1 tabular-nums"
-                  disabled={
-                    isDegenerateRange || updatePreferredFeedCount.isPending
-                  }
-                >
-                  План на старт дня: {guidance.feedCount}
-                  <ChevronDown className="size-4" aria-hidden />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {feedCountOptions.map((n) => (
-                  <DropdownMenuItem
-                    key={n}
-                    className="tabular-nums"
-                    onSelect={() => updatePreferredFeedCount.mutate(n)}
-                  >
-                    {n}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+      <FeedingSignalsSheet open={signalsOpen} onOpenChange={setSignalsOpen} />
+
+      {mode === "live" && !isDegenerateRange && (
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm text-muted-foreground">
+            План на старт дня
+          </span>
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            value={String(guidance.feedCount)}
+            onValueChange={(v) => {
+              if (v) updatePreferredFeedCount.mutate(Number(v));
+            }}
+            disabled={updatePreferredFeedCount.isPending}
+            aria-label="План на старт дня — число кормлений"
+          >
+            {feedCountOptions.map((n) => (
+              <ToggleGroupItem
+                key={n}
+                value={String(n)}
+                className="tabular-nums"
+              >
+                {n}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
         </div>
-        {derived.kind === "energy" && derived.guidance.protein && (
-          <CollapsibleContent className="mt-2">
-            <p className="text-xs text-muted-foreground tabular-nums">
-              {derived.guidance.protein.gPerKgDay.toFixed(1)} г/кг в сутки —
-              контрольный показатель, не цель по объёму.
-            </p>
-          </CollapsibleContent>
-        )}
-      </Collapsible>
+      )}
 
       <ul role="list" className="space-y-1">
         {timeline.map((it) => (
