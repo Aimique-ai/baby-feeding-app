@@ -1,11 +1,11 @@
 import * as React from "react";
-
-const STORAGE_KEY = "leon:feedingTimer";
-
-type StoredPayload = {
-  startedAt: string;
-  babyId: string;
-};
+import type { TimerEvent } from "@leon/schemas/timer";
+import {
+  getAllTimers,
+  startTimer as apiStartTimer,
+  stopTimer as apiStopTimer,
+  timerStreamUrl,
+} from "~/lib/api/timer";
 
 type StopResult = {
   startAt: Date;
@@ -16,102 +16,160 @@ export type FeedingTimer = {
   startedAt: Date | null;
   isRunning: boolean;
   start: () => void;
-  stop: () => StopResult | null;
+  stop: () => Promise<StopResult | null>;
 };
 
-function readStored(): StoredPayload | null {
-  if (typeof window === "undefined") return null;
+// All babies' running timers, keyed by babyId, fed by the server over one
+// space-wide SSE stream (a device on baby A still needs baby B's timer). Server
+// is the single source of truth; no localStorage fallback. external-store +
+// useSyncExternalStore pattern, like lib/baby/active.ts but network-backed.
+const timers = new Map<string, string>();
+const listeners = new Set<() => void>();
+
+let source: EventSource | null = null;
+let refCount = 0;
+let visibilityBound = false;
+
+function emit() {
+  for (const l of listeners) l();
+}
+
+function setTimerState(babyId: string, startedAt: string | null) {
+  const prev = timers.get(babyId) ?? null;
+  if (prev === startedAt) return;
+  if (startedAt === null) timers.delete(babyId);
+  else timers.set(babyId, startedAt);
+  emit();
+}
+
+async function hydrate() {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as StoredPayload;
-    if (
-      typeof parsed.startedAt !== "string" ||
-      typeof parsed.babyId !== "string"
-    ) {
-      return null;
+    const snapshot = await getAllTimers();
+    const next = new Set<string>();
+    let changed = false;
+    for (const { babyId, startedAt } of snapshot) {
+      next.add(babyId);
+      if (timers.get(babyId) !== startedAt) {
+        timers.set(babyId, startedAt);
+        changed = true;
+      }
     }
-    return parsed;
+    for (const babyId of timers.keys()) {
+      if (!next.has(babyId)) {
+        timers.delete(babyId);
+        changed = true;
+      }
+    }
+    if (changed) emit();
   } catch {
-    return null;
+    // Offline: keep current state; SSE reconnect / next resync reconciles.
   }
 }
 
-function writeStored(payload: StoredPayload | null) {
-  if (typeof window === "undefined") return;
-  if (payload === null) {
-    window.localStorage.removeItem(STORAGE_KEY);
+function handleEvent(event: TimerEvent) {
+  if (event.type === "started") {
+    setTimerState(event.babyId, event.startedAt ?? new Date().toISOString());
   } else {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    setTimerState(event.babyId, null);
   }
 }
 
-function subscribeStorage(cb: () => void): () => void {
-  if (typeof window === "undefined") return () => {};
-  const handler = (e: StorageEvent) => {
-    if (e.key === STORAGE_KEY || e.key === null) cb();
+function onVisibility() {
+  if (document.visibilityState === "visible") void hydrate();
+}
+
+function openStream() {
+  if (source || typeof window === "undefined") return;
+  source = new EventSource(timerStreamUrl());
+  source.addEventListener("timer", (e) => {
+    try {
+      handleEvent(JSON.parse((e as MessageEvent).data) as TimerEvent);
+    } catch {
+      // Ignore malformed payload; next resync corrects state.
+    }
+  });
+  // Resync on (re)connect to recover events missed while disconnected.
+  source.addEventListener("open", () => {
+    void hydrate();
+  });
+}
+
+function closeStream() {
+  source?.close();
+  source = null;
+}
+
+// Ref-counted: stream + visibility listener live only while a component subscribes.
+function subscribe(cb: () => void): () => void {
+  listeners.add(cb);
+  refCount += 1;
+  if (refCount === 1) {
+    openStream();
+    void hydrate();
+    if (!visibilityBound && typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", onVisibility);
+      visibilityBound = true;
+    }
+  }
+  return () => {
+    listeners.delete(cb);
+    refCount -= 1;
+    if (refCount === 0) {
+      closeStream();
+      if (visibilityBound && typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", onVisibility);
+        visibilityBound = false;
+      }
+    }
   };
-  window.addEventListener("storage", handler);
-  return () => window.removeEventListener("storage", handler);
 }
 
-function getStartedAtSnapshot(): string | null {
-  const stored = readStored();
-  return stored ? stored.startedAt : null;
-}
-
-function getServerSnapshot(): string | null {
-  return null;
+// Returns a primitive so useSyncExternalStore's Object.is check stays stable.
+function getStartedAtSnapshot(babyId: string | null): string | null {
+  if (babyId == null) return null;
+  return timers.get(babyId) ?? null;
 }
 
 export function useFeedingTimer(babyId: string | null): FeedingTimer {
-  // Local "bump" state to force re-read of storage after start()/stop().
-  const [, bump] = React.useReducer((x: number) => x + 1, 0);
-
-  // Subscribe to cross-tab storage events; re-renders this hook on change.
-  React.useSyncExternalStore(
-    subscribeStorage,
-    getStartedAtSnapshot,
-    getServerSnapshot,
+  const subscribeStore = React.useCallback(
+    (cb: () => void) => subscribe(cb),
+    [],
+  );
+  const getSnapshot = React.useCallback(
+    () => getStartedAtSnapshot(babyId),
+    [babyId],
+  );
+  const startedAtISO = React.useSyncExternalStore(
+    subscribeStore,
+    getSnapshot,
+    () => null,
   );
 
-  // Derive startedAt from storage, gated by babyId match.
-  // If there's a definitive baby mismatch, eagerly clear storage during render
-  // (idempotent — localStorage write is safe to repeat on re-renders).
-  const stored = readStored();
-  let startedAt: Date | null = null;
-  if (stored) {
-    if (babyId != null && stored.babyId !== babyId) {
-      writeStored(null);
-    } else {
-      // While babyId is still resolving (null) or matches: expose timer.
-      startedAt = new Date(stored.startedAt);
-    }
-  }
+  const startedAt = React.useMemo(
+    () => (startedAtISO ? new Date(startedAtISO) : null),
+    [startedAtISO],
+  );
 
   const start = React.useCallback(() => {
     if (!babyId) return;
-    const now = new Date();
-    writeStored({ startedAt: now.toISOString(), babyId });
-    bump();
+    // Optimistic; the SSE "started" event confirms with the server startedAt.
+    setTimerState(babyId, new Date().toISOString());
+    void apiStartTimer().then(
+      ({ startedAt }) => setTimerState(babyId, startedAt),
+      () => setTimerState(babyId, null),
+    );
   }, [babyId]);
 
-  const stop = React.useCallback((): StopResult | null => {
-    const current = readStored();
-    if (!current) return null;
-    const sa = new Date(current.startedAt);
-    const now = new Date();
-    // Defend against clock skew producing a future startAt.
-    const safeStart =
-      sa.getTime() > now.getTime() - 1000 ? new Date(now.getTime() - 1000) : sa;
-    const durationMin = Math.max(
-      1,
-      Math.round((now.getTime() - safeStart.getTime()) / 60000),
-    );
-    writeStored(null);
-    bump();
-    return { startAt: safeStart, durationMin };
-  }, []);
+  const stop = React.useCallback(async (): Promise<StopResult | null> => {
+    if (!babyId) return null;
+    const result = await apiStopTimer();
+    setTimerState(babyId, null);
+    if (!result) return null;
+    return {
+      startAt: new Date(result.startAt),
+      durationMin: result.durationMin,
+    };
+  }, [babyId]);
 
   return {
     startedAt,

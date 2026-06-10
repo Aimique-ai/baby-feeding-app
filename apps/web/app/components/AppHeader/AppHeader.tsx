@@ -21,8 +21,14 @@ export function AppHeader({ babyId }: Props) {
   const pathname = useLocation().pathname;
   const pageTitle = navItems.find((t) => t.match(pathname))?.label ?? "";
 
-  function handleStop() {
-    const result = stop();
+  async function handleStop() {
+    let result: Awaited<ReturnType<typeof stop>>;
+    try {
+      result = await stop();
+    } catch {
+      toast.error("Не удалось остановить таймер — проверьте соединение");
+      return;
+    }
     if (!result) return;
     const { startAt, durationMin } = result;
     if (durationMin > 180) {

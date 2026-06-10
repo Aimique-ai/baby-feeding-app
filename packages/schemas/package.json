@@ -19,7 +19,8 @@
     "./analytics": "./src/analytics.ts",
     "./plan": "./src/plan.ts",
     "./push": "./src/push.ts",
-    "./headers": "./src/headers.ts"
+    "./headers": "./src/headers.ts",
+    "./timer": "./src/timer.ts"
   },
   "dependencies": {
     "zod": "^4.4.3"

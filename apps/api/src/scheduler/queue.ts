@@ -52,14 +52,16 @@ export async function pingReminderRedis(): Promise<void> {
   cached.pinged = true;
   if (!REDIS_URL) {
     console.warn(
-      "[reminders] REDIS_URL not set — reminder scheduling DISABLED",
+      "[reminders] REDIS_URL not set — reminder scheduling AND feeding timers DISABLED",
     );
     return;
   }
   const connection = getReminderConnection();
   try {
     await connection!.ping();
-    console.log("[reminders] Redis reachable — scheduling enabled");
+    console.log(
+      "[reminders] Redis reachable — scheduling and feeding timers enabled",
+    );
   } catch (err) {
     console.error(
       "[reminders] Redis unreachable at boot — scheduling DISABLED",
