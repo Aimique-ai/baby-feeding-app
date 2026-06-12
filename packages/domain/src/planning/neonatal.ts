@@ -6,8 +6,6 @@
  * schedule is driven by frequency, not by deficit (target − consumed). The baby
  * takes as much as needed.
  */
-export const NEONATAL_PER_FEED_ML_RANGE: [number, number] = [30, 60];
-
 export function neonatalPerFeedRange(): [number, number] {
-  return NEONATAL_PER_FEED_ML_RANGE;
+  return [30, 60];
 }

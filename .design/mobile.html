@@ -1,0 +1,5133 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Сегодня · Oasis</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --sage: #8fb36a;
+        --sage-deep: #6e9a4c;
+        --sage-soft: #a9c98a;
+        --sage-ink: #41612a;
+        --leaf: #3f5e2b;
+
+        --bg-top: #fbfcf8;
+        --bg-mid: #eef3e6;
+        --bg-bot: #e4edd7;
+
+        --ink: #2c3326;
+        --ink-2: #6b7560;
+        --ink-3: #a3ac97;
+        --track: #e2e9d6;
+        --card: #ffffff;
+        --line: #e3ead7;
+
+        --pink: #e8b7cf;
+        --pink-ink: #9c5277;
+
+        --sh-card: 0 10px 26px -16px rgba(40, 50, 25, 0.3);
+        --sh-soft: 0 6px 16px -12px rgba(40, 50, 25, 0.28);
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        font-family: "Outfit", system-ui, sans-serif;
+        background: #cfe0bd;
+        color: var(--ink);
+        min-height: 100%;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 50px;
+        flex-wrap: wrap;
+        padding: 48px 24px 80px;
+        -webkit-font-smoothing: antialiased;
+      }
+      .phone-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+      }
+      .phone-label {
+        font-weight: 600;
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #5f7a45;
+      }
+
+      .phone {
+        position: relative;
+        width: 390px;
+        height: 844px;
+        border-radius: 54px;
+        overflow: hidden;
+        box-shadow:
+          0 0 0 11px #14140f,
+          0 0 0 13px #25271c,
+          0 40px 80px -28px rgba(40, 50, 25, 0.5),
+          0 8px 22px rgba(40, 50, 25, 0.26);
+      }
+      .phone::after {
+        content: "";
+        position: absolute;
+        top: 14px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 118px;
+        height: 32px;
+        background: #101109;
+        border-radius: 20px;
+        z-index: 60;
+      }
+      .screen {
+        position: absolute;
+        inset: 0;
+        border-radius: 54px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-width: none;
+        background: linear-gradient(
+          170deg,
+          var(--bg-top) 0%,
+          var(--bg-mid) 50%,
+          var(--bg-bot) 100%
+        );
+      }
+      .screen::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* status bar */
+      .statusbar {
+        height: 54px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        padding: 0 30px 6px;
+        font-weight: 600;
+        font-size: 15px;
+        color: var(--ink);
+      }
+      .statusbar .ico {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+
+      /* ===== header (baby name big, no brand) ===== */
+      .head {
+        padding: 10px 24px 0;
+      }
+      .head .row1 {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .head .nm {
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+      .head .nm .av {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: linear-gradient(140deg, var(--sage-soft), var(--sage-deep));
+        color: #fff;
+        font-weight: 700;
+        font-size: 17px;
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+      }
+      .head .nm .chev {
+        font-size: 14px;
+        color: var(--ink-3);
+        font-weight: 600;
+      }
+      .head .sub {
+        font-size: 12.5px;
+        font-weight: 500;
+        color: var(--ink-2);
+        margin-top: 12px;
+        text-align: center;
+      }
+      .head .sub b {
+        color: var(--ink);
+        font-weight: 700;
+      }
+
+      /* date control top-right */
+      .datebox {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--card);
+        border-radius: 30px;
+        padding: 6px 8px;
+        box-shadow: var(--sh-soft);
+      }
+      .datebox .nav {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: var(--bg-mid);
+        display: grid;
+        place-items: center;
+        color: var(--ink-2);
+        cursor: pointer;
+        transition: 0.15s;
+      }
+      .datebox .nav:hover {
+        background: var(--bg-bot);
+      }
+      .datebox .nav.off {
+        opacity: 0.32;
+        cursor: not-allowed;
+      }
+      .datebox .lbl {
+        text-align: center;
+        line-height: 1.12;
+        padding: 0 2px;
+      }
+      .datebox .lbl .a {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--ink-3);
+      }
+      .datebox .lbl .b {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--ink);
+      }
+
+      /* ===== semi-ring hero ===== */
+      .hero {
+        position: relative;
+        height: 392px;
+        margin-top: 8px;
+      }
+      .ring-svg {
+        position: absolute;
+        left: -34px;
+        top: 8px;
+      }
+      /* figures right column */
+      .fig {
+        position: absolute;
+        right: 26px;
+        top: 30px;
+        text-align: right;
+      }
+      .fig .today {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--ink-2);
+      }
+      .fig .ml {
+        font-weight: 800;
+        color: var(--sage-deep);
+        letter-spacing: -0.03em;
+        line-height: 0.95;
+        margin-top: 2px;
+      }
+      .fig .ml .n {
+        font-size: 54px;
+      }
+      .fig .ml small {
+        font-size: 22px;
+        font-weight: 700;
+      }
+      .fig .of {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--ink);
+        margin-top: 4px;
+      }
+      .fig .of b {
+        font-weight: 700;
+      }
+      /* center % over the ring */
+      .ring-pct {
+        position: absolute;
+        left: 18px;
+        top: 162px;
+        text-align: left;
+      }
+      .ring-pct .p {
+        font-size: 44px;
+        font-weight: 800;
+        color: var(--ink);
+        letter-spacing: -0.03em;
+        line-height: 1;
+      }
+      .ring-pct .k {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--ink-3);
+        margin-top: 1px;
+      }
+      /* secondary metrics */
+      .fig2 {
+        position: absolute;
+        right: 26px;
+        top: 178px;
+        text-align: right;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .fig2 .m .v {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--ink);
+        letter-spacing: -0.02em;
+      }
+      .fig2 .m .k {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--ink-3);
+        margin-top: 2px;
+      }
+      /* status pill — next feeding (outline, not filled) */
+      .statuspill {
+        position: absolute;
+        right: 26px;
+        top: 330px;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        background: transparent;
+        color: var(--sage-deep);
+        font-size: 13px;
+        font-weight: 600;
+        padding: 8px 15px;
+        border-radius: 30px;
+        border: 1.5px solid var(--sage);
+        white-space: nowrap;
+      }
+      .statuspill b {
+        font-weight: 800;
+        margin-left: 1px;
+        color: var(--ink);
+      }
+
+      /* ===== bottom group: stepper + CTA pinned above the dock ===== */
+      .bottom-group {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 120px;
+        z-index: 38;
+      }
+
+      /* ===== volume stepper ===== */
+      .stepper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 0 4px;
+      }
+      .stepper .opt {
+        flex: 0 0 auto;
+        width: 92px;
+        text-align: center;
+        font-weight: 600;
+        color: var(--ink-3);
+        font-size: 23px;
+        cursor: pointer;
+        position: relative;
+        transition: 0.15s;
+      }
+      .stepper .opt.mid {
+        font-size: 38px;
+        font-weight: 800;
+        color: var(--ink);
+      }
+      .stepper .opt:not(:last-child)::after {
+        content: "";
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 2px;
+        height: 28px;
+        background: var(--sage);
+        border-radius: 2px;
+      }
+      .stepper-unit {
+        text-align: center;
+        font-size: 12.5px;
+        font-weight: 500;
+        color: var(--ink-3);
+        margin: 0 24px 3px;
+      }
+      .stepper-hint {
+        text-align: center;
+        font-size: 11.5px;
+        font-weight: 500;
+        color: var(--ink-3);
+        margin: 0 24px 18px;
+      }
+      .stepper-hint b {
+        color: var(--sage-deep);
+        font-weight: 700;
+      }
+
+      /* ===== single CTA «Начать кормление» (План moved to its own tab) ===== */
+      .cta-wrap {
+        padding: 0 24px;
+        margin-top: 18px;
+      }
+      .cta-main {
+        width: 100%;
+        background: var(--sage);
+        border: none;
+        border-radius: 24px;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 11px;
+        font-weight: 700;
+        font-size: 18px;
+        color: #fff;
+        cursor: pointer;
+        box-shadow: 0 16px 30px -12px rgba(143, 179, 106, 0.9);
+        transition: 0.15s;
+        font-family: inherit;
+      }
+      .cta-main:hover {
+        transform: translateY(-2px);
+      }
+      .cta-main:active {
+        transform: scale(0.99);
+      }
+      .cta-main .play {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.25);
+        display: grid;
+        place-items: center;
+      }
+
+      /* spacer so floating bar doesn't cover content */
+      .bottom-space {
+        height: 118px;
+      }
+
+      /* ===== floating bottom bar (pill) + plus ===== */
+      .dock {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 40;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 0 22px 26px;
+        pointer-events: none;
+      }
+      .dock > * {
+        pointer-events: auto;
+      }
+      .navpill {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        border-radius: 34px;
+        padding: 9px 12px;
+        box-shadow:
+          0 18px 40px -16px rgba(40, 50, 25, 0.5),
+          0 4px 12px -6px rgba(40, 50, 25, 0.3);
+      }
+      .navpill .t {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        color: var(--ink-3);
+        cursor: pointer;
+        transition: 0.15s;
+      }
+      .navpill .t:hover {
+        color: var(--ink-2);
+      }
+      .navpill .t.on {
+        background: var(--ink);
+        color: #fff;
+      }
+      .fab {
+        width: 62px;
+        height: 62px;
+        border-radius: 50%;
+        background: var(--sage);
+        border: none;
+        color: #fff;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        box-shadow:
+          0 18px 36px -12px rgba(143, 179, 106, 0.95),
+          0 4px 12px -6px rgba(40, 50, 25, 0.3);
+        transition: 0.18s;
+        flex: 0 0 auto;
+      }
+      .fab:hover {
+        transform: translateY(-2px) rotate(90deg);
+      }
+      .fab:active {
+        transform: scale(0.95);
+      }
+
+      /* ================= PLAN SCREEN ================= */
+      .plan-screen {
+        background: linear-gradient(
+          170deg,
+          var(--bg-top) 0%,
+          var(--bg-mid) 52%,
+          var(--bg-bot) 100%
+        );
+      }
+      .plan-head {
+        padding: 8px 24px 0;
+      }
+      .plan-head .ph-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .plan-head h1 {
+        font-size: 24px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+      }
+      .plan-head .ph-sub {
+        font-size: 12.5px;
+        font-weight: 500;
+        color: var(--ink-3);
+        margin-top: 7px;
+      }
+
+      /* ranges — icon sits BESIDE the text (was stacked above) to cut card height */
+      .ranges {
+        display: flex;
+        gap: 12px;
+        padding: 14px 24px 0;
+      }
+      .rcard {
+        flex: 1;
+        background: var(--card);
+        border-radius: 20px;
+        padding: 13px 14px;
+        box-shadow: var(--sh-card);
+        display: flex;
+        align-items: center;
+        gap: 11px;
+      }
+      .rcard.green {
+        background: var(--sage);
+      }
+      .rcard .ic {
+        width: 36px;
+        height: 36px;
+        border-radius: 11px;
+        background: var(--bg-bot);
+        display: grid;
+        place-items: center;
+        color: var(--sage-deep);
+        flex: 0 0 auto;
+      }
+      .rcard.green .ic {
+        background: rgba(255, 255, 255, 0.22);
+        color: #fff;
+      }
+      .rcard .tx {
+        min-width: 0;
+      }
+      .rcard .k {
+        font-size: 11.5px;
+        font-weight: 500;
+        color: var(--ink-3);
+        line-height: 1.2;
+      }
+      .rcard.green .k {
+        color: #eaf3df;
+      }
+      .rcard .v {
+        font-size: 23px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin-top: 2px;
+        line-height: 1;
+      }
+      .rcard.green .v {
+        color: #fff;
+      }
+      .rcard .v small {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--ink-3);
+      }
+      .rcard.green .v small {
+        color: #eaf3df;
+      }
+
+      .plan-note {
+        margin: 10px 24px 0;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        background: var(--card);
+        border-radius: 18px;
+        padding: 11px 13px;
+        box-shadow: var(--sh-card);
+      }
+      .plan-note .e {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        background: var(--bg-bot);
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+        font-size: 16px;
+      }
+      .plan-note .t {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--ink-2);
+        line-height: 1.4;
+      }
+      .plan-note .t b {
+        color: var(--ink);
+        font-weight: 700;
+      }
+
+      /* count selector — tighter buttons */
+      .cntsel {
+        margin: 14px 24px 0;
+      }
+      .cntsel .lab {
+        font-size: 13.5px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+      }
+      .cntsel .lab .sub {
+        font-weight: 500;
+        color: var(--ink-3);
+        font-size: 12px;
+      }
+      .cntsel .opts {
+        display: flex;
+        gap: 8px;
+      }
+      .cntsel .opts button {
+        flex: 1;
+        background: var(--card);
+        border: 1.5px solid var(--line);
+        border-radius: 14px;
+        padding: 8px 0 7px;
+        font-weight: 800;
+        font-size: 18px;
+        color: var(--ink-2);
+        cursor: pointer;
+        transition: 0.15s;
+        font-family: inherit;
+        line-height: 1;
+      }
+      .cntsel .opts button .u {
+        display: block;
+        font-size: 9.5px;
+        font-weight: 500;
+        color: var(--ink-3);
+        margin-top: 3px;
+      }
+      .cntsel .opts button.on {
+        background: var(--sage);
+        border-color: var(--sage);
+        color: #fff;
+        box-shadow: 0 12px 22px -8px rgba(143, 179, 106, 0.75);
+      }
+      .cntsel .opts button.on .u {
+        color: #eaf3df;
+      }
+
+      /* section head */
+      .plan-sec {
+        padding: 18px 24px 0;
+        display: flex;
+        align-items: center;
+      }
+      .plan-sec h2 {
+        font-size: 19px;
+        font-weight: 800;
+        letter-spacing: -0.025em;
+      }
+      .plan-sec .cnt {
+        margin-left: auto;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--sage-deep);
+        background: var(--card);
+        padding: 6px 12px;
+        border-radius: 20px;
+        box-shadow: var(--sh-soft);
+      }
+
+      /* past-feedings accordion — done feedings are collapsed by default so the NEXT one leads */
+      .past-toggle {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        width: calc(100% - 48px);
+        margin: 14px 24px 0;
+        background: rgba(255, 255, 255, 0.55);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 11px 14px;
+        cursor: pointer;
+        font-family: inherit;
+        transition: 0.15s;
+        text-align: left;
+      }
+      .past-toggle:hover {
+        background: rgba(255, 255, 255, 0.8);
+      }
+      .past-toggle .chevd {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--bg-bot);
+        color: var(--sage-deep);
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+        transition: transform 0.2s;
+      }
+      .past-toggle.open .chevd {
+        transform: rotate(180deg);
+      }
+      .past-toggle .pt-tx {
+        flex: 1;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--ink);
+      }
+      .past-toggle .pt-tx span {
+        font-weight: 500;
+        color: var(--ink-3);
+      }
+      .past-toggle .pt-sum {
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--sage-deep);
+        white-space: nowrap;
+      }
+      .past-toggle .pt-sum small {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--ink-3);
+      }
+      /* collapsed by default; .open reveals the done rows */
+      .past-wrap {
+        display: none;
+      }
+      .past-wrap.open {
+        display: block;
+      }
+
+      /* timeline */
+      .tl {
+        padding: 16px 24px 0;
+        position: relative;
+      }
+      .tl::before {
+        content: "";
+        position: absolute;
+        left: 33px;
+        top: 26px;
+        bottom: 96px;
+        width: 2px;
+        background: repeating-linear-gradient(
+          180deg,
+          #cbd9b4 0 7px,
+          transparent 7px 14px
+        );
+      }
+      .row {
+        position: relative;
+        padding-left: 30px;
+        margin-bottom: 12px;
+      }
+      .row .node {
+        position: absolute;
+        left: 0;
+        top: 18px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #fff;
+        display: grid;
+        place-items: center;
+        box-shadow: 0 2px 5px rgba(40, 50, 25, 0.18);
+        z-index: 2;
+      }
+      .row .node .d {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--sage);
+      }
+      .row.sup .node .d {
+        background: #d98ab8;
+      }
+      .row.med .node {
+        background: #e89a4d;
+        box-shadow: 0 3px 8px -2px rgba(232, 154, 77, 0.6);
+      }
+      .row.med .node .d {
+        background: #fff;
+      }
+
+      .fcard {
+        background: var(--card);
+        border-radius: 20px;
+        padding: 14px 16px;
+        box-shadow: var(--sh-card);
+        cursor: pointer;
+        transition: 0.15s;
+      }
+      .fcard:hover {
+        transform: translateY(-1px);
+      }
+      .fc {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+      }
+      .fc .time {
+        font-size: 16px;
+        font-weight: 800;
+        min-width: 46px;
+        letter-spacing: -0.01em;
+      }
+      .fc .body {
+        flex: 1;
+        min-width: 0;
+      }
+      .fc .body .h {
+        font-size: 14px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .fc .body .s {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--ink-3);
+        margin-top: 2px;
+      }
+      .fc .vol {
+        font-size: 17px;
+        font-weight: 800;
+        color: var(--sage-deep);
+        letter-spacing: -0.01em;
+        white-space: nowrap;
+      }
+      .fc .vol small {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--ink-3);
+      }
+      .fc .vol.reg {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--ink-3);
+        font-style: italic;
+      }
+      .tag {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        padding: 3px 8px;
+        border-radius: 20px;
+        white-space: nowrap;
+      }
+      .tag.sup {
+        background: #fae9f1;
+        color: var(--pink-ink);
+      }
+      .tag.plan {
+        background: var(--bg-bot);
+        color: var(--sage-deep);
+      }
+      .medline {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #eff3e8;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .medline .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: #fbead9;
+        color: #c07a35;
+        font-weight: 700;
+        font-size: 11.5px;
+        padding: 3px 9px;
+        border-radius: 20px;
+      }
+      .medline .dose {
+        font-size: 11.5px;
+        font-weight: 500;
+        color: var(--ink-3);
+      }
+
+      .fcard.done {
+        background: rgba(255, 255, 255, 0.55);
+        border: 1px solid var(--line);
+        box-shadow: none;
+      }
+      .fcard.done .time,
+      .fcard.done .vol {
+        color: var(--ink-2);
+      }
+      .fcard.done .chk {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--bg-bot);
+        color: var(--sage-deep);
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+      }
+
+      /* NEXT — simplified: badge + time/volume in one row + button (no dubbing title) */
+      .fcard.next {
+        background: var(--ink);
+        color: #fff;
+        box-shadow: 0 16px 36px -16px rgba(28, 33, 22, 0.6);
+        position: relative;
+        padding: 18px 16px 16px;
+      }
+      .fcard.next .badge {
+        position: absolute;
+        top: -10px;
+        left: 16px;
+        font-size: 9.5px;
+        font-weight: 800;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: #fff;
+        background: var(--sage);
+        padding: 3px 11px;
+        border-radius: 20px;
+      }
+      .fcard.next .nx-top {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+      }
+      .fcard.next .nx-top .time {
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: #fff;
+      }
+      .fcard.next .nx-top .spacer {
+        flex: 1;
+      }
+      .fcard.next .nx-top .vol {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--sage-soft);
+        white-space: nowrap;
+        letter-spacing: -0.02em;
+      }
+      .fcard.next .nx-top .vol small {
+        font-size: 13px;
+        color: #aeb6a3;
+        font-weight: 600;
+      }
+      .fcard.next .log {
+        margin-top: 14px;
+        width: 100%;
+        background: var(--sage);
+        color: #fff;
+        border: none;
+        border-radius: 13px;
+        padding: 11px;
+        font-weight: 700;
+        font-size: 14px;
+        cursor: pointer;
+        font-family: inherit;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+      }
+
+      .now {
+        position: relative;
+        padding-left: 30px;
+        margin: 14px 0 40px;
+        height: 0;
+      }
+      .now .line {
+        position: absolute;
+        left: 0;
+        right: 104px;
+        top: 0;
+        height: 2px;
+        background: repeating-linear-gradient(
+          90deg,
+          var(--sage) 0 8px,
+          transparent 8px 14px
+        );
+      }
+      .now .bead {
+        position: absolute;
+        left: -5px;
+        top: -7px;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background: var(--sage);
+        box-shadow: 0 0 0 5px rgba(143, 179, 106, 0.18);
+      }
+      .now .tag2 {
+        position: absolute;
+        right: 0;
+        top: 1px;
+        transform: translateY(-50%);
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--sage-deep);
+        background: #fff;
+        padding: 5px 13px;
+        border-radius: 20px;
+        box-shadow: 0 3px 8px -3px rgba(40, 50, 25, 0.25);
+      }
+
+      .tmrw {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 13px 16px;
+        margin-left: 30px;
+      }
+      .tmrw .m {
+        width: 34px;
+        height: 34px;
+        border-radius: 11px;
+        background: #e6e1f4;
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+      }
+      .tmrw .tx {
+        flex: 1;
+      }
+      .tmrw .tx .a {
+        font-size: 11.5px;
+        font-weight: 500;
+        color: var(--ink-3);
+      }
+      .tmrw .tx .b {
+        font-size: 14px;
+        font-weight: 800;
+        margin-top: 1px;
+      }
+      .tmrw .v {
+        font-size: 15px;
+        font-weight: 800;
+        color: #7a68c8;
+        white-space: nowrap;
+      }
+      .tmrw .v small {
+        font-size: 11px;
+        color: var(--ink-3);
+        font-weight: 600;
+      }
+
+      /* ===== HISTORICAL DAY variants ===== */
+      /* muted neutral status pill (day finished, slightly under goal) */
+      .statuspill.past {
+        color: var(--ink-2);
+        border-color: var(--line-2, #cdd6bd);
+        border-color: #c9d4b6;
+      }
+      .statuspill.past svg {
+        color: var(--ink-3);
+      }
+      /* date tag for a past day (not "Сегодня") */
+      .datebox .lbl .a.past {
+        color: var(--ink-3);
+      }
+      /* ring fill colour when the day is neutral/under-goal — keep sage but a touch muted via opacity handled inline */
+
+      /* bottom group for past day: day summary + "back to today" button */
+      /* Secondary buttons — standalone classes so they work anywhere (kit + screens).
+   .cta-plan = white card button · .cta-back = dark button */
+      .cta-plan,
+      .cta-back {
+        height: 62px;
+        border-radius: 24px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        padding: 0 22px;
+        font-family: inherit;
+        font-weight: 700;
+        font-size: 17px;
+        cursor: pointer;
+        transition: 0.15s;
+      }
+      .cta-plan {
+        background: var(--card);
+        border: 1px solid var(--line);
+        color: var(--ink);
+        box-shadow: var(--sh-card);
+      }
+      .cta-plan:hover {
+        transform: translateY(-2px);
+      }
+      .cta-plan .ic {
+        display: grid;
+        place-items: center;
+        color: var(--sage-deep);
+      }
+      .cta-back {
+        background: var(--ink);
+        border: none;
+        color: #fff;
+        box-shadow: 0 14px 28px -14px rgba(28, 33, 22, 0.6);
+      }
+      .cta-back:hover {
+        transform: translateY(-2px);
+      }
+      .cta-back .arr {
+        display: grid;
+        place-items: center;
+        color: var(--sage-soft);
+      }
+
+      /* past day row: two equal-width buttons */
+      .past-cta {
+        padding: 0 24px;
+        display: flex;
+        gap: 12px;
+      }
+      .past-cta .cta-plan,
+      .past-cta .cta-back {
+        flex: 1;
+        padding: 0;
+      }
+
+      /* read-only ranges hint on past plan */
+      .ro-hint {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--ink-3);
+        background: var(--bg-bot);
+        padding: 4px 11px;
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      /* day-result banner on past plan (replaces "сейчас/next") */
+      .day-done {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--card);
+        border-radius: 20px;
+        padding: 14px 16px;
+        box-shadow: var(--sh-card);
+        margin: 18px 24px 0;
+        border-left: 5px solid var(--sage);
+      }
+      .day-done .ic {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        background: var(--bg-bot);
+        color: var(--sage-deep);
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+      }
+      .day-done .tx {
+        flex: 1;
+      }
+      .day-done .tx .h {
+        font-size: 14px;
+        font-weight: 800;
+      }
+      .day-done .tx .p {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--ink-3);
+        margin-top: 1px;
+      }
+      .day-done .val {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--sage-deep);
+        white-space: nowrap;
+      }
+      .day-done .val small {
+        font-size: 11px;
+        color: var(--ink-3);
+        font-weight: 600;
+      }
+
+      /* ============================================================
+   UI KIT — design-system showcase (reuses the real tokens/classes)
+   ============================================================ */
+      .kit {
+        width: 100%;
+        max-width: 920px;
+        margin: 0 auto 40px;
+        color: var(--ink);
+      }
+      .kit-hero {
+        background: linear-gradient(135deg, #f4f7ee, #e4edd7);
+        border-radius: 32px;
+        padding: 36px 36px 30px;
+        box-shadow: var(--sh-card);
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 28px;
+      }
+      .kit-hero::after {
+        content: "";
+        position: absolute;
+        right: -60px;
+        top: -70px;
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgba(143, 179, 106, 0.28),
+          transparent 70%
+        );
+      }
+      .kit-hero .eyebrow {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--sage-deep);
+      }
+      .kit-hero h1 {
+        font-size: 42px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1;
+        margin-top: 8px;
+      }
+      .kit-hero p {
+        font-size: 15px;
+        font-weight: 500;
+        color: var(--ink-2);
+        margin-top: 12px;
+        max-width: 560px;
+        line-height: 1.5;
+      }
+      .kit-hero .meta {
+        display: flex;
+        gap: 8px;
+        margin-top: 18px;
+        flex-wrap: wrap;
+      }
+      .kit-hero .meta span {
+        font-size: 12px;
+        font-weight: 700;
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid var(--line);
+        padding: 6px 12px;
+        border-radius: 20px;
+        color: var(--ink-2);
+      }
+
+      .kit-sec {
+        margin: 0 0 30px;
+      }
+      .kit-sec > h2 {
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+        margin: 0 0 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .kit-sec > h2::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--line);
+      }
+      .kit-panel {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 24px;
+        box-shadow: var(--sh-soft);
+      }
+      .kit-grid {
+        display: grid;
+        gap: 14px;
+      }
+      .kit-row {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .kit-cap {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+        margin: 0 0 9px;
+      }
+      .kit-block {
+        margin-bottom: 22px;
+      }
+      .kit-block:last-child {
+        margin-bottom: 0;
+      }
+
+      /* color swatches */
+      .swatches {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+        gap: 12px;
+      }
+      .sw {
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        background: var(--card);
+      }
+      .sw .chip {
+        height: 70px;
+      }
+      .sw .meta {
+        padding: 9px 11px;
+      }
+      .sw .nm {
+        font-size: 12.5px;
+        font-weight: 700;
+      }
+      .sw .hex {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--ink-3);
+        font-variant-numeric: tabular-nums;
+        text-transform: uppercase;
+        margin-top: 1px;
+      }
+
+      /* type scale */
+      .type-row {
+        display: flex;
+        align-items: baseline;
+        gap: 16px;
+        padding: 11px 0;
+        border-bottom: 1px dashed var(--line);
+      }
+      .type-row:last-child {
+        border-bottom: none;
+      }
+      .type-row .lbl {
+        flex: 0 0 130px;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--ink-3);
+        letter-spacing: 0.04em;
+      }
+      .type-row .spec {
+        margin-left: auto;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--ink-3);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .t-display {
+        font-size: 42px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1;
+      }
+      .t-h1 {
+        font-size: 29px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+      }
+      .t-h2 {
+        font-size: 19px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .t-num {
+        font-size: 34px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        color: var(--sage-deep);
+      }
+      .t-body {
+        font-size: 15px;
+        font-weight: 500;
+        color: var(--ink-2);
+      }
+      .t-label {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--ink-3);
+      }
+      .t-mono {
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* radius / shadow / spacing tokens */
+      .tok {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+      }
+      .tok .box {
+        width: 84px;
+        height: 60px;
+        background: var(--bg-mid);
+        border: 1px solid var(--line);
+      }
+      .tok .box.sh1 {
+        box-shadow: var(--sh-soft);
+        background: var(--card);
+        border: none;
+      }
+      .tok .box.sh2 {
+        box-shadow: var(--sh-card);
+        background: var(--card);
+        border: none;
+      }
+      .tok .t {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--ink-2);
+      }
+      .tok .v {
+        font-size: 10.5px;
+        font-weight: 600;
+        color: var(--ink-3);
+      }
+
+      /* mini timeline node legend for kit */
+      .kit-node {
+        position: relative;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #fff;
+        display: grid;
+        place-items: center;
+        box-shadow: 0 2px 5px rgba(40, 50, 25, 0.18);
+      }
+      .kit-node .d {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+      }
+
+      /* entrance */
+      .rev {
+        opacity: 0;
+        transform: translateY(14px);
+        animation: rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+      }
+      @keyframes rise {
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      /* ring fill is static at 77% (offset 108 on 471 arc); entrance handled by parent .rev fade */
+      .d1 {
+        animation-delay: 0.05s;
+      }
+      .d2 {
+        animation-delay: 0.12s;
+      }
+      .d3 {
+        animation-delay: 0.2s;
+      }
+      .d4 {
+        animation-delay: 0.28s;
+      }
+      .d5 {
+        animation-delay: 0.36s;
+      }
+      .d6 {
+        animation-delay: 0.44s;
+      }
+      .d7 {
+        animation-delay: 0.52s;
+      }
+      .d8 {
+        animation-delay: 0.6s;
+      }
+      .d9 {
+        animation-delay: 0.68s;
+      }
+
+      /* annotations */
+      .notecol {
+        max-width: 300px;
+      }
+      .notecol h4 {
+        font-weight: 800;
+        font-size: 16px;
+        color: #3a4a28;
+        margin: 18px 0 6px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .notecol h4 .n {
+        width: 22px;
+        height: 22px;
+        border-radius: 7px;
+        background: var(--sage);
+        color: #fff;
+        display: grid;
+        place-items: center;
+        font-size: 12px;
+      }
+      .notecol p {
+        font-size: 13px;
+        font-weight: 400;
+        line-height: 1.55;
+        margin-bottom: 4px;
+        color: #4f5b41;
+      }
+      .notecol .hl {
+        background: var(--sage);
+        color: #fff;
+        font-weight: 600;
+        padding: 0 5px;
+        border-radius: 5px;
+      }
+      .notecol ul {
+        margin: 6px 0;
+        padding-left: 18px;
+      }
+      .notecol li {
+        font-size: 13px;
+        color: #4f5b41;
+        margin-bottom: 3px;
+      }
+
+      /* ================================================================
+   FEEDING SESSION SCREEN — immersive "in-feeding" mode
+   Darker, calm treatment so the one active moment feels different.
+   Reuses sage tokens; adds a deep-leaf backdrop + glass cards.
+   ================================================================ */
+      .feed-screen {
+        background:
+          radial-gradient(
+            120% 80% at 50% -10%,
+            rgba(143, 179, 106, 0.2),
+            transparent 60%
+          ),
+          linear-gradient(168deg, #1c2417 0%, #232e1b 46%, #1a2114 100%);
+        color: #eaf1df;
+      }
+      /* soft drifting glow behind the dial */
+      .feed-screen .aura {
+        position: absolute;
+        left: 50%;
+        top: 300px;
+        width: 360px;
+        height: 360px;
+        transform: translateX(-50%);
+        background: radial-gradient(
+          circle,
+          rgba(143, 179, 106, 0.3),
+          transparent 68%
+        );
+        filter: blur(8px);
+        pointer-events: none;
+        animation: auraPulse 5.5s ease-in-out infinite;
+      }
+      @keyframes auraPulse {
+        0%,
+        100% {
+          opacity: 0.55;
+          transform: translateX(-50%) scale(1);
+        }
+        50% {
+          opacity: 0.9;
+          transform: translateX(-50%) scale(1.07);
+        }
+      }
+
+      .feed-screen .statusbar {
+        color: #eaf1df;
+      }
+      .feed-screen .statusbar svg rect {
+        fill: #eaf1df !important;
+        stroke: #eaf1df !important;
+      }
+
+      /* top bar: close arrow at the left, baby name centered (no live badge — the dial already says it's running) */
+      .feed-top {
+        position: relative;
+        z-index: 5;
+        display: flex;
+        align-items: center;
+        padding: 6px 22px 0;
+      }
+      .feed-top .close {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        display: grid;
+        place-items: center;
+        color: #eaf1df;
+        cursor: pointer;
+        transition: 0.15s;
+        text-decoration: none;
+        flex: 0 0 auto;
+      }
+      .feed-top .close:hover {
+        background: rgba(255, 255, 255, 0.16);
+      }
+      .feed-top .who {
+        position: absolute;
+        left: 0;
+        right: 0;
+        text-align: center;
+        line-height: 1.15;
+        pointer-events: none;
+      }
+      .feed-top .who .nm {
+        font-size: 15px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .feed-top .who .mt {
+        font-size: 11px;
+        font-weight: 500;
+        color: #9db082;
+        margin-top: 1px;
+      }
+
+      /* ===== GLOBAL feeding badge — the same pill-shaped badge as before, but full-width and
+   pinned at the very top of ANY screen (under the status bar, above the screen's header).
+   Same height/padding/rounding as the original chip — just stretched edge-to-edge so it
+   sits identically on every tab. While a session runs it shows on every screen except
+   the session itself; tap → back to the feeding screen. ===== */
+      .feedbar {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        background: var(--ink);
+        color: #eaf1df;
+        border-radius: 30px;
+        padding: 9px 14px 9px 11px;
+        margin: 12px 20px 0;
+        text-decoration: none;
+        cursor: pointer;
+        transition: 0.15s;
+        box-shadow: 0 10px 22px -12px rgba(28, 33, 22, 0.6);
+      }
+      .feedbar:hover {
+        transform: translateY(-1px);
+      }
+      .feedbar:active {
+        transform: scale(0.99);
+      }
+      .feedbar .ic {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: rgba(143, 179, 106, 0.24);
+        display: grid;
+        place-items: center;
+        font-size: 13px;
+        position: relative;
+        flex: 0 0 auto;
+      }
+      .feedbar .ic .d {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #a9e07a;
+        box-shadow: 0 0 0 0 rgba(169, 224, 122, 0.7);
+        animation: barDot 1.6s ease-out infinite;
+      }
+      @keyframes barDot {
+        0% {
+          box-shadow: 0 0 0 0 rgba(169, 224, 122, 0.6);
+        }
+        70% {
+          box-shadow: 0 0 0 6px rgba(169, 224, 122, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(169, 224, 122, 0);
+        }
+      }
+      .feedbar .lbl {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        color: #bfd79e;
+      }
+      .feedbar .tm {
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        font-variant-numeric: tabular-nums;
+        color: #f4f9ec;
+        margin-left: 1px;
+      }
+      .feedbar .vol {
+        font-size: 12px;
+        font-weight: 600;
+        color: #9db082;
+      }
+      .feedbar .spacer {
+        flex: 1;
+      }
+      .feedbar .chev {
+        display: grid;
+        place-items: center;
+        color: var(--sage-soft);
+      }
+      /* paused variant — amber, dot stops */
+      .feedbar.paused {
+        background: #3a3326;
+      }
+      .feedbar.paused .ic {
+        background: rgba(231, 201, 138, 0.22);
+      }
+      .feedbar.paused .ic .d {
+        background: #e7c98a;
+        animation: none;
+      }
+      .feedbar.paused .lbl {
+        color: #e7c98a;
+      }
+      .feedbar.paused .vol {
+        color: #c9b488;
+      }
+      .feedbar.paused .chev {
+        color: #e7c98a;
+      }
+
+      /* ===== mini "feeding in progress" bar — shown on Today when a session is minimised ===== */
+      .mini-feed {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--ink);
+        color: #eaf1df;
+        border-radius: 20px;
+        padding: 13px 14px 13px 16px;
+        margin: 0 24px 12px;
+        cursor: pointer;
+        text-decoration: none;
+        box-shadow: 0 16px 34px -16px rgba(28, 33, 22, 0.7);
+        position: relative;
+        overflow: hidden;
+        transition: 0.16s;
+      }
+      .mini-feed:hover {
+        transform: translateY(-2px);
+      }
+      .mini-feed:active {
+        transform: scale(0.99);
+      }
+      .mini-feed .pulse {
+        width: 38px;
+        height: 38px;
+        border-radius: 13px;
+        background: rgba(143, 179, 106, 0.22);
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+        font-size: 18px;
+        position: relative;
+      }
+      .mini-feed .pulse::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 13px;
+        border: 1.5px solid rgba(169, 224, 122, 0.55);
+        animation: miniPulse 1.8s ease-out infinite;
+      }
+      @keyframes miniPulse {
+        0% {
+          opacity: 0.7;
+          transform: scale(1);
+        }
+        100% {
+          opacity: 0;
+          transform: scale(1.28);
+        }
+      }
+      .mini-feed .mid {
+        flex: 1;
+        min-width: 0;
+      }
+      .mini-feed .mid .l1 {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: #a9e07a;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .mini-feed .mid .l1 .d {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #a9e07a;
+      }
+      .mini-feed .mid .l2 {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-top: 3px;
+      }
+      .mini-feed .mid .l2 .t {
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        font-variant-numeric: tabular-nums;
+        color: #f4f9ec;
+      }
+      .mini-feed .mid .l2 .v {
+        font-size: 13px;
+        font-weight: 700;
+        color: #9db082;
+      }
+      .mini-feed .go {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: var(--sage);
+        color: #1a2114;
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+      }
+
+      /* the timer dial — ring is DECORATIVE: a solid green circle for focus, not a progress bar
+   (feeding has no fixed length, so nothing "fills" and nothing spins) */
+      .dial {
+        position: relative;
+        z-index: 5;
+        width: 300px;
+        height: 300px;
+        margin: 26px auto 0;
+      }
+      .dial .ring-bg {
+        fill: none;
+        stroke: rgba(255, 255, 255, 0.1);
+        stroke-width: 14;
+      }
+      .dial .ring-deco {
+        fill: none;
+        stroke: var(--sage);
+        stroke-width: 14;
+        transition: opacity 0.2s;
+      }
+      .dial.paused .ring-deco {
+        opacity: 0.45;
+      }
+      .dial .center {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .dial .center .lbl {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #9db082;
+      }
+      .dial .center .time {
+        font-size: 62px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        margin-top: 6px;
+        color: #f4f9ec;
+      }
+      .dial .center .time .ms {
+        font-size: 26px;
+        font-weight: 700;
+        color: #9db082;
+      }
+
+      /* volume readout under the dial */
+      .feed-vol {
+        position: relative;
+        z-index: 5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 22px;
+        margin: 22px 22px 0;
+      }
+      .feed-vol .step {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        display: grid;
+        place-items: center;
+        color: #eaf1df;
+        cursor: pointer;
+        transition: 0.15s;
+        font-family: inherit;
+      }
+      .feed-vol .step:hover {
+        background: rgba(255, 255, 255, 0.16);
+      }
+      .feed-vol .step:active {
+        transform: scale(0.92);
+      }
+      .feed-vol .amount {
+        text-align: center;
+        min-width: 118px;
+      }
+      .feed-vol .amount .n {
+        font-size: 46px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1;
+        color: #f4f9ec;
+        font-variant-numeric: tabular-nums;
+      }
+      .feed-vol .amount .n small {
+        font-size: 19px;
+        font-weight: 700;
+        color: #9db082;
+      }
+      .feed-vol .amount .k {
+        font-size: 11.5px;
+        font-weight: 600;
+        color: #8ca071;
+        margin-top: 5px;
+      }
+      .feed-vol .amount .k b {
+        color: #bfd79e;
+        font-weight: 700;
+      }
+
+      /* med reminder chip (this feeding carries Вигантол) */
+      .feed-med {
+        position: relative;
+        z-index: 5;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        margin: 20px 22px 0;
+        background: rgba(232, 154, 77, 0.12);
+        border: 1px solid rgba(232, 154, 77, 0.3);
+        border-radius: 18px;
+        padding: 12px 14px;
+      }
+      .feed-med .e {
+        width: 34px;
+        height: 34px;
+        border-radius: 11px;
+        background: rgba(232, 154, 77, 0.18);
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+        font-size: 17px;
+      }
+      .feed-med .t {
+        flex: 1;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #ead7bd;
+        line-height: 1.4;
+      }
+      .feed-med .t b {
+        color: #f4c98a;
+      }
+      .feed-med .ck {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 1.5px solid rgba(232, 154, 77, 0.5);
+        cursor: pointer;
+        flex: 0 0 auto;
+        display: grid;
+        place-items: center;
+        color: transparent;
+        transition: 0.15s;
+      }
+      .feed-med .ck.on {
+        background: #e89a4d;
+        border-color: #e89a4d;
+        color: #1c2417;
+      }
+
+      /* bottom controls: pause + finish */
+      .feed-ctl {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 30px;
+        z-index: 6;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 0 22px;
+      }
+      .feed-ctl .pause {
+        width: 64px;
+        height: 64px;
+        flex: 0 0 auto;
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        display: grid;
+        place-items: center;
+        color: #eaf1df;
+        cursor: pointer;
+        transition: 0.15s;
+      }
+      .feed-ctl .pause:hover {
+        background: rgba(255, 255, 255, 0.18);
+      }
+      .feed-ctl .pause:active {
+        transform: scale(0.96);
+      }
+      .feed-ctl .finish {
+        flex: 1;
+        height: 64px;
+        border: none;
+        border-radius: 22px;
+        background: var(--sage);
+        color: #1a2114;
+        font-family: inherit;
+        font-weight: 800;
+        font-size: 17px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        box-shadow: 0 18px 36px -14px rgba(143, 179, 106, 0.9);
+        transition: 0.15s;
+      }
+      .feed-ctl .finish:hover {
+        transform: translateY(-2px);
+      }
+      .feed-ctl .finish:active {
+        transform: scale(0.99);
+      }
+      .feed-ctl .finish .ic {
+        display: grid;
+        place-items: center;
+      }
+
+      /* satiation footnote */
+      .feed-foot {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 108px;
+        z-index: 5;
+        text-align: center;
+        font-size: 11.5px;
+        font-weight: 500;
+        color: #7e926a;
+        padding: 0 40px;
+        line-height: 1.5;
+      }
+      .feed-foot b {
+        color: #bfd79e;
+        font-weight: 700;
+      }
+
+      @media (max-width: 900px) {
+        body {
+          gap: 30px;
+        }
+      }
+      @media (max-width: 520px) {
+        body {
+          padding: 18px 0 40px;
+        }
+        .phone {
+          transform: scale(0.9);
+          transform-origin: top center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ============================================================
+     UI KIT — design system (tokens + components used across screens)
+     ============================================================ -->
+    <div class="kit">
+      <div class="kit-hero">
+        <div class="eyebrow">Leon · Дневник кормлений</div>
+        <h1>Oasis UI Kit</h1>
+        <p>
+          Дизайн-система экранов «Сегодня» и «План». Тёплая зелёная палитра,
+          шрифт Outfit, мягкие тени и крупные скругления. Ниже — реальные токены
+          и компоненты (те же классы, что в макетах).
+        </p>
+        <div class="meta">
+          <span>Outfit 300–800</span><span>Light theme</span
+          ><span>Радиусы 14–32</span><span>iOS mobile</span>
+        </div>
+      </div>
+
+      <!-- COLORS -->
+      <div class="kit-sec">
+        <h2>Цвета</h2>
+        <div class="kit-panel">
+          <div class="kit-block">
+            <p class="kit-cap">Sage — основной акцент</p>
+            <div class="swatches">
+              <div class="sw">
+                <div class="chip" style="background: #8fb36a"></div>
+                <div class="meta">
+                  <div class="nm">sage</div>
+                  <div class="hex">#8FB36A</div>
+                </div>
+              </div>
+              <div class="sw">
+                <div class="chip" style="background: #6e9a4c"></div>
+                <div class="meta">
+                  <div class="nm">sage-deep</div>
+                  <div class="hex">#6E9A4C</div>
+                </div>
+              </div>
+              <div class="sw">
+                <div class="chip" style="background: #a9c98a"></div>
+                <div class="meta">
+                  <div class="nm">sage-soft</div>
+                  <div class="hex">#A9C98A</div>
+                </div>
+              </div>
+              <div class="sw">
+                <div class="chip" style="background: #41612a"></div>
+                <div class="meta">
+                  <div class="nm">sage-ink</div>
+                  <div class="hex">#41612A</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="kit-block">
+            <p class="kit-cap">Текст и линии (ink)</p>
+            <div class="swatches">
+              <div class="sw">
+                <div class="chip" style="background: #2c3326"></div>
+                <div class="meta">
+                  <div class="nm">ink</div>
+                  <div class="hex">#2C3326</div>
+                </div>
+              </div>
+              <div class="sw">
+                <div class="chip" style="background: #6b7560"></div>
+                <div class="meta">
+                  <div class="nm">ink-2</div>
+                  <div class="hex">#6B7560</div>
+                </div>
+              </div>
+              <div class="sw">
+                <div class="chip" style="background: #a3ac97"></div>
+                <div class="meta">
+                  <div class="nm">ink-3</div>
+                  <div class="hex">#A3AC97</div>
+                </div>
+              </div>
+              <div class="sw">
+                <div class="chip" style="background: #e3ead7"></div>
+                <div class="meta">
+                  <div class="nm">line</div>
+                  <div class="hex">#E3EAD7</div>
+                </div>
+              </div>
+              <div class="sw">
+                <div class="chip" style="background: #e2e9d6"></div>
+                <div class="meta">
+                  <div class="nm">track</div>
+                  <div class="hex">#E2E9D6</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="kit-block">
+            <p class="kit-cap">Фоны (бесшовный градиент экрана)</p>
+            <div class="swatches">
+              <div class="sw">
+                <div class="chip" style="background: #fbfcf8"></div>
+                <div class="meta">
+                  <div class="nm">bg-top</div>
+                  <div class="hex">#FBFCF8</div>
+                </div>
+              </div>
+              <div class="sw">
+                <div class="chip" style="background: #eef3e6"></div>
+                <div class="meta">
+                  <div class="nm">bg-mid</div>
+                  <div class="hex">#EEF3E6</div>
+                </div>
+              </div>
+              <div class="sw">
+                <div class="chip" style="background: #e4edd7"></div>
+                <div class="meta">
+                  <div class="nm">bg-bot</div>
+                  <div class="hex">#E4EDD7</div>
+                </div>
+              </div>
+              <div class="sw">
+                <div class="chip" style="background: #ffffff"></div>
+                <div class="meta">
+                  <div class="nm">card</div>
+                  <div class="hex">#FFFFFF</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="kit-block">
+            <p class="kit-cap">Категории кормлений</p>
+            <div class="swatches">
+              <div class="sw">
+                <div class="chip" style="background: #8fb36a"></div>
+                <div class="meta">
+                  <div class="nm">основное</div>
+                  <div class="hex">sage</div>
+                </div>
+              </div>
+              <div class="sw">
+                <div class="chip" style="background: #d98ab8"></div>
+                <div class="meta">
+                  <div class="nm">докорм</div>
+                  <div class="hex">#D98AB8</div>
+                </div>
+              </div>
+              <div class="sw">
+                <div class="chip" style="background: #e89a4d"></div>
+                <div class="meta">
+                  <div class="nm">лекарство</div>
+                  <div class="hex">#E89A4D</div>
+                </div>
+              </div>
+              <div class="sw">
+                <div class="chip" style="background: #7a68c8"></div>
+                <div class="meta">
+                  <div class="nm">завтра/план</div>
+                  <div class="hex">#7A68C8</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TYPOGRAPHY -->
+      <div class="kit-sec">
+        <h2>Типографика · Outfit</h2>
+        <div class="kit-panel">
+          <div class="type-row">
+            <span class="lbl">Display / Hero</span
+            ><span class="t-display">462 мл</span
+            ><span class="spec">800 · 42–68px · -3% tracking</span>
+          </div>
+          <div class="type-row">
+            <span class="lbl">H1 / Заголовок</span
+            ><span class="t-h1">План кормлений</span
+            ><span class="spec">800 · 29px</span>
+          </div>
+          <div class="type-row">
+            <span class="lbl">H2 / Секция</span
+            ><span class="t-h2">Хронология дня</span
+            ><span class="spec">800 · 19px</span>
+          </div>
+          <div class="type-row">
+            <span class="lbl">Number / Метрика</span
+            ><span class="t-num">85%</span
+            ><span class="spec">800 · 22–44px · sage-deep</span>
+          </div>
+          <div class="type-row">
+            <span class="lbl">Body</span
+            ><span class="t-body">Малыш берёт сколько нужно</span
+            ><span class="spec">500 · 15px · ink-2</span>
+          </div>
+          <div class="type-row">
+            <span class="lbl">Label / Caption</span
+            ><span class="t-label">мл · объём кормления</span
+            ><span class="spec">600 · 12.5px · ink-3</span>
+          </div>
+          <div class="type-row">
+            <span class="lbl">Time / Mono</span
+            ><span class="t-h2 t-mono">14:30</span
+            ><span class="spec">800 · tabular-nums</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOKENS: radius + shadow -->
+      <div class="kit-sec">
+        <h2>Радиусы · Тени</h2>
+        <div class="kit-panel">
+          <div class="kit-row" style="gap: 22px">
+            <div class="tok">
+              <div class="box" style="border-radius: 14px"></div>
+              <div class="t">sm</div>
+              <div class="v">14px</div>
+            </div>
+            <div class="tok">
+              <div class="box" style="border-radius: 20px"></div>
+              <div class="t">md</div>
+              <div class="v">20px</div>
+            </div>
+            <div class="tok">
+              <div class="box" style="border-radius: 24px"></div>
+              <div class="t">lg</div>
+              <div class="v">24px</div>
+            </div>
+            <div class="tok">
+              <div class="box" style="border-radius: 32px"></div>
+              <div class="t">xl</div>
+              <div class="v">32px</div>
+            </div>
+            <div class="tok">
+              <div class="box" style="border-radius: 50px; width: 84px"></div>
+              <div class="t">pill</div>
+              <div class="v">30px+</div>
+            </div>
+            <div class="tok" style="margin-left: 14px">
+              <div class="box sh1" style="border-radius: 18px"></div>
+              <div class="t">shadow-soft</div>
+              <div class="v">cards</div>
+            </div>
+            <div class="tok">
+              <div class="box sh2" style="border-radius: 18px"></div>
+              <div class="t">shadow-card</div>
+              <div class="v">elevated</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BUTTONS -->
+      <div class="kit-sec">
+        <h2>Кнопки</h2>
+        <div class="kit-panel">
+          <div class="kit-row" style="gap: 14px">
+            <button class="cta-main" style="width: auto; padding: 0 28px">
+              <span class="play"
+                ><svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M8 5v14l11-7z" /></svg
+              ></span>
+              Начать кормление
+            </button>
+            <button class="cta-back">
+              К сегодня
+              <span class="arr"
+                ><svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.4"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M5 12h14M13 6l6 6-6 6" /></svg
+              ></span>
+            </button>
+            <button class="cta-plan">
+              <span class="ic"
+                ><svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <rect x="3" y="4" width="18" height="17" rx="3" />
+                  <path d="M8 2v4M16 2v4M3 10h18" /></svg
+              ></span>
+              План
+            </button>
+          </div>
+          <p class="kit-cap" style="margin: 18px 0 9px">
+            Иконочные · FAB · нав-таб
+          </p>
+          <div class="kit-row" style="gap: 16px; align-items: center">
+            <button class="fab" style="position: static">
+              <svg
+                width="26"
+                height="26"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.6"
+                stroke-linecap="round"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </button>
+            <div
+              class="hbtn"
+              style="
+                position: static;
+                width: 42px;
+                height: 42px;
+                border-radius: 50%;
+                background: var(--card);
+                display: grid;
+                place-items: center;
+                color: var(--ink);
+                box-shadow: var(--sh-card);
+                border: none;
+              "
+            >
+              <svg
+                width="19"
+                height="19"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.9"
+              >
+                <circle cx="12" cy="12" r="3" />
+                <path
+                  d="M19.4 15a1.6 1.6 0 0 0 .3 1.8M4.6 9a1.6 1.6 0 0 0-.3-1.8"
+                />
+              </svg>
+            </div>
+            <div class="navpill" style="box-shadow: var(--sh-soft)">
+              <div class="t on">
+                <svg
+                  width="21"
+                  height="21"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M3 11l9-8 9 8" />
+                  <path d="M5 10v10h14V10" />
+                </svg>
+              </div>
+              <div class="t">
+                <svg
+                  width="21"
+                  height="21"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <rect x="3" y="5" width="18" height="16" rx="3" />
+                  <path d="M8 2v4M16 2v4M3 10h18" />
+                </svg>
+              </div>
+              <div class="t">
+                <svg
+                  width="21"
+                  height="21"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M3 12h4l2-7 4 14 2-7h4" />
+                </svg>
+              </div>
+              <div class="t">
+                <svg
+                  width="21"
+                  height="21"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M4 21a8 8 0 0 1 16 0" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BADGES / TAGS -->
+      <div class="kit-sec">
+        <h2>Бейджи · Теги · Пилюли</h2>
+        <div class="kit-panel">
+          <div class="kit-row">
+            <span class="tag sup">докорм</span>
+            <span class="tag plan">план</span>
+            <span class="statuspill" style="position: static"
+              ><svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+              >
+                <circle cx="12" cy="13" r="8" />
+                <path d="M12 9v4l2.5 1.5M9 2h6" />
+              </svg>
+              следующее в <b>14:30</b></span
+            >
+            <span class="statuspill past" style="position: static"
+              ><svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path d="m8 12 3 3 5-6" />
+              </svg>
+              день завершён</span
+            >
+            <span
+              style="
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                background: #fbead9;
+                color: #c07a35;
+                font-weight: 700;
+                font-size: 11.5px;
+                padding: 4px 10px;
+                border-radius: 20px;
+              "
+              >💊 Вигантол</span
+            >
+            <span
+              style="
+                font-size: 12px;
+                font-weight: 700;
+                color: var(--sage-deep);
+                background: var(--card);
+                padding: 6px 12px;
+                border-radius: 20px;
+                box-shadow: var(--sh-soft);
+              "
+              >7 записей</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTROLS -->
+      <div class="kit-sec">
+        <h2>Контролы</h2>
+        <div class="kit-panel">
+          <div class="kit-block">
+            <p class="kit-cap">Степпер объёма (быстрый выбор из диапазона)</p>
+            <div class="stepper" style="justify-content: flex-start">
+              <span class="opt">70</span><span class="opt mid">80</span
+              ><span class="opt">90</span>
+            </div>
+          </div>
+          <div class="kit-block">
+            <p class="kit-cap">Переключатель дней</p>
+            <div class="kit-row">
+              <div class="datebox" style="box-shadow: var(--sh-soft)">
+                <div class="nav">
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="m15 18-6-6 6-6" />
+                  </svg>
+                </div>
+                <div class="lbl">
+                  <div class="a">Сегодня</div>
+                  <div class="b">3 июня</div>
+                </div>
+                <div class="nav off">
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                </div>
+              </div>
+              <div class="datebox" style="box-shadow: var(--sh-soft)">
+                <div class="nav">
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="m15 18-6-6 6-6" />
+                  </svg>
+                </div>
+                <div class="lbl">
+                  <div class="a past">понедельник</div>
+                  <div class="b">1 июня</div>
+                </div>
+                <div class="nav">
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="kit-block">
+            <p class="kit-cap">Сегмент-селектор (число кормлений в плане)</p>
+            <div class="cntsel" style="margin: 0; max-width: 340px">
+              <div class="opts">
+                <button>6<span class="u">≈100</span></button>
+                <button class="on">7<span class="u">≈86 мл</span></button>
+                <button>8<span class="u">≈75</span></button>
+                <button>9<span class="u">≈67</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARDS -->
+      <div class="kit-sec">
+        <h2>Карточки</h2>
+        <div class="kit-panel">
+          <div class="kit-block">
+            <p class="kit-cap">Карточки-метрики (акцентная / обычная)</p>
+            <div class="ranges" style="padding: 0; max-width: 420px">
+              <div class="rcard green">
+                <div class="ic">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.9"
+                  >
+                    <path
+                      d="M8 2h8M9 2v4L6 12v7a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-7l-3-6V2"
+                    />
+                  </svg>
+                </div>
+                <div class="tx">
+                  <div class="k">Объём кормления</div>
+                  <div class="v">70–90<small> мл</small></div>
+                </div>
+              </div>
+              <div class="rcard">
+                <div class="ic">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.9"
+                  >
+                    <path d="M3 12h4l2-7 4 14 2-7h4" />
+                  </svg>
+                </div>
+                <div class="tx">
+                  <div class="k">Кормлений в день</div>
+                  <div class="v">7–8<small> раз</small></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="kit-block">
+            <p class="kit-cap">
+              Карточки кормлений (состоявшееся · докорм · плановое · следующее)
+            </p>
+            <div
+              style="
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                max-width: 420px;
+              "
+            >
+              <div class="fcard done">
+                <div class="fc">
+                  <span class="time">06:20</span>
+                  <div class="body"></div>
+                  <span class="vol">90<small> мл</small></span
+                  ><span class="chk"
+                    ><svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                      stroke-linecap="round"
+                    >
+                      <path d="M20 6 9 17l-5-5" /></svg
+                  ></span>
+                </div>
+              </div>
+              <div class="fcard done">
+                <div class="fc">
+                  <span class="time">11:40</span>
+                  <div class="body">
+                    <div class="h"><span class="tag sup">докорм</span></div>
+                  </div>
+                  <span class="vol">45<small> мл</small></span
+                  ><span class="chk"
+                    ><svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                      stroke-linecap="round"
+                    >
+                      <path d="M20 6 9 17l-5-5" /></svg
+                  ></span>
+                </div>
+              </div>
+              <div class="fcard">
+                <div class="fc">
+                  <span class="time">17:15</span>
+                  <div class="body"></div>
+                  <span class="vol">≈ 75<small> мл</small></span>
+                </div>
+              </div>
+              <div class="fcard next" style="position: static">
+                <div
+                  class="badge"
+                  style="
+                    position: static;
+                    display: inline-block;
+                    margin-bottom: 10px;
+                  "
+                >
+                  следующее · через 32 мин
+                </div>
+                <div class="nx-top">
+                  <span class="time">14:30</span><span class="spacer"></span
+                  ><span class="vol">≈ 75<small> мл</small></span>
+                </div>
+                <button class="log">
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                  >
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                  Зафиксировать
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="kit-block">
+            <p class="kit-cap">Баннер итога дня</p>
+            <div class="day-done" style="margin: 0; max-width: 420px">
+              <div class="ic">
+                <svg
+                  width="19"
+                  height="19"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                >
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="m8 12 3 3 5-6" />
+                </svg>
+              </div>
+              <div class="tx">
+                <div class="h">День завершён</div>
+                <div class="p">7 кормлений · чуть ниже нормы</div>
+              </div>
+              <span class="val">510<small> / 600 мл</small></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TIMELINE NODES -->
+      <div class="kit-sec">
+        <h2>Таймлайн · узлы</h2>
+        <div class="kit-panel">
+          <div class="kit-row" style="gap: 30px">
+            <div style="display: flex; align-items: center; gap: 10px">
+              <div class="kit-node">
+                <span class="d" style="background: #8fb36a"></span>
+              </div>
+              <span class="t-label">основное</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px">
+              <div class="kit-node">
+                <span class="d" style="background: #d98ab8"></span>
+              </div>
+              <span class="t-label">докорм</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px">
+              <div
+                class="kit-node"
+                style="
+                  background: #e89a4d;
+                  box-shadow: 0 3px 8px -2px rgba(232, 154, 77, 0.6);
+                "
+              >
+                <span class="d" style="background: #fff"></span>
+              </div>
+              <span class="t-label">с лекарством</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px">
+              <div class="kit-node">
+                <span class="d" style="background: #8fb36a"></span>
+              </div>
+              <span class="t-label">план (будущее)</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px">
+              <div
+                class="bead"
+                style="
+                  position: static;
+                  width: 15px;
+                  height: 15px;
+                  border-radius: 50%;
+                  background: #8fb36a;
+                  box-shadow: 0 0 0 5px rgba(143, 179, 106, 0.18);
+                "
+              ></div>
+              <span class="t-label">маркер «сейчас»</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        style="
+          text-align: center;
+          font-size: 12px;
+          font-weight: 600;
+          color: #5f7a45;
+          letter-spacing: 0.04em;
+          margin-top: 8px;
+        "
+      >
+        ↓ Применение системы — 4 экрана ниже ↓
+      </div>
+    </div>
+
+    <!-- ============ PHONE 1 — TODAY ============ -->
+    <div class="phone-wrap">
+      <div class="phone-label">Экран 1 · Сегодня</div>
+      <div class="phone">
+        <div class="screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="ico">
+              <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+                <rect x="0" y="7" width="3" height="5" rx="1" fill="#2C3326" />
+                <rect x="5" y="4" width="3" height="8" rx="1" fill="#2C3326" />
+                <rect
+                  x="10"
+                  y="1"
+                  width="3"
+                  height="11"
+                  rx="1"
+                  fill="#2C3326"
+                />
+                <rect
+                  x="15"
+                  y="1"
+                  width="3"
+                  height="11"
+                  rx="1"
+                  fill="#2C3326"
+                  opacity=".3"
+                />
+              </svg>
+              <svg width="24" height="12" viewBox="0 0 24 12" fill="none">
+                <rect
+                  x="1"
+                  y="1"
+                  width="20"
+                  height="10"
+                  rx="3"
+                  stroke="#2C3326"
+                  stroke-width="1.2"
+                  opacity=".5"
+                />
+                <rect
+                  x="3"
+                  y="3"
+                  width="14"
+                  height="6"
+                  rx="1.5"
+                  fill="#2C3326"
+                />
+                <rect
+                  x="22"
+                  y="4"
+                  width="1.6"
+                  height="4"
+                  rx="1"
+                  fill="#2C3326"
+                  opacity=".5"
+                />
+              </svg>
+            </span>
+          </div>
+
+          <!-- header: baby name big -->
+          <div class="head rev d1">
+            <div class="row1">
+              <div class="nm">
+                <span class="av">Л</span>Лёва <span class="chev">▾</span>
+              </div>
+              <div class="datebox">
+                <div class="nav">
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="m15 18-6-6 6-6" />
+                  </svg>
+                </div>
+                <div class="lbl">
+                  <div class="a">Сегодня</div>
+                  <div class="b">3 июня</div>
+                </div>
+                <div class="nav off">
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="sub">
+              <b>34-й</b> день жизни · <b>4 120 г</b> · Nutrilon 1
+            </div>
+          </div>
+
+          <!-- SEMI-RING hero -->
+          <div class="hero rev d2">
+            <svg
+              class="ring-svg"
+              width="240"
+              height="380"
+              viewBox="0 0 240 380"
+            >
+              <!-- RIGHT-bulging semicircle (matches Oasis ref): endpoints stacked at left (x=60), arc bulges right
+               through (210,190). Two arcs through the rightmost point avoid the diameter-chord degeneracy.
+               Drawn bottom(60,340) -> right -> top(60,40) so the dash fills BOTTOM→UP. Path length ≈471. -->
+              <path
+                d="M60 340 A150 150 0 0 0 210 190 A150 150 0 0 0 60 40"
+                fill="none"
+                stroke="var(--track)"
+                stroke-width="50"
+                stroke-linecap="round"
+              />
+              <path
+                class="ring-fg"
+                d="M60 340 A150 150 0 0 0 210 190 A150 150 0 0 0 60 40"
+                fill="none"
+                stroke="var(--sage)"
+                stroke-width="50"
+                stroke-linecap="round"
+                stroke-dasharray="363 477"
+              />
+            </svg>
+
+            <div class="fig">
+              <div class="today">Сегодня</div>
+              <div class="ml"><span class="n">462</span><small> мл</small></div>
+              <div class="of">из <b>600 мл</b></div>
+            </div>
+
+            <div class="ring-pct">
+              <div class="p">77%</div>
+              <div class="k">плана</div>
+            </div>
+
+            <div class="fig2">
+              <div class="m">
+                <div class="v">138 мл</div>
+                <div class="k">осталось</div>
+              </div>
+              <div class="m">
+                <div class="v">≈ 2</div>
+                <div class="k">кормления</div>
+              </div>
+            </div>
+
+            <div class="statuspill">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+              >
+                <circle cx="12" cy="13" r="8" />
+                <path d="M12 9v4l2.5 1.5M9 2h6" />
+              </svg>
+              следующее в <b>14:30</b>
+            </div>
+          </div>
+        </div>
+        <!-- /screen (scroller ends here; pinned UI below is fixed to the phone frame) -->
+
+        <!-- bottom group: volume stepper + single CTA, pinned just above the dock -->
+        <div class="bottom-group rev d4">
+          <div class="stepper">
+            <span class="opt">70</span>
+            <span class="opt mid">80</span>
+            <span class="opt">90</span>
+          </div>
+          <div class="stepper-unit">мл · объём кормления</div>
+          <div class="stepper-hint">из диапазона <b>70–90 мл</b></div>
+
+          <!-- «План» теперь отдельная вкладка в тулбаре (2-я иконка) — здесь только старт -->
+          <!-- старт ведёт на отдельный экран активного кормления (экран 5 ниже) -->
+          <div class="cta-wrap">
+            <a class="cta-main" href="#feeding" style="text-decoration: none">
+              <span class="play"
+                ><svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M8 5v14l11-7z" /></svg
+              ></span>
+              Начать кормление
+            </a>
+          </div>
+        </div>
+
+        <!-- floating dock: nav pill + plus -->
+        <div class="dock">
+          <div class="navpill">
+            <div class="t on">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M3 11l9-8 9 8" />
+                <path d="M5 10v10h14V10" />
+              </svg>
+            </div>
+            <div class="t">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="3" y="5" width="18" height="16" rx="3" />
+                <path d="M8 2v4M16 2v4M3 10h18" />
+              </svg>
+            </div>
+            <div class="t">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M3 12h4l2-7 4 14 2-7h4" />
+              </svg>
+            </div>
+            <div class="t">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21a8 8 0 0 1 16 0" />
+              </svg>
+            </div>
+          </div>
+          <button class="fab" title="Добавить кормление">
+            <svg
+              width="26"
+              height="26"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.6"
+              stroke-linecap="round"
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <!-- /phone -->
+    </div>
+    <!-- /phone-wrap -->
+
+    <div class="notecol">
+      <h4><span class="n">A</span> Правки по экрану 1</h4>
+      <ul>
+        <li>
+          <b>Полукольцо слева</b>, растёт снизу вверх (дуга 180° по левому краю,
+          заливка от низа до 77%).
+        </li>
+        <li>
+          Убрал «ДНЕВНИК КОРМЛЕНИЙ» — наверху крупно <b>имя ребёнка</b> + аватар
+          + контекст строкой.
+        </li>
+        <li>«Ориентир» → короткое <b>«из 600 мл»</b>.</li>
+        <li>
+          Одна кнопка <b>«Начать кормление»</b>; «добавить» — это
+          <b>круглый «+»</b> в плавающем баре.
+        </li>
+        <li>
+          Поправил наложения: «осталось/кормления» и статус-пилюля больше не
+          наезжают.
+        </li>
+      </ul>
+      <h4><span class="n">B</span> Плавающий бар (по рефу)</h4>
+      <p>
+        Pill поверх контента с blur, активная вкладка — тёмный кружок. Справа
+        отдельно <span class="hl">зелёный «+»</span> — быстро добавить кормление
+        в один тап.
+      </p>
+      <h4><span class="n">C</span> Кольцо — наши данные</h4>
+      <p>
+        <b>462 мл / из 600 мл</b> справа, <b>77% плана</b> по центру дуги, ниже
+        — остаток и кормления, пилюля «в норме». Степпер 70|80|90 — быстрый
+        объём.
+      </p>
+    </div>
+
+    <!-- ============ PHONE 5 — ACTIVE FEEDING SESSION ============ -->
+    <div class="phone-wrap" id="feeding">
+      <div class="phone-label">Экран 5 · Активное кормление</div>
+      <div class="phone">
+        <div class="screen feed-screen" style="overflow: hidden">
+          <div class="aura"></div>
+
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="ico">
+              <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+                <rect x="0" y="7" width="3" height="5" rx="1" />
+                <rect x="5" y="4" width="3" height="8" rx="1" />
+                <rect x="10" y="1" width="3" height="11" rx="1" />
+                <rect x="15" y="1" width="3" height="11" rx="1" opacity=".3" />
+              </svg>
+              <svg width="24" height="12" viewBox="0 0 24 12" fill="none">
+                <rect
+                  x="1"
+                  y="1"
+                  width="20"
+                  height="10"
+                  rx="3"
+                  stroke-width="1.2"
+                  fill="none"
+                  opacity=".5"
+                />
+                <rect x="3" y="3" width="14" height="6" rx="1.5" />
+                <rect x="22" y="4" width="1.6" height="4" rx="1" opacity=".5" />
+              </svg>
+            </span>
+          </div>
+
+          <!-- top: close (back to today) · baby -->
+          <div class="feed-top rev d1">
+            <a
+              class="close"
+              href="#minimised"
+              title="Свернуть — кормление продолжит идти"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.4"
+                stroke-linecap="round"
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </a>
+            <div class="who">
+              <div class="nm">Лёва</div>
+              <div class="mt">34-й день · кормление 5 из 7</div>
+            </div>
+          </div>
+
+          <!-- TIMER DIAL — progress ring fills over the typical ~15-min feed -->
+          <div class="dial rev d3" id="dial">
+            <svg width="300" height="300" viewBox="0 0 300 300">
+              <defs>
+                <linearGradient id="feedGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#BFE39A" />
+                  <stop offset="1" stop-color="#6E9A4C" />
+                </linearGradient>
+              </defs>
+              <circle class="ring-bg" cx="150" cy="150" r="130" />
+              <!-- decorative sweeping arc — feeding has no fixed length, so it doesn't "fill" -->
+              <circle class="ring-deco" cx="150" cy="150" r="130" />
+            </svg>
+            <div class="center">
+              <div class="lbl">кормление идёт</div>
+              <div class="time">
+                <span id="tMin">00</span>:<span id="tSec">00</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- live volume — bottle measured by stepper, breast can stay «по требованию» -->
+          <div class="feed-vol rev d4">
+            <button class="step" id="volMinus" title="−5 мл">
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.6"
+                stroke-linecap="round"
+              >
+                <path d="M5 12h14" />
+              </svg>
+            </button>
+            <div class="amount">
+              <div class="n"><span id="volN">80</span><small> мл</small></div>
+              <div class="k">из диапазона <b>70–90 мл</b></div>
+            </div>
+            <button class="step" id="volPlus" title="+5 мл">
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.6"
+                stroke-linecap="round"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- this feeding carries the daily Вигантол -->
+          <div class="feed-med rev d5">
+            <span class="e">💊</span>
+            <div class="t">Не забудьте <b>Вигантол</b> — 1 капля · 500 МЕ</div>
+            <div class="ck" id="medCk" title="Отметить, что дали">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-linecap="round"
+              >
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+            </div>
+          </div>
+
+          <div class="feed-foot">
+            Завершайте по сигналам насыщения — <b>малыш берёт сколько нужно</b>.
+          </div>
+
+          <!-- controls -->
+          <div class="feed-ctl rev d6">
+            <button class="pause" id="pauseBtn" title="Пауза">
+              <svg
+                id="pauseIco"
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <rect x="6" y="5" width="4" height="14" rx="1.3" />
+                <rect x="14" y="5" width="4" height="14" rx="1.3" />
+              </svg>
+            </button>
+            <button class="finish" id="finishBtn">
+              <span class="ic"
+                ><svg
+                  width="19"
+                  height="19"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.6"
+                  stroke-linecap="round"
+                >
+                  <path d="M20 6 9 17l-5-5" /></svg
+              ></span>
+              Завершить · <span id="finVol">80</span> мл
+            </button>
+          </div>
+        </div>
+        <!-- /screen -->
+      </div>
+      <!-- /phone -->
+    </div>
+    <!-- /phone-wrap -->
+
+    <div class="notecol">
+      <h4><span class="n">J</span> Экран активного кормления</h4>
+      <p>
+        Открывается по кнопке <span class="hl">«Начать кормление»</span> с
+        экрана 1. Тёмный «leaf»-фон — единственный экран, который ощущается
+        иначе: вы <b>внутри</b> процесса, а не смотрите данные.
+      </p>
+      <ul>
+        <li>
+          <b>Живой таймер</b> — просто счёт вверх (рабочий JS: тикает,
+          пауза/продолжить). Кольцо — <b>декор</b>: медленно вращается как
+          «процесс идёт», ничего не «заполняет», т.к. длительность кормления не
+          ограничена.
+        </li>
+        <li>
+          <b>Объём</b> — степпер ±5 мл прямо тут; стартовое значение приходит со
+          степпера экрана 1.
+        </li>
+        <li>
+          <b>Вигантол</b> — напоминание именно в том кормлении, где он по плану;
+          отмечается галочкой.
+        </li>
+      </ul>
+      <h4><span class="n">K</span> Управление</h4>
+      <p>
+        Низ: <b>пауза</b> (срыгнул, передумали) + крупное <b>«Завершить»</b> с
+        текущим объёмом. «∨» вверху — свернуть, кормление продолжает идти в фоне
+        → экран 6.
+      </p>
+    </div>
+
+    <!-- ============ PHONE 6 — TODAY with a MINIMISED feeding ============ -->
+    <div class="phone-wrap" id="minimised">
+      <div class="phone-label">Экран 6 · Сегодня — кормление свёрнуто</div>
+      <div class="phone">
+        <div class="screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="ico">
+              <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+                <rect x="0" y="7" width="3" height="5" rx="1" fill="#2C3326" />
+                <rect x="5" y="4" width="3" height="8" rx="1" fill="#2C3326" />
+                <rect
+                  x="10"
+                  y="1"
+                  width="3"
+                  height="11"
+                  rx="1"
+                  fill="#2C3326"
+                />
+                <rect
+                  x="15"
+                  y="1"
+                  width="3"
+                  height="11"
+                  rx="1"
+                  fill="#2C3326"
+                  opacity=".3"
+                />
+              </svg>
+              <svg width="24" height="12" viewBox="0 0 24 12" fill="none">
+                <rect
+                  x="1"
+                  y="1"
+                  width="20"
+                  height="10"
+                  rx="3"
+                  stroke="#2C3326"
+                  stroke-width="1.2"
+                  opacity=".5"
+                />
+                <rect
+                  x="3"
+                  y="3"
+                  width="14"
+                  height="6"
+                  rx="1.5"
+                  fill="#2C3326"
+                />
+                <rect
+                  x="22"
+                  y="4"
+                  width="1.6"
+                  height="4"
+                  rx="1"
+                  fill="#2C3326"
+                  opacity=".5"
+                />
+              </svg>
+            </span>
+          </div>
+
+          <div class="head rev d1">
+            <div class="row1">
+              <div class="nm">
+                <span class="av">Л</span>Лёва <span class="chev">▾</span>
+              </div>
+              <div class="datebox">
+                <div class="nav">
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="m15 18-6-6 6-6" />
+                  </svg>
+                </div>
+                <div class="lbl">
+                  <div class="a">Сегодня</div>
+                  <div class="b">3 июня</div>
+                </div>
+                <div class="nav off">
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="sub">
+              <b>34-й</b> день жизни · <b>4 120 г</b> · Nutrilon 1
+            </div>
+          </div>
+
+          <div class="hero rev d2">
+            <svg
+              class="ring-svg"
+              width="240"
+              height="380"
+              viewBox="0 0 240 380"
+            >
+              <path
+                d="M60 340 A150 150 0 0 0 210 190 A150 150 0 0 0 60 40"
+                fill="none"
+                stroke="var(--track)"
+                stroke-width="50"
+                stroke-linecap="round"
+              />
+              <path
+                class="ring-fg"
+                d="M60 340 A150 150 0 0 0 210 190 A150 150 0 0 0 60 40"
+                fill="none"
+                stroke="var(--sage)"
+                stroke-width="50"
+                stroke-linecap="round"
+                stroke-dasharray="363 477"
+              />
+            </svg>
+
+            <div class="fig">
+              <div class="today">Сегодня</div>
+              <div class="ml"><span class="n">462</span><small> мл</small></div>
+              <div class="of">из <b>600 мл</b></div>
+            </div>
+
+            <div class="ring-pct">
+              <div class="p">77%</div>
+              <div class="k">плана</div>
+            </div>
+
+            <div class="fig2">
+              <div class="m">
+                <div class="v">138 мл</div>
+                <div class="k">осталось</div>
+              </div>
+              <div class="m">
+                <div class="v">≈ 2</div>
+                <div class="k">кормления</div>
+              </div>
+            </div>
+
+            <div class="statuspill">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+              >
+                <circle cx="12" cy="13" r="8" />
+                <path d="M12 9v4l2.5 1.5M9 2h6" />
+              </svg>
+              следующее в <b>14:30</b>
+            </div>
+          </div>
+        </div>
+        <!-- /screen -->
+
+        <!-- bottom group: LIVE mini-bar (session running in background) + "open feeding" -->
+        <div class="bottom-group rev d4">
+          <!-- tap anywhere → back into the active feeding screen (экран 5) -->
+          <a
+            class="mini-feed"
+            href="#feeding"
+            id="miniFeed"
+            title="Вернуться к кормлению"
+          >
+            <span class="pulse">🍼</span>
+            <span class="mid">
+              <span class="l1"><span class="d"></span>Кормление идёт</span>
+              <span class="l2"
+                ><span class="t" id="miniTime">03:12</span
+                ><span class="v"><span id="miniVol">80</span> мл</span></span
+              >
+            </span>
+            <span class="go"
+              ><svg
+                width="17"
+                height="17"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m9 6 6 6-6 6" /></svg
+            ></span>
+          </a>
+        </div>
+
+        <div class="dock">
+          <div class="navpill">
+            <div class="t on">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M3 11l9-8 9 8" />
+                <path d="M5 10v10h14V10" />
+              </svg>
+            </div>
+            <div class="t">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="3" y="5" width="18" height="16" rx="3" />
+                <path d="M8 2v4M16 2v4M3 10h18" />
+              </svg>
+            </div>
+            <div class="t">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M3 12h4l2-7 4 14 2-7h4" />
+              </svg>
+            </div>
+            <div class="t">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21a8 8 0 0 1 16 0" />
+              </svg>
+            </div>
+          </div>
+          <button class="fab" title="Добавить кормление">
+            <svg
+              width="26"
+              height="26"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.6"
+              stroke-linecap="round"
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <!-- /phone -->
+    </div>
+    <!-- /phone-wrap -->
+
+    <div class="notecol">
+      <h4><span class="n">L</span> Свёрнутое кормление</h4>
+      <p>
+        Тап по <b>«∨»</b> на экране 5 возвращает на <b>«Сегодня»</b>, но сессия
+        не закрыта — над докой появляется тёмная
+        <span class="hl">живая плашка</span> с пульсом, тикающим таймером и
+        текущим объёмом.
+      </p>
+      <ul>
+        <li>
+          Тап по плашке — назад в экран 5, таймер шёл всё это время. Одно
+          действие, без дубля-кнопки.
+        </li>
+        <li>
+          Степпер «70 80 90» и «Начать» спрятаны — пока идёт кормление, новое не
+          начнёшь.
+        </li>
+        <li>
+          <b>На «Сегодня» — большая плашка</b> (домашний экран, кормление в
+          фокусе). На остальных вкладках — компактный <b>бейдж в шапке</b> (см.
+          экран «План»).
+        </li>
+      </ul>
+    </div>
+
+    <!-- ============ PHONE 2 — PLAN ============ -->
+    <div class="phone-wrap">
+      <div class="phone-label">Экран 2 · План (вкладка)</div>
+      <div class="phone">
+        <div class="screen plan-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="ico">
+              <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+                <rect x="0" y="7" width="3" height="5" rx="1" fill="#2C3326" />
+                <rect x="5" y="4" width="3" height="8" rx="1" fill="#2C3326" />
+                <rect
+                  x="10"
+                  y="1"
+                  width="3"
+                  height="11"
+                  rx="1"
+                  fill="#2C3326"
+                />
+                <rect
+                  x="15"
+                  y="1"
+                  width="3"
+                  height="11"
+                  rx="1"
+                  fill="#2C3326"
+                  opacity=".3"
+                />
+              </svg>
+              <svg width="24" height="12" viewBox="0 0 24 12" fill="none">
+                <rect
+                  x="1"
+                  y="1"
+                  width="20"
+                  height="10"
+                  rx="3"
+                  stroke="#2C3326"
+                  stroke-width="1.2"
+                  opacity=".5"
+                />
+                <rect
+                  x="3"
+                  y="3"
+                  width="14"
+                  height="6"
+                  rx="1.5"
+                  fill="#2C3326"
+                />
+                <rect
+                  x="22"
+                  y="4"
+                  width="1.6"
+                  height="4"
+                  rx="1"
+                  fill="#2C3326"
+                  opacity=".5"
+                />
+              </svg>
+            </span>
+          </div>
+
+          <!-- GLOBAL feeding badge — same pill as before, full-width, pinned at the top (under status bar).
+           Appears on every tab while a session runs; tap → back to the feeding screen. -->
+          <a class="feedbar" href="#feeding" title="Вернуться к кормлению">
+            <span class="ic"><span class="d"></span></span>
+            <span class="lbl">Кормление идёт</span>
+            <span class="tm" id="chipPlanTime">03:31</span>
+            <span class="vol">· 80 мл</span>
+            <span class="spacer"></span>
+            <span class="chev"
+              ><svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m9 6 6 6-6 6" /></svg
+            ></span>
+          </a>
+
+          <!-- standalone screen header: title + date switcher (mirrors Today) -->
+          <div class="plan-head rev d1">
+            <div class="ph-row">
+              <h1>План кормлений</h1>
+              <div class="datebox">
+                <div class="nav">
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="m15 18-6-6 6-6" />
+                  </svg>
+                </div>
+                <div class="lbl">
+                  <div class="a">Сегодня</div>
+                  <div class="b">3 июня</div>
+                </div>
+                <div class="nav off">
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="ph-sub">Лёва · 34-й день · 4 120 г</div>
+          </div>
+
+          <div class="ranges rev d2">
+            <div class="rcard green">
+              <div class="ic">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.9"
+                >
+                  <path
+                    d="M8 2h8M9 2v4L6 12v7a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-7l-3-6V2"
+                  />
+                </svg>
+              </div>
+              <div class="tx">
+                <div class="k">Объём кормления</div>
+                <div class="v">70–90<small> мл</small></div>
+              </div>
+            </div>
+            <div class="rcard">
+              <div class="ic">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.9"
+                >
+                  <path d="M3 12h4l2-7 4 14 2-7h4" />
+                </svg>
+              </div>
+              <div class="tx">
+                <div class="k">Кормлений в день</div>
+                <div class="v">7–8<small> раз</small></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="plan-note rev d2">
+            <span class="e">🍼</span>
+            <div class="t">
+              Малыш берёт <b>сколько нужно</b> — завершайте по сигналам
+              насыщения, точный объём не обязателен.
+            </div>
+          </div>
+
+          <div class="cntsel rev d3">
+            <div class="lab">
+              Кормлений распланировать <span class="sub">— как делим день</span>
+            </div>
+            <div class="opts">
+              <button>6<span class="u">≈100</span></button>
+              <button class="on">7<span class="u">≈86 мл</span></button>
+              <button>8<span class="u">≈75</span></button>
+              <button>9<span class="u">≈67</span></button>
+            </div>
+          </div>
+
+          <div class="plan-sec rev d4">
+            <h2>Хронология дня</h2>
+            <span class="cnt">осталось 3</span>
+          </div>
+
+          <!-- past feedings collapsed into one summary row — tap to expand -->
+          <button
+            class="past-toggle rev d5"
+            id="pastToggle"
+            aria-expanded="false"
+          >
+            <span class="chevd"
+              ><svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m6 9 6 6 6-6" /></svg
+            ></span>
+            <span class="pt-tx">4 кормления <span>уже было</span></span>
+            <span class="pt-sum">335<small> мл</small></span>
+          </button>
+
+          <div class="tl rev d5">
+            <!-- DONE feedings — hidden until the summary row is tapped -->
+            <div class="past-wrap" id="pastWrap">
+              <div class="row">
+                <div class="node"><span class="d"></span></div>
+                <div class="fcard done">
+                  <div class="fc">
+                    <span class="time">06:20</span>
+                    <div class="body"></div>
+                    <span class="vol">90<small> мл</small></span
+                    ><span class="chk"
+                      ><svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="3"
+                        stroke-linecap="round"
+                      >
+                        <path d="M20 6 9 17l-5-5" /></svg
+                    ></span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row med">
+                <div class="node"><span class="d"></span></div>
+                <div class="fcard done">
+                  <div class="fc">
+                    <span class="time">09:05</span>
+                    <div class="body"></div>
+                    <span class="vol">85<small> мл</small></span
+                    ><span class="chk"
+                      ><svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="3"
+                        stroke-linecap="round"
+                      >
+                        <path d="M20 6 9 17l-5-5" /></svg
+                    ></span>
+                  </div>
+                  <div class="medline">
+                    <span class="pill">💊 Вигантол</span
+                    ><span class="dose">1 капля · 500 МЕ</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row sup">
+                <div class="node"><span class="d"></span></div>
+                <div class="fcard done">
+                  <div class="fc">
+                    <span class="time">11:40</span>
+                    <div class="body">
+                      <div class="h"><span class="tag sup">докорм</span></div>
+                    </div>
+                    <span class="vol">45<small> мл</small></span
+                    ><span class="chk"
+                      ><svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="3"
+                        stroke-linecap="round"
+                      >
+                        <path d="M20 6 9 17l-5-5" /></svg
+                    ></span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="node"><span class="d"></span></div>
+                <div class="fcard done">
+                  <div class="fc">
+                    <span class="time">13:10</span>
+                    <div class="body"></div>
+                    <span class="vol">115<small> мл</small></span
+                    ><span class="chk"
+                      ><svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="3"
+                        stroke-linecap="round"
+                      >
+                        <path d="M20 6 9 17l-5-5" /></svg
+                    ></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- NEXT — the focus: just badge + time/volume + log button -->
+            <div class="row">
+              <div class="node"><span class="d"></span></div>
+              <div class="fcard next">
+                <div class="badge">следующее · через 32 мин</div>
+                <div class="nx-top">
+                  <span class="time">14:30</span>
+                  <span class="spacer"></span>
+                  <span class="vol">≈ 75<small> мл</small></span>
+                </div>
+                <button class="log">
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                  >
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                  Зафиксировать
+                </button>
+              </div>
+            </div>
+
+            <!-- future planned feedings — no "план" tag, the ≈ volume already signals they're planned -->
+            <div class="row">
+              <div class="node"><span class="d"></span></div>
+              <div class="fcard">
+                <div class="fc">
+                  <span class="time">17:15</span>
+                  <div class="body"></div>
+                  <span class="vol">≈ 75<small> мл</small></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="node"><span class="d"></span></div>
+              <div class="fcard">
+                <div class="fc">
+                  <span class="time">20:00</span>
+                  <div class="body"></div>
+                  <span class="vol">≈ 75<small> мл</small></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="tmrw">
+              <span class="m"
+                ><svg
+                  width="17"
+                  height="17"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#7a68c8"
+                  stroke-width="1.9"
+                  stroke-linecap="round"
+                >
+                  <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" /></svg
+              ></span>
+              <div class="tx">
+                <div class="a">Завтра, первое кормление</div>
+                <div class="b">06:30</div>
+              </div>
+              <span class="v">≈ 80<small> мл</small></span>
+            </div>
+          </div>
+
+          <div class="bottom-space"></div>
+        </div>
+        <!-- /screen -->
+
+        <!-- floating dock — same as Today, but «План» (calendar) tab is active -->
+        <div class="dock">
+          <div class="navpill">
+            <div class="t">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M3 11l9-8 9 8" />
+                <path d="M5 10v10h14V10" />
+              </svg>
+            </div>
+            <div class="t on">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="3" y="5" width="18" height="16" rx="3" />
+                <path d="M8 2v4M16 2v4M3 10h18" />
+              </svg>
+            </div>
+            <div class="t">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M3 12h4l2-7 4 14 2-7h4" />
+              </svg>
+            </div>
+            <div class="t">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21a8 8 0 0 1 16 0" />
+              </svg>
+            </div>
+          </div>
+          <button class="fab" title="Добавить кормление">
+            <svg
+              width="26"
+              height="26"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.6"
+              stroke-linecap="round"
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <!-- /phone -->
+    </div>
+    <!-- /phone-wrap -->
+
+    <div class="notecol">
+      <h4><span class="n">D</span> Правки по хронологии</h4>
+      <ul>
+        <li>
+          <b>Прошедшие свёрнуты</b> в одну строку «4 кормления уже было · 335
+          мл» — тап раскрывает (рабочий JS). По умолчанию
+          <b>первым видно следующее</b> кормление.
+        </li>
+        <li>
+          Убрал маркер <b>«сейчас · 13:58»</b> — лишний; «следующее» и так в
+          фокусе тёмной карточкой.
+        </li>
+        <li>
+          <b>Next-карточка упрощена</b>: только бейдж + крупное время/объём +
+          «Зафиксировать». Без дубль-заголовка «Следующее кормление / по плану»
+          — это просто плановое, в которое ещё не попали (точное время
+          пользователь поставит сам при фиксации).
+        </li>
+        <li>
+          На будущих карточках <b>убрал тег «план»</b> — знак «≈» у объёма уже
+          говорит, что это план.
+        </li>
+        <li>У <b>докорма</b> теперь тоже виден объём (45 мл).</li>
+      </ul>
+      <h4><span class="n">E</span> Состав</h4>
+      <p>
+        Диапазоны (объём 70–90, кол-во 7–8) + «берёт сколько нужно» + селектор
+        числа кормлений + хронология (свёрнутые прошедшие → следующее в фокусе →
+        будущие → первое завтра).
+      </p>
+      <h4><span class="n">E2</span> Глобальный бейдж кормления</h4>
+      <p>
+        В самом верху под статус-баром — тот же тёмный бейдж
+        <span class="hl">«● Кормление идёт · 03:31 · 80 мл ›»</span>, но
+        <b>на всю ширину</b> (та же высота и скругление, просто растянут
+        край-в-край). Живой таймер + пульс. Это <b>глобальное состояние</b>:
+        пока кормление идёт, бейдж висит сверху на любой вкладке (План, история,
+        статистика), тап — назад в сессию. Не зависит от вёрстки шапки —
+        выглядит одинаково везде. На паузе становится янтарным. Тот же счётчик,
+        что и плашка на «Сегодня».
+      </p>
+    </div>
+
+    <!-- ============ PHONE 3 — TODAY (historical / past day) ============ -->
+    <div class="phone-wrap">
+      <div class="phone-label">Экран 3 · Сегодня — прошлый день</div>
+      <div class="phone">
+        <div class="screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="ico">
+              <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+                <rect x="0" y="7" width="3" height="5" rx="1" fill="#2C3326" />
+                <rect x="5" y="4" width="3" height="8" rx="1" fill="#2C3326" />
+                <rect
+                  x="10"
+                  y="1"
+                  width="3"
+                  height="11"
+                  rx="1"
+                  fill="#2C3326"
+                />
+                <rect
+                  x="15"
+                  y="1"
+                  width="3"
+                  height="11"
+                  rx="1"
+                  fill="#2C3326"
+                  opacity=".3"
+                />
+              </svg>
+              <svg width="24" height="12" viewBox="0 0 24 12" fill="none">
+                <rect
+                  x="1"
+                  y="1"
+                  width="20"
+                  height="10"
+                  rx="3"
+                  stroke="#2C3326"
+                  stroke-width="1.2"
+                  opacity=".5"
+                />
+                <rect
+                  x="3"
+                  y="3"
+                  width="14"
+                  height="6"
+                  rx="1.5"
+                  fill="#2C3326"
+                />
+                <rect
+                  x="22"
+                  y="4"
+                  width="1.6"
+                  height="4"
+                  rx="1"
+                  fill="#2C3326"
+                  opacity=".5"
+                />
+              </svg>
+            </span>
+          </div>
+
+          <!-- header: past date — forward arrow is ENABLED -->
+          <div class="head rev d1">
+            <div class="row1">
+              <div class="nm">
+                <span class="av">Л</span>Лёва <span class="chev">▾</span>
+              </div>
+              <div class="datebox">
+                <div class="nav">
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="m15 18-6-6 6-6" />
+                  </svg>
+                </div>
+                <div class="lbl">
+                  <div class="a past">понедельник</div>
+                  <div class="b">1 июня</div>
+                </div>
+                <div class="nav">
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="sub">
+              <b>32-й</b> день жизни · <b>4 050 г</b> · Nutrilon 1
+            </div>
+          </div>
+
+          <!-- SEMI-RING hero — filled to actual 85% -->
+          <div class="hero rev d2">
+            <svg
+              class="ring-svg"
+              width="240"
+              height="380"
+              viewBox="0 0 240 380"
+            >
+              <path
+                d="M60 340 A150 150 0 0 0 210 190 A150 150 0 0 0 60 40"
+                fill="none"
+                stroke="var(--track)"
+                stroke-width="50"
+                stroke-linecap="round"
+              />
+              <path
+                d="M60 340 A150 150 0 0 0 210 190 A150 150 0 0 0 60 40"
+                fill="none"
+                stroke="var(--sage)"
+                stroke-width="50"
+                stroke-linecap="round"
+                stroke-dasharray="401 477"
+              />
+            </svg>
+
+            <div class="fig">
+              <div class="today">Итог дня</div>
+              <div class="ml"><span class="n">510</span><small> мл</small></div>
+              <div class="of">из <b>600 мл</b></div>
+            </div>
+
+            <div class="ring-pct">
+              <div class="p">85%</div>
+              <div class="k">нормы</div>
+            </div>
+
+            <div class="fig2">
+              <div class="m">
+                <div class="v">7</div>
+                <div class="k">кормлений</div>
+              </div>
+              <div class="m">
+                <div class="v">73 мл</div>
+                <div class="k">в среднем</div>
+              </div>
+            </div>
+
+            <div class="statuspill past">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+              >
+                <path d="M5 12h14M12 5l7 7-7 7" opacity="0" />
+                <circle cx="12" cy="12" r="9" />
+                <path d="m8 12 3 3 5-6" />
+              </svg>
+              день завершён
+            </div>
+          </div>
+        </div>
+        <!-- /screen -->
+
+        <!-- bottom group: two actions — open THIS day's plan + go back to today -->
+        <div class="bottom-group rev d4">
+          <div class="past-cta">
+            <button class="cta-plan" title="План за этот день — экран плана">
+              <span class="ic"
+                ><svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <rect x="3" y="4" width="18" height="17" rx="3" />
+                  <path d="M8 2v4M16 2v4M3 10h18" /></svg
+              ></span>
+              План
+            </button>
+            <button class="cta-back">
+              К сегодня
+              <span class="arr"
+                ><svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.4"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M5 12h14M13 6l6 6-6 6" /></svg
+              ></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- floating dock (Today active); «+» still lets you back-fill a missed feeding -->
+        <div class="dock">
+          <div class="navpill">
+            <div class="t on">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M3 11l9-8 9 8" />
+                <path d="M5 10v10h14V10" />
+              </svg>
+            </div>
+            <div class="t">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="3" y="5" width="18" height="16" rx="3" />
+                <path d="M8 2v4M16 2v4M3 10h18" />
+              </svg>
+            </div>
+            <div class="t">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M3 12h4l2-7 4 14 2-7h4" />
+              </svg>
+            </div>
+            <div class="t">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21a8 8 0 0 1 16 0" />
+              </svg>
+            </div>
+          </div>
+          <button class="fab" title="Дозаписать пропущенное кормление">
+            <svg
+              width="26"
+              height="26"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.6"
+              stroke-linecap="round"
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <!-- /phone -->
+    </div>
+    <!-- /phone-wrap -->
+
+    <div class="notecol">
+      <h4><span class="n">F</span> Прошлый день — экран «Сегодня»</h4>
+      <p>
+        Дата прошлая, стрелка <b>«вперёд» активна</b> (можно вернуться к
+        сегодня). Кольцо заполнено по факту
+        <span class="hl">85%</span> (510/600). Справа — итоги дня: кормлений и
+        среднее вместо «осталось».
+      </p>
+      <h4><span class="n">G</span> Низ вместо степпера/«Начать»</h4>
+      <p>
+        Степпер объёма и старт убраны — в прошлом кормление не начнёшь. Итоги
+        дня уже видны в кольце, поэтому внизу только кнопка
+        <b>«Вернуться к сегодня»</b>. «+» в доке остаётся — можно дозаписать
+        пропущенное.
+      </p>
+      <p>
+        Статус «следующее в…» → нейтральное <b>«день завершён»</b> (обводка
+        приглушена).
+      </p>
+    </div>
+
+    <!-- ============ PHONE 4 — PLAN (historical / past day) ============ -->
+    <div class="phone-wrap">
+      <div class="phone-label">Экран 4 · План — прошлый день</div>
+      <div class="phone">
+        <div class="screen plan-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="ico">
+              <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+                <rect x="0" y="7" width="3" height="5" rx="1" fill="#2C3326" />
+                <rect x="5" y="4" width="3" height="8" rx="1" fill="#2C3326" />
+                <rect
+                  x="10"
+                  y="1"
+                  width="3"
+                  height="11"
+                  rx="1"
+                  fill="#2C3326"
+                />
+                <rect
+                  x="15"
+                  y="1"
+                  width="3"
+                  height="11"
+                  rx="1"
+                  fill="#2C3326"
+                  opacity=".3"
+                />
+              </svg>
+              <svg width="24" height="12" viewBox="0 0 24 12" fill="none">
+                <rect
+                  x="1"
+                  y="1"
+                  width="20"
+                  height="10"
+                  rx="3"
+                  stroke="#2C3326"
+                  stroke-width="1.2"
+                  opacity=".5"
+                />
+                <rect
+                  x="3"
+                  y="3"
+                  width="14"
+                  height="6"
+                  rx="1.5"
+                  fill="#2C3326"
+                />
+                <rect
+                  x="22"
+                  y="4"
+                  width="1.6"
+                  height="4"
+                  rx="1"
+                  fill="#2C3326"
+                  opacity=".5"
+                />
+              </svg>
+            </span>
+          </div>
+
+          <div class="plan-head rev d1">
+            <div class="ph-row">
+              <h1>План кормлений</h1>
+              <div class="datebox">
+                <div class="nav">
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="m15 18-6-6 6-6" />
+                  </svg>
+                </div>
+                <div class="lbl">
+                  <div class="a past">понедельник</div>
+                  <div class="b">1 июня</div>
+                </div>
+                <div class="nav">
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="ph-sub">Лёва · 32-й день · 4 050 г</div>
+          </div>
+
+          <!-- no recommendation ranges on a past day — the day is done; show the actual result instead -->
+          <!-- day result banner (replaces сейчас/next/plan controls) -->
+          <div class="day-done rev d2">
+            <div class="ic">
+              <svg
+                width="19"
+                height="19"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path d="m8 12 3 3 5-6" />
+              </svg>
+            </div>
+            <div class="tx">
+              <div class="h">День завершён</div>
+              <div class="p">7 кормлений · чуть ниже нормы</div>
+            </div>
+            <span class="val">510<small> / 600 мл</small></span>
+          </div>
+
+          <!-- only completed feedings; no plan selector, no "сейчас", no future, no tomorrow -->
+          <div class="plan-sec rev d4">
+            <h2>Кормления за день</h2>
+            <span class="cnt">7 записей</span>
+          </div>
+
+          <div class="tl rev d5">
+            <div class="row">
+              <div class="node"><span class="d"></span></div>
+              <div class="fcard done">
+                <div class="fc">
+                  <span class="time">06:10</span>
+                  <div class="body"></div>
+                  <span class="vol">80<small> мл</small></span
+                  ><span class="chk"
+                    ><svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                      stroke-linecap="round"
+                    >
+                      <path d="M20 6 9 17l-5-5" /></svg
+                  ></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="row med">
+              <div class="node"><span class="d"></span></div>
+              <div class="fcard done">
+                <div class="fc">
+                  <span class="time">08:50</span>
+                  <div class="body"></div>
+                  <span class="vol">75<small> мл</small></span
+                  ><span class="chk"
+                    ><svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                      stroke-linecap="round"
+                    >
+                      <path d="M20 6 9 17l-5-5" /></svg
+                  ></span>
+                </div>
+                <div class="medline">
+                  <span class="pill">💊 Вигантол</span
+                  ><span class="dose">1 капля · 500 МЕ</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="node"><span class="d"></span></div>
+              <div class="fcard done">
+                <div class="fc">
+                  <span class="time">11:30</span>
+                  <div class="body"></div>
+                  <span class="vol">70<small> мл</small></span
+                  ><span class="chk"
+                    ><svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                      stroke-linecap="round"
+                    >
+                      <path d="M20 6 9 17l-5-5" /></svg
+                  ></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="row sup">
+              <div class="node"><span class="d"></span></div>
+              <div class="fcard done">
+                <div class="fc">
+                  <span class="time">14:05</span>
+                  <div class="body">
+                    <div class="h"><span class="tag sup">докорм</span></div>
+                  </div>
+                  <span class="chk"
+                    ><svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                      stroke-linecap="round"
+                    >
+                      <path d="M20 6 9 17l-5-5" /></svg
+                  ></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="node"><span class="d"></span></div>
+              <div class="fcard done">
+                <div class="fc">
+                  <span class="time">16:40</span>
+                  <div class="body"></div>
+                  <span class="vol">75<small> мл</small></span
+                  ><span class="chk"
+                    ><svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                      stroke-linecap="round"
+                    >
+                      <path d="M20 6 9 17l-5-5" /></svg
+                  ></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="node"><span class="d"></span></div>
+              <div class="fcard done">
+                <div class="fc">
+                  <span class="time">19:20</span>
+                  <div class="body"></div>
+                  <span class="vol">70<small> мл</small></span
+                  ><span class="chk"
+                    ><svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                      stroke-linecap="round"
+                    >
+                      <path d="M20 6 9 17l-5-5" /></svg
+                  ></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="node"><span class="d"></span></div>
+              <div class="fcard done">
+                <div class="fc">
+                  <span class="time">22:00</span>
+                  <div class="body"></div>
+                  <span class="vol">60<small> мл</small></span
+                  ><span class="chk"
+                    ><svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                      stroke-linecap="round"
+                    >
+                      <path d="M20 6 9 17l-5-5" /></svg
+                  ></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bottom-space"></div>
+        </div>
+        <!-- /screen -->
+
+        <!-- dock with «План» tab active -->
+        <div class="dock">
+          <div class="navpill">
+            <div class="t">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M3 11l9-8 9 8" />
+                <path d="M5 10v10h14V10" />
+              </svg>
+            </div>
+            <div class="t on">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="3" y="5" width="18" height="16" rx="3" />
+                <path d="M8 2v4M16 2v4M3 10h18" />
+              </svg>
+            </div>
+            <div class="t">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M3 12h4l2-7 4 14 2-7h4" />
+              </svg>
+            </div>
+            <div class="t">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21a8 8 0 0 1 16 0" />
+              </svg>
+            </div>
+          </div>
+          <button class="fab" title="Дозаписать пропущенное кормление">
+            <svg
+              width="26"
+              height="26"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.6"
+              stroke-linecap="round"
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <!-- /phone -->
+    </div>
+    <!-- /phone-wrap -->
+
+    <div class="notecol">
+      <h4><span class="n">H</span> Прошлый день — экран «План»</h4>
+      <p>
+        Только <b>состоявшиеся</b> кормления за тот день. Нет маркера «сейчас»,
+        нет «следующего», нет будущих и «первого завтра», нет селектора числа
+        кормлений.
+      </p>
+      <h4><span class="n">I</span> Что вместо них</h4>
+      <p>
+        Сверху — <b>итог дня</b> (7 кормлений · 510/600 мл · чуть ниже нормы).
+        Диапазоны-рекомендации <b>убраны</b> — для прошедшего дня они не нужны,
+        важен фактический результат. Тулбар — вкладка «План» активна.
+      </p>
+      <p style="margin-top: 10px; color: #5f7a45; font-weight: 600">
+        4 экрана: сегодня + план (today) и их исторические версии. Дальше — лист
+        фиксации, таймер (>3ч), «первые 2 недели», пустой день.
+      </p>
+    </div>
+
+    <script>
+      /* ===== Active-feeding screen — live timer + controls ===== */
+      (function () {
+        // feeding has no fixed length — the timer just counts up, nothing "fills"
+        var elapsed = 0,
+          running = true,
+          tick = null;
+        var vol = 80,
+          STEP = 5;
+
+        var tMin = document.getElementById("tMin"),
+          tSec = document.getElementById("tSec"),
+          dial = document.getElementById("dial"),
+          pauseBtn = document.getElementById("pauseBtn"),
+          pauseIco = document.getElementById("pauseIco"),
+          finishBtn = document.getElementById("finishBtn"),
+          volN = document.getElementById("volN"),
+          finVol = document.getElementById("finVol");
+
+        var PAUSE_SVG =
+          '<rect x="6" y="5" width="4" height="14" rx="1.3"/><rect x="14" y="5" width="4" height="14" rx="1.3"/>';
+        var PLAY_SVG = '<path d="M8 5v14l11-7z"/>';
+
+        function pad(n) {
+          return (n < 10 ? "0" : "") + n;
+        }
+
+        function renderTime() {
+          tMin.textContent = pad(Math.floor(elapsed / 60));
+          tSec.textContent = pad(elapsed % 60);
+        }
+
+        function loop() {
+          if (!running) return;
+          elapsed++;
+          renderTime();
+        }
+
+        function start() {
+          if (tick) return;
+          tick = setInterval(loop, 1000);
+        }
+        function stop() {
+          clearInterval(tick);
+          tick = null;
+        }
+
+        function setRunning(on) {
+          running = on;
+          if (dial) dial.classList.toggle("paused", !on); // freeze the decorative sweep on pause
+          if (on) {
+            start();
+            pauseIco.innerHTML = PAUSE_SVG;
+            pauseBtn.title = "Пауза";
+          } else {
+            stop();
+            pauseIco.innerHTML = PLAY_SVG;
+            pauseBtn.title = "Продолжить";
+          }
+        }
+
+        function renderVol() {
+          volN.textContent = vol;
+          finVol.textContent = vol;
+        }
+
+        // volume stepper
+        document
+          .getElementById("volMinus")
+          .addEventListener("click", function () {
+            vol = Math.max(0, vol - STEP);
+            renderVol();
+          });
+        document
+          .getElementById("volPlus")
+          .addEventListener("click", function () {
+            vol += STEP;
+            renderVol();
+          });
+
+        // pause / resume
+        pauseBtn.addEventListener("click", function () {
+          setRunning(!running);
+        });
+
+        // finish — freeze the session, surface a quick summary
+        finishBtn.addEventListener("click", function () {
+          setRunning(false);
+          var mm = Math.floor(elapsed / 60);
+          finishBtn.innerHTML =
+            '<span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg></span> Записано · ' +
+            vol +
+            " мл · " +
+            mm +
+            " мин";
+        });
+
+        // med check toggle
+        var medCk = document.getElementById("medCk");
+        if (medCk)
+          medCk.addEventListener("click", function () {
+            this.classList.toggle("on");
+          });
+
+        // start a touch in so the dial isn't empty when you scroll to it
+        elapsed = 192;
+        renderVol();
+        renderTime();
+        setRunning(true);
+      })();
+
+      /* ===== minimised "feeding in progress" bar on Today (экран 6) ===== */
+      (function () {
+        // one shared ticker drives every "session is running" indicator across screens:
+        // the big mini-bar on Today (экран 6) AND the compact header chip on other tabs (План…)
+        var targets = ["miniTime", "chipPlanTime"]
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!targets.length) return;
+        var sec = 192; // seeded at 03:12, like the live session
+        function pad(n) {
+          return (n < 10 ? "0" : "") + n;
+        }
+        function paint() {
+          var s = pad(Math.floor(sec / 60)) + ":" + pad(sec % 60);
+          targets.forEach(function (el) {
+            el.textContent = s;
+          });
+        }
+        paint();
+        setInterval(function () {
+          sec++;
+          paint();
+        }, 1000);
+      })();
+
+      /* ===== План: collapse/expand past feedings so the NEXT one leads ===== */
+      (function () {
+        var btn = document.getElementById("pastToggle"),
+          wrap = document.getElementById("pastWrap");
+        if (!btn || !wrap) return;
+        btn.addEventListener("click", function () {
+          var open = wrap.classList.toggle("open");
+          btn.classList.toggle("open", open);
+          btn.setAttribute("aria-expanded", open ? "true" : "false");
+        });
+      })();
+    </script>
+  </body>
+</html>
