@@ -27,14 +27,18 @@ feedingsPlanRoute.get("/", async (c) => {
     slots: plan.slots.map((s) => ({
       timeISO: s.time.toISOString(),
       volumeMl: s.volumeMl,
+      windowStartISO: s.windowStart.toISOString(),
+      windowEndISO: s.windowEnd.toISOString(),
     })),
     tomorrowSlot: plan.tomorrowSlot
       ? {
           timeISO: plan.tomorrowSlot.time.toISOString(),
           volumeMl: plan.tomorrowSlot.volumeMl,
+          windowStartISO: plan.tomorrowSlot.windowStart.toISOString(),
+          windowEndISO: plan.tomorrowSlot.windowEnd.toISOString(),
         }
       : null,
-    nextFeedingISO: nextFeeding ? nextFeeding.toISOString() : null,
+    nextFeedingISO: nextFeeding ? nextFeeding.time.toISOString() : null,
     guidance,
   };
   return c.json(body);

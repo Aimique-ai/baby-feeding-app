@@ -1,13 +1,9 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import {
-  ToggleGroup,
-  ToggleGroupItem,
-} from "~/components/ui/toggle-group";
 import { Muted } from "~/components/ui/typography";
 import { fmtMl, roundMl } from "~/lib/format/ml";
 import { fmtAge } from "~/lib/format/age";
@@ -45,7 +41,7 @@ import { getBrowserTz } from "~/lib/time/browserTz";
 import { fetchFeedingPlan, listFeedingsByDate } from "~/lib/api/feedings";
 import { listWeights } from "~/lib/api/weights";
 import { listMedications } from "~/lib/api/medications";
-import { getActiveBaby, patchBaby } from "~/lib/api/babies";
+import { getActiveBaby } from "~/lib/api/babies";
 
 type Mode = "live" | "historical";
 
@@ -73,6 +69,11 @@ type TimelineItem =
       id: string;
       time: Date;
       volumeMl: number;
+      // The feeding window [start, end] around the center `time`. The UI shows
+      // the window, not the single minute — a plan slot is an expectation, not
+      // a prescribed moment.
+      windowStart: Date;
+      windowEnd: Date;
       // Neonatal: a "30–60" range instead of a prescriptive number; when
       // present the form prefill is omitted (parent enters the real volume).
       volumeRange?: [number, number];
@@ -181,15 +182,6 @@ export function DayView({
     queryFn: listMedications,
   });
 
-  const qc = useQueryClient();
-  const updatePreferredFeedCount = useMutation({
-    mutationFn: (value: number) =>
-      patchBaby(babyId, { preferredFeedCount: value }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: babyKey(babyId) });
-    },
-  });
-
   const derived = useMemo(() => {
     if (
       !feedingsQ.data ||
@@ -209,7 +201,6 @@ export function DayView({
     const baby = deserializeBaby(babyQ.data);
     const serializedFormula = babyQ.data.formula;
     const weights = weightsQ.data.map(deserializeWeight);
-    const storedPreferredFeedCount = babyQ.data.preferredFeedCount ?? null;
     const plan = planQ.data;
     const guidance = plan.guidance;
     const consumed = plan.consumed;
@@ -240,6 +231,8 @@ export function DayView({
             id: `plan-${i}`,
             time: s.time,
             volumeMl: s.volumeMl,
+            windowStart: s.windowStart,
+            windowEnd: s.windowEnd,
             volumeRange: neonatalRange,
           }))
         : [];
@@ -254,6 +247,8 @@ export function DayView({
         id: "plan-tomorrow",
         time: plan.tomorrowSlot.time,
         volumeMl: plan.tomorrowSlot.volumeMl,
+        windowStart: plan.tomorrowSlot.windowStart,
+        windowEnd: plan.tomorrowSlot.windowEnd,
         volumeRange: neonatalRange,
         isTomorrow: true,
       });
@@ -293,11 +288,6 @@ export function DayView({
         ? { dateISO: nextWeighIn.dateISO, metric: nextWeighIn.metric }
         : null;
 
-    const showPreferredFeedCountBanner =
-      mode === "live" &&
-      storedPreferredFeedCount !== null &&
-      storedPreferredFeedCount !== guidance.feedCount;
-
     // Single-feed sanity check, >14d zone (§7.5): actual MAX volume of one
     // non-top-up feed against 40 ml/kg. The feedings layer has both facts and
     // weight here. Goal: catch input errors ("400 ml in a single bottle").
@@ -325,8 +315,6 @@ export function DayView({
       targetedWeighIn,
       medMap,
       formulaName: serializedFormula?.name ?? null,
-      storedPreferredFeedCount,
-      showPreferredFeedCountBanner,
       oversizedSingleFeed,
     };
 
@@ -377,21 +365,8 @@ export function DayView({
     targetedWeighIn,
     medMap,
     formulaName,
-    storedPreferredFeedCount,
-    showPreferredFeedCountBanner,
     oversizedSingleFeed,
   } = derived;
-
-  const feedCountOptions: number[] = [];
-  for (
-    let n = guidance.feedCountRange[0];
-    n <= guidance.feedCountRange[1];
-    n++
-  ) {
-    feedCountOptions.push(n);
-  }
-  const isDegenerateRange =
-    guidance.feedCountRange[0] === guidance.feedCountRange[1];
 
   const next = nextPlanned(timeline);
 
@@ -421,8 +396,8 @@ export function DayView({
             </div>
             {mode === "live" && next && (
               <Muted>
-                Следующее: {fmtHm(next.time, effectiveTz)} ·{" "}
-                {fmtMl(next.volumeMl)}
+                Окно кормления: ~{fmtHm(next.windowStart, effectiveTz)}–
+                {fmtHm(next.windowEnd, effectiveTz)}
               </Muted>
             )}
             {mode === "historical" && (
@@ -438,31 +413,6 @@ export function DayView({
           </div>
         )}
       </header>
-
-      {showPreferredFeedCountBanner && (
-        <Card className="gap-2 border-warning bg-warning/10 py-3 text-sm text-warning shadow-none">
-          <CardContent className="space-y-2 px-3">
-            <p>
-              Выбранное число кормлений ({storedPreferredFeedCount}) больше не
-              входит в возрастной диапазон [{guidance.feedCountRange[0]}–
-              {guidance.feedCountRange[1]}]. Сейчас применяется{" "}
-              {guidance.feedCount}.
-            </p>
-            {isDegenerateRange && (
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={updatePreferredFeedCount.isPending}
-                onClick={() =>
-                  updatePreferredFeedCount.mutate(guidance.feedCountRange[0])
-                }
-              >
-                Применить {guidance.feedCountRange[0]}
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      )}
 
       {mode === "live" && (
         <Card className="gap-2 border-primary/30 py-3 shadow-none">
@@ -540,34 +490,6 @@ export function DayView({
 
       <FeedingSignalsSheet open={signalsOpen} onOpenChange={setSignalsOpen} />
 
-      {mode === "live" && !isDegenerateRange && (
-        <div className="flex items-center justify-between gap-3">
-          <span className="text-sm text-muted-foreground">
-            План на старт дня
-          </span>
-          <ToggleGroup
-            type="single"
-            variant="outline"
-            value={String(guidance.feedCount)}
-            onValueChange={(v) => {
-              if (v) updatePreferredFeedCount.mutate(Number(v));
-            }}
-            disabled={updatePreferredFeedCount.isPending}
-            aria-label="План на старт дня — число кормлений"
-          >
-            {feedCountOptions.map((n) => (
-              <ToggleGroupItem
-                key={n}
-                value={String(n)}
-                className="tabular-nums"
-              >
-                {n}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-        </div>
-      )}
-
       <ul role="list" className="space-y-1">
         {timeline.map((it) => (
           <li
@@ -606,7 +528,11 @@ export function DayView({
                   ? `${fmtHm(it.time, effectiveTz)} ${
                       it.volumeMl != null ? fmtMl(it.volumeMl) : ""
                     } ${medMap.get(it.medicationId)?.name ?? "(архив)"} ${it.medicationDoseDrops} капель`
-                  : `${fmtHm(it.time, effectiveTz)} ${
+                  : `${
+                      it.kind === "plan"
+                        ? `${fmtHm(it.windowStart, effectiveTz)}–${fmtHm(it.windowEnd, effectiveTz)}`
+                        : fmtHm(it.time, effectiveTz)
+                    } ${
                       it.kind === "fact"
                         ? it.volumeMl != null
                           ? fmtMl(it.volumeMl)
@@ -618,7 +544,9 @@ export function DayView({
               }
             >
               <span className="tabular-nums">
-                {fmtHm(it.time, effectiveTz)}
+                {it.kind === "plan"
+                  ? `~${fmtHm(it.windowStart, effectiveTz)}–${fmtHm(it.windowEnd, effectiveTz)}`
+                  : fmtHm(it.time, effectiveTz)}
               </span>
               <div className="flex flex-col items-end gap-0.5">
                 <span className="text-sm tabular-nums">
@@ -667,14 +595,19 @@ function flagText(f: TargetFlag): string {
 }
 
 function nextPlanned(items: TimelineItem[]): {
-  time: Date;
+  windowStart: Date;
+  windowEnd: Date;
   volumeMl: number;
 } | null {
   const now = Date.now();
   for (const it of items) {
     if (it.time.getTime() <= now) continue;
     if (it.kind === "plan") {
-      return { time: it.time, volumeMl: it.volumeMl };
+      return {
+        windowStart: it.windowStart,
+        windowEnd: it.windowEnd,
+        volumeMl: it.volumeMl,
+      };
     }
   }
   return null;

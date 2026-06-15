@@ -99,9 +99,7 @@ const energyGuidanceSchema = z.object({
   mode: z.literal("energy"),
   dailyMl: z.number(),
   dailyMlRange: range2,
-  mlPerFeed: z.number(),
   mlPerFeedRange: range2,
-  feedCount: z.number(),
   feedCountRange: range2,
   dailyKcal: z.number(),
   aapMl: z.number(),
@@ -114,7 +112,6 @@ const energyGuidanceSchema = z.object({
 const neonatalGuidanceSchema = z.object({
   mode: z.literal("neonatal"),
   perFeedMlRange: range2,
-  feedCount: z.number(),
   feedCountRange: range2,
   flags: z.array(targetFlagSchema),
 });
@@ -127,6 +124,8 @@ const guidanceSchema = z.discriminatedUnion("mode", [
 const planSlotSchema = z.object({
   timeISO: z.iso.datetime(),
   volumeMl: z.number(),
+  windowStartISO: z.iso.datetime(),
+  windowEndISO: z.iso.datetime(),
 });
 
 export const feedingPlanResponseSchema = z.object({
@@ -140,7 +139,12 @@ export const feedingPlanResponseSchema = z.object({
 
 export type FeedingPlanResponse = z.infer<typeof feedingPlanResponseSchema>;
 
-export type DeserializedPlanSlot = { time: Date; volumeMl: number };
+export type DeserializedPlanSlot = {
+  time: Date;
+  volumeMl: number;
+  windowStart: Date;
+  windowEnd: Date;
+};
 
 export type DeserializedFeedingPlan = Omit<
   FeedingPlanResponse,
@@ -161,9 +165,16 @@ export function deserializeFeedingPlan(
     slots: s.slots.map((slot) => ({
       time: new Date(slot.timeISO),
       volumeMl: slot.volumeMl,
+      windowStart: new Date(slot.windowStartISO),
+      windowEnd: new Date(slot.windowEndISO),
     })),
     tomorrowSlot: s.tomorrowSlot
-      ? { time: new Date(s.tomorrowSlot.timeISO), volumeMl: s.tomorrowSlot.volumeMl }
+      ? {
+          time: new Date(s.tomorrowSlot.timeISO),
+          volumeMl: s.tomorrowSlot.volumeMl,
+          windowStart: new Date(s.tomorrowSlot.windowStartISO),
+          windowEnd: new Date(s.tomorrowSlot.windowEndISO),
+        }
       : null,
     nextFeeding: s.nextFeedingISO ? new Date(s.nextFeedingISO) : null,
   };

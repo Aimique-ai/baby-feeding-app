@@ -22,6 +22,7 @@ export type Weight = {
 export type Baby = {
   birthDate: Date;
   birthWeightGrams: number;
+  sex: "male" | "female";
 };
 
 /**
@@ -67,9 +68,7 @@ export type EnergyTarget = {
   mode: "energy";
   dailyMl: number;
   dailyMlRange: [number, number];
-  mlPerFeed: number;
   mlPerFeedRange: [number, number];
-  feedCount: number;
   feedCountRange: [number, number];
   dailyKcal: number;
   /** AAP sanity-check on volume (weight × 165). A second number, easy to hide. */
@@ -85,7 +84,6 @@ export type NeonatalTarget = {
   mode: "neonatal";
   /** Flat range of 30–60 ml per feeding. */
   perFeedMlRange: [number, number];
-  feedCount: number;
   feedCountRange: [number, number];
   // Union narrowed: a neonatal result (0–13d) allows only the 0–7d zone flag —
   // the compiler forbids energy-mode flags (aap/ml_per_kg/density) and the
@@ -95,7 +93,19 @@ export type NeonatalTarget = {
 
 export type FeedingTarget = EnergyTarget | NeonatalTarget;
 
-export type Slot = { time: Date; volumeMl: number };
+/**
+ * A planned feeding. `time` is the rhythm center (tailAnchor + step·i); the
+ * window [windowStart, windowEnd] brackets it with the age interval corridor
+ * (intervalMin..intervalMax). `windowEnd` is the upper interval bound from the
+ * anchor — the moment "too long since the last feed" — and the reminder fires
+ * there. The window is what the UI shows; the single `time` stays the center.
+ */
+export type Slot = {
+  time: Date;
+  volumeMl: number;
+  windowStart: Date;
+  windowEnd: Date;
+};
 
 export type SlotCountReason = "in-corridor" | "squeezed" | "empty";
 

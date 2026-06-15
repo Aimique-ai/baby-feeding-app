@@ -17,7 +17,6 @@ const BabySchema = new Schema(
       ref: "Formula",
       default: null,
     },
-    preferredFeedCount: { type: Number, default: null },
     archivedAt: { type: Date, default: null },
   },
   { timestamps: true },

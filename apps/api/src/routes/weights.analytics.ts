@@ -99,6 +99,7 @@ async function buildFeedingLink(
   const babyPlan = {
     birthDate: new Date(baby.birthDate),
     birthWeightGrams: baby.birthWeightGrams,
+    sex: baby.sex,
   };
   const weightsPlan = weights.map((w) => ({
     date: new Date(w.date),

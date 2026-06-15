@@ -16,8 +16,8 @@ export function intervalCorridors(range: [number, number]): {
 } {
   const [minC, maxC] = range;
   return {
-    intervalMin: 24 / (maxC + 0.5),
-    intervalMax: 24 / (minC - 0.5),
+    intervalMin: 24 / maxC,
+    intervalMax: 24 / minC,
     intervalTarget: 24 / Math.round((minC + maxC) / 2),
   };
 }
@@ -113,9 +113,18 @@ export function placeSlots(args: {
   startOfLayout: Date;
   n: number;
   stepHours: number;
+  intervalMin: number;
+  intervalMax: number;
   portion: PortionArg;
 }): { today: Slot[]; horizonNode: Slot | null } {
-  const { startOfLayout, n, stepHours, portion: portionArg } = args;
+  const {
+    startOfLayout,
+    n,
+    stepHours,
+    intervalMin,
+    intervalMax,
+    portion: portionArg,
+  } = args;
 
   if (n <= 0) return { today: [], horizonNode: null };
 
@@ -130,10 +139,21 @@ export function placeSlots(args: {
         // range (conservative floor), the range is surfaced in the UI separately.
         portionArg.perFeedRange[0];
 
-  const slotAt = (i: number): Slot => ({
-    time: addMilliseconds(startOfLayout, i * stepHours * MS_PER_HOUR),
-    volumeMl: portion,
-  });
+  // The window for slot i is anchored on the previous rhythm node
+  // (startOfLayout + (i-1)·step) plus the age interval corridor: windowStart at
+  // intervalMin, windowEnd at intervalMax. The center stays at +step.
+  const slotAt = (i: number): Slot => {
+    const prevNode = addMilliseconds(
+      startOfLayout,
+      (i - 1) * stepHours * MS_PER_HOUR,
+    );
+    return {
+      time: addMilliseconds(prevNode, stepHours * MS_PER_HOUR),
+      volumeMl: portion,
+      windowStart: addMilliseconds(prevNode, intervalMin * MS_PER_HOUR),
+      windowEnd: addMilliseconds(prevNode, intervalMax * MS_PER_HOUR),
+    };
+  };
 
   const today: Slot[] = [];
   for (let i = 1; i <= n; i++) {
@@ -205,13 +225,27 @@ export function planRemainder(args: PlanRemainderArgs): RemainderPlan {
   const tomorrowVolumeMl =
     args.mode === "energy" ? args.target / range[1] : args.perFeedRange[0];
 
+  // tomorrowSlot window is anchored on tailAnchor + the interval corridor, same
+  // rule as placeSlots (prevNode = tailAnchor): center at intervalTarget,
+  // windowEnd at intervalMax — the upper bound the reminder fires on.
   const projectedTomorrow = addMilliseconds(
     tailAnchor,
     interval.intervalTarget * MS_PER_HOUR,
   );
   const tomorrowSlot: Slot | null =
     localDateISO(projectedTomorrow, tz) !== dateISO
-      ? { time: projectedTomorrow, volumeMl: tomorrowVolumeMl }
+      ? {
+          time: projectedTomorrow,
+          volumeMl: tomorrowVolumeMl,
+          windowStart: addMilliseconds(
+            tailAnchor,
+            interval.intervalMin * MS_PER_HOUR,
+          ),
+          windowEnd: addMilliseconds(
+            tailAnchor,
+            interval.intervalMax * MS_PER_HOUR,
+          ),
+        }
       : null;
 
   if (horizonHours <= 0) {
@@ -247,6 +281,8 @@ export function planRemainder(args: PlanRemainderArgs): RemainderPlan {
     startOfLayout,
     n,
     stepHours,
+    intervalMin: interval.intervalMin,
+    intervalMax: interval.intervalMax,
     portion,
   });
 

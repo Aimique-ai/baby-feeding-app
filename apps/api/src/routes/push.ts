@@ -11,6 +11,7 @@ import { BabyModel } from "../models/baby.js";
 import { PushSubscriptionModel } from "../models/pushSubscription.js";
 import { sendPushToBaby } from "../push/webpush.js";
 import { getReminderQueue } from "../scheduler/queue.js";
+import type { ReminderPayload } from "../scheduler/reschedule.js";
 import type { AppEnv } from "../types.js";
 
 // Device-centric, mounted OUTSIDE babyScoped — no active-baby context here.
@@ -137,9 +138,10 @@ pushRoute.post(
       {
         babyId,
         tz: "UTC",
+        kind: "end",
         targetSlotISO: now.toISOString(),
         test: true,
-      },
+      } satisfies ReminderPayload,
       {
         jobId: `test-${babyId}-${now.getTime()}`,
         delay: delaySec * 1000,

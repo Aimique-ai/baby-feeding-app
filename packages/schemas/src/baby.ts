@@ -21,7 +21,6 @@ export const babySchema = z.object({
     .max(BIRTH_WEIGHT_MAX),
   sex: z.enum(["male", "female"]),
   currentFormulaId,
-  preferredFeedCount: z.number().int().min(1).max(20).nullable().optional(),
 });
 
 export const babyPatchSchema = babySchema.partial();
@@ -36,7 +35,6 @@ export const babyResponseSchema = z.object({
   birthWeightGrams: z.number(),
   sex: z.enum(["male", "female"]),
   currentFormulaId: objectIdString.nullable(),
-  preferredFeedCount: z.number().nullable(),
   archivedAt: z.iso.datetime().nullable(),
 });
 

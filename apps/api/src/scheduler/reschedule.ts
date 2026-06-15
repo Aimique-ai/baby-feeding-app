@@ -3,13 +3,18 @@ import type { Baby } from "@leon/schemas/baby";
 import { buildFeedingPlan } from "../lib/buildFeedingPlan.js";
 import { selectNextReminderSlot } from "../lib/selectNextReminderSlot.js";
 import { getReminderQueue } from "./queue.js";
-import { REMINDER_OFFSET_MIN, jobIdForBaby } from "./constants.js";
+import {
+  REMINDER_LEAD_MIN,
+  jobIdForBaby,
+  type ReminderKind,
+} from "./constants.js";
 
 const MS_PER_MIN = 60_000;
 
 export type ReminderPayload = {
   babyId: string;
   tz: string;
+  kind: ReminderKind;
   targetSlotISO: string;
   // Set by the debug enqueue endpoint to bypass fire-time plan re-validation,
   // so the job always delivers — used to smoke-test the queue→worker→push path.
@@ -19,33 +24,57 @@ export type ReminderPayload = {
 export type NextReminder = { fireAt: Date; targetSlot: Date };
 
 /**
- * The next feeding moment (via the shared plan + selector) and when to fire its
- * reminder. `dateISO` is today-in-tz; `tomorrowSlot` (inside the plan) already
- * covers the overnight rollover, so no separate next-day query is needed.
+ * The next feeding moment (via the shared plan + selector) and when to fire one
+ * edge of its window. "start" fires at `windowStart` (the window has opened —
+ * watch for hunger cues); "end" fires at `windowEnd` (the safety net — too long
+ * since the last feed). Either way, if the baby feeds within the window a
+ * reschedule moves the slot and the reminder never fires ("silence = success").
+ * `dateISO` is today-in-tz; `tomorrowSlot` (inside the plan) already covers the
+ * overnight rollover, so no separate next-day query is needed. `targetSlot` in
+ * the result is the center (for the worker's drift check + display).
  */
 export async function computeNextReminderForBaby(
   baby: Baby,
   tz: string,
+  kind: ReminderKind,
   now: Date = new Date(),
 ): Promise<NextReminder | null> {
   const dateISO = localDateISO(now, tz);
   const { result } = await buildFeedingPlan(baby, dateISO, tz);
-  const targetSlot = selectNextReminderSlot(result.plan, now);
-  if (!targetSlot) return null;
-  const fireAt = new Date(targetSlot.getTime() - REMINDER_OFFSET_MIN * MS_PER_MIN);
-  return { fireAt, targetSlot };
+  const slot = selectNextReminderSlot(result.plan, now);
+  if (!slot) return null;
+  const edge = kind === "start" ? slot.windowStart : slot.windowEnd;
+  const fireAt = new Date(edge.getTime() - REMINDER_LEAD_MIN * MS_PER_MIN);
+  return { fireAt, targetSlot: slot.time };
 }
 
 /**
- * Idempotent, eventually-consistent reschedule for one baby. Deterministic
- * jobId keyed on baby. Prefers changeDelay on an existing delayed job (single
- * op, no race window); falls back to remove-then-add. If there's no future
- * reminder, the job is removed. Replace is NOT atomic across concurrent CRUD —
- * worst case is one mistimed/lost reminder, self-healed on the next event.
+ * Reschedule both window-edge reminders ("start" + "end") for one baby. The two
+ * are independent jobs, so a failure on one never blocks the other.
+ */
+export async function rescheduleRemindersForBaby(
+  baby: Baby,
+  tz: string,
+  now: Date = new Date(),
+): Promise<void> {
+  await Promise.all([
+    rescheduleReminderForBaby(baby, tz, "start", now),
+    rescheduleReminderForBaby(baby, tz, "end", now),
+  ]);
+}
+
+/**
+ * Idempotent, eventually-consistent reschedule of one window-edge reminder for
+ * one baby. Deterministic jobId keyed on (baby, kind). Prefers changeDelay on an
+ * existing delayed job (single op, no race window); falls back to
+ * remove-then-add. If there's no future reminder, the job is removed. Replace is
+ * NOT atomic across concurrent CRUD — worst case is one mistimed/lost reminder,
+ * self-healed on the next event.
  */
 export async function rescheduleReminderForBaby(
   baby: Baby,
   tz: string,
+  kind: ReminderKind,
   now: Date = new Date(),
 ): Promise<void> {
   const queue = getReminderQueue();
@@ -54,9 +83,9 @@ export async function rescheduleReminderForBaby(
     return;
   }
   const babyId = baby._id;
-  const jobId = jobIdForBaby(babyId);
+  const jobId = jobIdForBaby(babyId, kind);
 
-  const next = await computeNextReminderForBaby(baby, tz, now);
+  const next = await computeNextReminderForBaby(baby, tz, kind, now);
   if (!next || next.fireAt.getTime() <= now.getTime()) {
     // Nothing to remind about (or it's already due) — clear any stale job.
     await queue.remove(jobId).catch(() => {});
@@ -67,6 +96,7 @@ export async function rescheduleReminderForBaby(
   const payload: ReminderPayload = {
     babyId,
     tz,
+    kind,
     targetSlotISO: next.targetSlot.toISOString(),
   };
 

@@ -98,6 +98,7 @@ historyRoute.get("/", async (c) => {
     const babyPlan = {
       birthDate: babyBirthDate,
       birthWeightGrams: baby.birthWeightGrams,
+      sex: baby.sex,
     };
     const mode = resolveMode(dateISO, babyPlan, weightsPlan, tz);
     const target = computeTarget(

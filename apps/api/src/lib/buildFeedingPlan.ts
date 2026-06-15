@@ -66,11 +66,10 @@ export async function buildFeedingPlan(
 
   const guidance = computeFeedingGuidance(
     dateISO,
-    { birthDate, birthWeightGrams: baby.birthWeightGrams },
+    { birthDate, birthWeightGrams: baby.birthWeightGrams, sex: baby.sex },
     weights,
     tz,
     formulaDensity,
-    baby.preferredFeedCount ?? null,
   );
 
   const result =

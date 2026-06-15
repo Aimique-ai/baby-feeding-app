@@ -107,7 +107,7 @@ export function computeTarget(
     return null;
   }
 
-  const kcalKg = targetKcalPerKg(ageMonthsFromDays(ageDays));
+  const kcalKg = targetKcalPerKg(ageMonthsFromDays(ageDays), baby.sex);
   const dailyKcal = weightKg * kcalKg;
   const kcalPer100ml = safeKcalPer100ml(formula.kcalPer100ml);
   const dailyMl = dailyKcal / (kcalPer100ml / 100);
@@ -129,7 +129,6 @@ export function computeFeedingGuidance(
   weights: Weight[],
   tz: string,
   formula: FormulaDensity,
-  preferredFeedCount: number | null = null,
 ): FeedingTarget {
   const { ageDays, weightKg, mode } = resolveDayContext(
     dateISO,
@@ -139,11 +138,6 @@ export function computeFeedingGuidance(
   );
 
   const range = feedCountRange(ageDays);
-  const center = Math.round((range[0] + range[1]) / 2);
-  const feedCount =
-    preferredFeedCount === null
-      ? center
-      : Math.min(range[1], Math.max(range[0], preferredFeedCount));
 
   if (mode === "neonatal") {
     const perFeedMlRange = neonatalPerFeedRange();
@@ -165,7 +159,6 @@ export function computeFeedingGuidance(
     return {
       mode: "neonatal",
       perFeedMlRange,
-      feedCount,
       feedCountRange: range,
       flags,
     };
@@ -186,7 +179,6 @@ export function computeFeedingGuidance(
     round5(dailyMl / range[1]),
     round5(dailyMl / range[0]),
   ];
-  const mlPerFeed = round5(dailyMl / feedCount);
 
   const proteinDensity = normalizeProteinDensity(formula.proteinGPer100kcal);
   let protein: ProteinInfo = null;
@@ -238,9 +230,7 @@ export function computeFeedingGuidance(
     mode: "energy",
     dailyMl,
     dailyMlRange,
-    mlPerFeed,
     mlPerFeedRange,
-    feedCount,
     feedCountRange: range,
     dailyKcal,
     aapMl,

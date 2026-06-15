@@ -7,7 +7,7 @@ import { dbConnect } from "../db/mongo.js";
 import { FeedingModel } from "../models/feeding.js";
 import { MedicationModel } from "../models/medication.js";
 import { serializeFeeding } from "../lib/serializeFeeding.js";
-import { rescheduleReminderForBaby } from "../scheduler/reschedule.js";
+import { rescheduleRemindersForBaby } from "../scheduler/reschedule.js";
 import type { Baby } from "@leon/schemas/baby";
 import type { AppEnv } from "../types.js";
 
@@ -19,7 +19,7 @@ export const feedingsRoute = new Hono<AppEnv>();
 // Redis down or the WRONG RUNTIME (Vercel has no worker/Redis); see Risk 1.
 async function safeReschedule(baby: Baby, tz: string): Promise<void> {
   try {
-    await rescheduleReminderForBaby(baby, tz);
+    await rescheduleRemindersForBaby(baby, tz);
   } catch (err) {
     console.error(
       "[reminders] reschedule failed — Redis down or WRONG RUNTIME (Vercel?)",

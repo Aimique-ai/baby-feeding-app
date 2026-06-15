@@ -18,7 +18,7 @@ const MS_PER_MIN = 60_000;
 export async function processReminder(
   job: Job<ReminderPayload>,
 ): Promise<void> {
-  const { babyId, tz, targetSlotISO, test } = job.data;
+  const { babyId, tz, kind, targetSlotISO, test } = job.data;
   const now = new Date();
 
   await dbConnect();
@@ -48,14 +48,20 @@ export async function processReminder(
   const { result } = await buildFeedingPlan(baby, dateISO, tz);
   const selected = selectNextReminderSlot(result.plan, now);
 
+  // Re-validate against the freshly-computed plan. Drift on the CENTER detects
+  // "baby was fed within the window" — a feed moves the plan so the next slot's
+  // center diverges from the stored target by > TOLERANCE_MIN. The past-guard is
+  // on windowEnd (NOT the fire instant) for BOTH kinds: once the window is over
+  // the "end" reminder owns the moment, so a late-running "start" worker that
+  // missed windowStart is simply expired rather than firing a stale "open" nudge.
   const target = new Date(targetSlotISO);
   const driftMin = selected
-    ? Math.abs(selected.getTime() - target.getTime()) / MS_PER_MIN
+    ? Math.abs(selected.time.getTime() - target.getTime()) / MS_PER_MIN
     : Infinity;
-  const stale =
-    !selected ||
-    driftMin > TOLERANCE_MIN ||
-    selected.getTime() <= now.getTime();
+  const expired =
+    !!selected &&
+    selected.windowEnd.getTime() <= now.getTime() - TOLERANCE_MIN * MS_PER_MIN;
+  const stale = !selected || driftMin > TOLERANCE_MIN || expired;
 
   if (stale) {
     console.log(
@@ -63,23 +69,32 @@ export async function processReminder(
         JSON.stringify({
           jobId: job.id,
           babyId,
+          kind,
           targetSlotISO,
-          selectedSlotISO: selected ? selected.toISOString() : null,
-          reason: !selected
-            ? "no-slot"
-            : selected.getTime() <= now.getTime()
-              ? "past"
-              : "drift",
+          selectedSlotISO: selected ? selected.time.toISOString() : null,
+          reason: !selected ? "no-slot" : expired ? "expired" : "drift",
         }),
     );
     return;
   }
 
+  const push =
+    kind === "start"
+      ? {
+          title: `${baby.name}: приближается время кормления`,
+          body: "Можно присмотреться к сигналам голода — жёсткого расписания нет, ориентируйтесь на ребёнка",
+        }
+      : {
+          title: `${baby.name} давно не ел`,
+          body: "Проверьте признаки голода — возможно, пора предложить бутылочку",
+        };
+
   await sendPushToBaby(babyId, {
-    title: "Пора кормить",
-    body: `${baby.name}: пора кормить`,
+    ...push,
     babyId,
     url: `/?baby=${babyId}`,
   });
-  console.log(`[reminders] sent ${JSON.stringify({ jobId: job.id, babyId })}`);
+  console.log(
+    `[reminders] sent ${JSON.stringify({ jobId: job.id, babyId, kind })}`,
+  );
 }

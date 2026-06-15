@@ -30,7 +30,8 @@
     "recharts": "3.8.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.5.0",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "isbot": "^5"
   },
   "devDependencies": {
     "@leon/eslint-config": "workspace:*",
