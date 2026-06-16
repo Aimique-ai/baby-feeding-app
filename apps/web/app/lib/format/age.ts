@@ -14,11 +14,12 @@ export function fmtAge(birthDate: Date, viewDay: Date, tz: string): string {
   const months = differenceInMonths(view, birth);
 
   if (months < 1) {
-    const days = differenceInCalendarDays(view, birth) + 1;
+    const days = differenceInCalendarDays(view, birth);
+    if (days === 0) return "0 дней";
     return formatDuration({ days }, { locale: ru, format: ["days"] });
   }
 
-  const days = differenceInCalendarDays(view, addMonths(birth, months)) + 1;
+  const days = differenceInCalendarDays(view, addMonths(birth, months));
   return formatDuration(
     { months, days },
     { locale: ru, format: ["months", "days"] },

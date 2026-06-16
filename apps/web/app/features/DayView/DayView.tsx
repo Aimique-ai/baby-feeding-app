@@ -248,7 +248,7 @@ export function DayView({
     // Single-feed sanity check, >14d zone (§7.5): actual MAX volume of one
     // non-top-up feed against 40 ml/kg. The feedings layer has both facts and
     // weight here. Goal: catch input errors ("400 ml in a single bottle").
-    const ageDays = dol - 1;
+    const ageDays = dol;
     const weightKg = currentWeight / 1000;
     const maxSingleFeedMl = facts.reduce(
       (mx, f) =>

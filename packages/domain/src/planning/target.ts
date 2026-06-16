@@ -56,8 +56,7 @@ function resolveDayContext(
   tz: string,
 ): DayContext {
   const dayStart = startOfLocalDay(dateISO, tz);
-  const n = dayOfLife(baby.birthDate, dayStart, tz);
-  const ageDays = n - 1;
+  const ageDays = dayOfLife(baby.birthDate, dayStart, tz);
 
   const eligible = weights.filter(
     (w) => w.date.getTime() <= dayStart.getTime(),

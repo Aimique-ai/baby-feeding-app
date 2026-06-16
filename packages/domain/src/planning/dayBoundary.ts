@@ -36,5 +36,5 @@ export function isBirthday(
 export function dayOfLife(birthDate: Date, today: Date, tz: string): number {
   const birthLocal = toZonedTime(birthDate, tz);
   const todayLocal = toZonedTime(today, tz);
-  return differenceInCalendarDays(todayLocal, birthLocal) + 1;
+  return differenceInCalendarDays(todayLocal, birthLocal);
 }
