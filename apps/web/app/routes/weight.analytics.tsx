@@ -1,6 +1,5 @@
 import { Navigate, useLoaderData } from "react-router";
 import { WeightAnalytics } from "~/features/WeightAnalytics";
-import { WeightTabs } from "~/features/WeightTabs";
 import { ensureActiveBabyId } from "~/lib/baby/ensureActive";
 import { getBrowserTz } from "~/lib/time/browserTz";
 
@@ -21,10 +20,7 @@ export default function WeightAnalyticsPage() {
   if (!babyId) return <Navigate to="/babies" replace />;
   return (
     <div className="mx-auto max-w-screen-sm px-4 py-4">
-      <WeightTabs />
-      <div className="mt-4">
-        <WeightAnalytics babyId={babyId} tz={tz} />
-      </div>
+      <WeightAnalytics babyId={babyId} tz={tz} />
     </div>
   );
 }

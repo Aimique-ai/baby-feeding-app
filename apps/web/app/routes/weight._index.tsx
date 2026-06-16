@@ -1,7 +1,6 @@
 import { Navigate, useLoaderData } from "react-router";
 import { http } from "~/lib/http/client";
 import { WeightList } from "~/features/WeightList";
-import { WeightTabs } from "~/features/WeightTabs";
 import type { Baby } from "@leon/schemas/baby";
 import { ensureActiveBabyId } from "~/lib/baby/ensureActive";
 import { getBrowserTz } from "~/lib/time/browserTz";
@@ -31,10 +30,7 @@ export default function WeightPage() {
   if (!babyId || !birthDate) return <Navigate to="/babies" replace />;
   return (
     <div className="mx-auto max-w-screen-sm px-4 py-4">
-      <WeightTabs />
-      <div className="mt-4">
-        <WeightList tz={tz} babyId={babyId} birthDate={birthDate} />
-      </div>
+      <WeightList tz={tz} babyId={babyId} birthDate={birthDate} />
     </div>
   );
 }

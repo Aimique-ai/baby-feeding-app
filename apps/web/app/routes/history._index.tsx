@@ -1,5 +1,4 @@
 import { HistoryList } from "~/features/HistoryList";
-import { HistoryTabs } from "~/features/HistoryTabs";
 import { getBrowserTz } from "~/lib/time/browserTz";
 
 export function meta() {
@@ -10,7 +9,6 @@ export default function HistoryPage() {
   const tz = getBrowserTz();
   return (
     <div className="mx-auto max-w-screen-sm px-4 py-4">
-      <HistoryTabs />
       <HistoryList tz={tz} />
     </div>
   );
