@@ -36,7 +36,11 @@ import {
   localDateISO,
   startOfLocalDay,
 } from "@leon/domain/planning/dayBoundary";
-import { nextTargetWeighIn } from "@leon/domain/who";
+import {
+  nextTargetWeighIn,
+  weeklyWeighInDue,
+  weeksLabelRu,
+} from "@leon/domain/who";
 import { WeighInBanner } from "~/features/WeighInBanner";
 import { getBrowserTz } from "~/lib/time/browserTz";
 import { fetchFeedingPlan, listFeedingsByDate } from "~/lib/api/feedings";
@@ -213,6 +217,11 @@ export function DayView({
 
     const dol = dayOfLife(baby.birthDate, dayStart, effectiveTz);
     const ageLabel = fmtAge(baby.birthDate, dayStart, effectiveTz);
+    // Full weeks, only while it's still a meaningful unit (< ~3 months); after
+    // that the age label's months/days carries it.
+    const fullWeeks = Math.floor(dol / 7);
+    const weeksLabel =
+      dol < 7 * 13 && fullWeeks >= 1 ? weeksLabelRu(fullWeeks) : null;
     const eligibleWeights = weights.filter(
       (w) => w.date.getTime() <= dayStart.getTime(),
     );
@@ -224,12 +233,6 @@ export function DayView({
     const currentWeight = latestWeight
       ? latestWeight.weightGrams
       : baby.birthWeightGrams;
-    const daysSinceLastWeight = latestWeight
-      ? Math.floor(
-          (dayStart.getTime() - latestWeight.date.getTime()) /
-            (24 * 3600 * 1000),
-        )
-      : 0;
 
     // Targeted reminder: ~2–3 days before the nearest uncovered WHO interval
     // boundary, name the metric that this weigh-in would unlock.
@@ -244,6 +247,12 @@ export function DayView({
       nextWeighIn !== null && upcomingWindow.includes(nextWeighIn.dateISO)
         ? { dateISO: nextWeighIn.dateISO, metric: nextWeighIn.metric }
         : null;
+    // Soft weekly cadence on the fixed birthday grid (day 7, 14, 21…).
+    const weeklyWeighIn = weeklyWeighInDue(
+      baby.birthDate,
+      dayStart,
+      effectiveTz,
+    );
 
     // Single-feed sanity check, >14d zone (§7.5): actual MAX volume of one
     // non-top-up feed against 40 ml/kg. The feedings layer has both facts and
@@ -268,8 +277,9 @@ export function DayView({
       nextFeeding,
       dol,
       ageLabel,
+      weeksLabel,
       currentWeightGrams: currentWeight,
-      daysSinceLastWeight,
+      weeklyWeighIn,
       targetedWeighIn,
       medMap,
       formulaName: serializedFormula?.name ?? null,
@@ -319,8 +329,9 @@ export function DayView({
     timeline,
     nextFeeding,
     ageLabel,
+    weeksLabel,
     currentWeightGrams,
-    daysSinceLastWeight,
+    weeklyWeighIn,
     targetedWeighIn,
     medMap,
     formulaName,
@@ -335,14 +346,15 @@ export function DayView({
       {mode === "live" && (
         <WeighInBanner
           dateISO={dateISO}
-          daysSinceLastWeight={daysSinceLastWeight}
+          weeklyWeighIn={weeklyWeighIn}
           targetedWeighIn={targetedWeighIn}
         />
       )}
       <header className="space-y-2">
         <DayNav dateISO={dateISO} tz={effectiveTz} />
         <div className="text-center text-xs text-muted-foreground tabular-nums">
-          {ageLabel} · {currentWeightGrams} г ·{" "}
+          {ageLabel}
+          {weeksLabel ? ` (${weeksLabel})` : ""} · {currentWeightGrams} г ·{" "}
           {formulaName ?? "смесь не выбрана"}
         </div>
 

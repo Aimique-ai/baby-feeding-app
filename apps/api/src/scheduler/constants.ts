@@ -22,3 +22,17 @@ export type ReminderKind = "start" | "end";
 export function jobIdForBaby(babyId: string, kind: ReminderKind): string {
   return `reminder-${kind}-${babyId}`;
 }
+
+// Weigh-in reminders are calendar-based (no feeding-style mutation to trigger a
+// reschedule), so a single repeatable job sweeps all push subscriptions on a
+// fixed hourly cadence. The sweep fires a baby's nudge on the FIRST tick where
+// the subscription's local hour is >= WEIGH_IN_MIN_HOUR_LOCAL (a lower bound,
+// not an exact hour) and the nudge hasn't been logged for the day. Lower-bound,
+// not equality, so a user who subscribes after noon still gets today's nudge.
+export const WEIGH_IN_SWEEP_JOB = "weigh-in-sweep";
+export const WEIGH_IN_SWEEP_SCHEDULER = "weigh-in-sweep-scheduler";
+export const WEIGH_IN_MIN_HOUR_LOCAL = 12;
+
+// Same near-window the UI banner uses: surface a targeted WHO boundary from the
+// day it lands through 3 days after.
+export const WEIGH_IN_TARGET_WINDOW_DAYS = 3;

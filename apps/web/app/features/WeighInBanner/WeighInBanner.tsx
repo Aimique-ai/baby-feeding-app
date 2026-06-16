@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
-import type { WeighInMetric } from "@leon/domain/who";
+import { weeksLabelRu, type WeighInMetric } from "@leon/domain/who";
 
 type TargetedWeighIn = {
   dateISO: string;
@@ -10,13 +10,11 @@ type TargetedWeighIn = {
 type Props = {
   /** ISO date of "today" in local TZ; used as the localStorage dismissal key. */
   dateISO: string;
-  daysSinceLastWeight: number;
+  /** Completed weeks of age when today is an exact weekly birthday, else null. */
+  weeklyWeighIn?: { weeks: number } | null;
   /** Nearest WHO interval boundary within ~3 days (or null). */
   targetedWeighIn?: TargetedWeighIn | null;
 };
-
-// Soft cadence for 1–6 months: about once a week; don't nudge more often.
-const SOFT_CADENCE_DAYS = 7;
 
 const METRIC_LABEL: Record<WeighInMetric, string> = {
   "early-velocity": "ранний темп набора",
@@ -30,7 +28,7 @@ function fmtDate(dateISO: string): string {
 
 export function WeighInBanner({
   dateISO,
-  daysSinceLastWeight,
+  weeklyWeighIn,
   targetedWeighIn,
 }: Props) {
   const storageKey = `weigh-banner-dismissed:${dateISO}`;
@@ -48,8 +46,8 @@ export function WeighInBanner({
   // Targeted reminder takes priority: a weigh-in is needed for a specific metric.
   const message = targetedWeighIn
     ? `Взвесь ребёнка в ближайшие дни (к ~${fmtDate(targetedWeighIn.dateISO)}), чтобы рассчитать ${METRIC_LABEL[targetedWeighIn.metric]}.`
-    : daysSinceLastWeight >= SOFT_CADENCE_DAYS
-      ? `Полезно взвешивать примерно раз в неделю — последнее взвешивание ${daysSinceLastWeight} дн. назад.`
+    : weeklyWeighIn
+      ? `Ребёнку ровно ${weeksLabelRu(weeklyWeighIn.weeks)} — хорошее время взвесить.`
       : null;
 
   if (!message) return null;
