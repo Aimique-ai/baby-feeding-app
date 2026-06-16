@@ -94,33 +94,15 @@ export type NeonatalTarget = {
 export type FeedingTarget = EnergyTarget | NeonatalTarget;
 
 /**
- * A planned feeding. `time` is the rhythm center (tailAnchor + step·i); the
- * window [windowStart, windowEnd] brackets it with the age interval corridor
- * (intervalMin..intervalMax). `windowEnd` is the upper interval bound from the
- * anchor — the moment "too long since the last feed" — and the reminder fires
- * there. The window is what the UI shows; the single `time` stays the center.
+ * The single next-feeding window. `time` is the rhythm center (last full feeding
+ * + intervalTarget·h); [windowStart, windowEnd] brackets it with the age
+ * interval corridor (intervalMin..intervalMax), always widened so the span is at
+ * least center ± WINDOW_MIN_HALF_MIN. `windowEnd` is the "too long since the last
+ * feed" edge the "end" reminder fires on.
  */
-export type Slot = {
+export type FeedingWindow = {
   time: Date;
   volumeMl: number;
   windowStart: Date;
   windowEnd: Date;
-};
-
-export type SlotCountReason = "in-corridor" | "squeezed" | "empty";
-
-export type SlotCountSolution = {
-  n: number;
-  stepHours: number;
-  reason: SlotCountReason;
-};
-
-export type RemainderPlan = {
-  n: number;
-  reason: SlotCountReason;
-  stepHours: number;
-  horizonHours: number;
-  slotVolumeMl: number;
-  slots: Slot[];
-  tomorrowSlot: Slot | null;
 };

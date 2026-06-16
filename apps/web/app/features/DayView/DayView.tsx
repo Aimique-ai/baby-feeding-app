@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Skeleton } from "~/components/ui/skeleton";
 import { Muted } from "~/components/ui/typography";
 import { fmtMl, roundMl } from "~/lib/format/ml";
 import { fmtAge } from "~/lib/format/age";
@@ -54,31 +55,15 @@ type Props = {
   onEditFeeding?: (feedingId: string) => void;
 };
 
-type TimelineItem =
-  | {
-      kind: "fact";
-      id: string;
-      time: Date;
-      volumeMl: number | null;
-      isTopUp: boolean;
-      medicationId: string | null;
-      medicationDoseDrops: number | null;
-    }
-  | {
-      kind: "plan";
-      id: string;
-      time: Date;
-      volumeMl: number;
-      // The feeding window [start, end] around the center `time`. The UI shows
-      // the window, not the single minute — a plan slot is an expectation, not
-      // a prescribed moment.
-      windowStart: Date;
-      windowEnd: Date;
-      // Neonatal: a "30–60" range instead of a prescriptive number; when
-      // present the form prefill is omitted (parent enters the real volume).
-      volumeRange?: [number, number];
-      isTomorrow?: boolean;
-    };
+type TimelineItem = {
+  kind: "fact";
+  id: string;
+  time: Date;
+  volumeMl: number | null;
+  isTopUp: boolean;
+  medicationId: string | null;
+  medicationDoseDrops: number | null;
+};
 
 function DayNav({ dateISO, tz }: { dateISO: string; tz: string }) {
   const todayISO = localDateISO(new Date(), tz);
@@ -218,41 +203,13 @@ export function DayView({
         medicationDoseDrops: raw?.medicationDoseDrops ?? null,
       };
     });
-    // A neonatal slot carries the 30–60 range, not a prescriptive number.
-    const neonatalRange: [number, number] | undefined =
-      guidance.mode === "neonatal" ? guidance.perFeedMlRange : undefined;
-
-    // Plan slots only for the current day. A past day has no "future" feeds:
-    // history shows facts only.
-    const planView: TimelineItem[] =
-      mode === "live"
-        ? plan.slots.map((s, i) => ({
-            kind: "plan",
-            id: `plan-${i}`,
-            time: s.time,
-            volumeMl: s.volumeMl,
-            windowStart: s.windowStart,
-            windowEnd: s.windowEnd,
-            volumeRange: neonatalRange,
-          }))
-        : [];
-
-    const timeline: TimelineItem[] = [...factsView, ...planView].sort(
+    const timeline: TimelineItem[] = [...factsView].sort(
       (a, b) => a.time.getTime() - b.time.getTime(),
     );
 
-    if (mode === "live" && plan.tomorrowSlot) {
-      timeline.push({
-        kind: "plan",
-        id: "plan-tomorrow",
-        time: plan.tomorrowSlot.time,
-        volumeMl: plan.tomorrowSlot.volumeMl,
-        windowStart: plan.tomorrowSlot.windowStart,
-        windowEnd: plan.tomorrowSlot.windowEnd,
-        volumeRange: neonatalRange,
-        isTomorrow: true,
-      });
-    }
+    // The single next-feeding window — a PREDICTION of when the baby may be
+    // hungry again, not a deadline. Live mode only; shown as-is even when past.
+    const nextFeeding = mode === "live" ? plan.nextFeeding : null;
 
     const dol = dayOfLife(baby.birthDate, dayStart, effectiveTz);
     const ageLabel = fmtAge(baby.birthDate, dayStart, effectiveTz);
@@ -308,6 +265,7 @@ export function DayView({
     const shared = {
       consumed,
       timeline,
+      nextFeeding,
       dol,
       ageLabel,
       currentWeightGrams: currentWeight,
@@ -352,13 +310,14 @@ export function DayView({
   ]);
 
   if (!derived) {
-    return <div className="p-4 text-sm text-muted-foreground">Загрузка…</div>;
+    return <DayViewSkeleton mode={mode} dateISO={dateISO} tz={effectiveTz} />;
   }
 
   const {
     guidance,
     consumed,
     timeline,
+    nextFeeding,
     ageLabel,
     currentWeightGrams,
     daysSinceLastWeight,
@@ -368,7 +327,8 @@ export function DayView({
     oversizedSingleFeed,
   } = derived;
 
-  const next = nextPlanned(timeline);
+  const neonatalRange =
+    derived.kind === "neonatal" ? derived.perFeedRange : null;
 
   return (
     <div className="mx-auto max-w-screen-sm px-4 py-4 space-y-6">
@@ -394,12 +354,6 @@ export function DayView({
                 съедено · ориентир ≈{fmtMl(derived.target)}
               </div>
             </div>
-            {mode === "live" && next && (
-              <Muted>
-                Окно кормления: ~{fmtHm(next.windowStart, effectiveTz)}–
-                {fmtHm(next.windowEnd, effectiveTz)}
-              </Muted>
-            )}
             {mode === "historical" && (
               <p className={"text-sm " + derived.historicalStatus.className}>
                 {derived.historicalStatus.text}
@@ -490,76 +444,68 @@ export function DayView({
 
       <FeedingSignalsSheet open={signalsOpen} onOpenChange={setSignalsOpen} />
 
+      {mode === "live" && nextFeeding && (
+        <button
+          type="button"
+          onClick={() => {
+            if (neonatalRange) {
+              // Neonatal: no prescriptive prefill — parent enters it themselves.
+              onAddFeeding?.({ time: nextFeeding.time });
+            } else {
+              onAddFeeding?.({
+                time: nextFeeding.time,
+                volumeMl: roundMl(nextFeeding.volumeMl),
+              });
+            }
+          }}
+          className="group flex w-full items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 text-left transition-colors hover:bg-primary/10 dark:bg-primary/10 dark:hover:bg-primary/15"
+          aria-label={`Следующее кормление, окно ${fmtHm(nextFeeding.windowStart, effectiveTz)}–${fmtHm(nextFeeding.windowEnd, effectiveTz)}`}
+        >
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+            <Clock className="size-5" aria-hidden />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Следующее кормление
+            </span>
+            <span className="block text-lg font-semibold leading-tight tabular-nums">
+              ~{fmtHm(nextFeeding.windowStart, effectiveTz)}–
+              {fmtHm(nextFeeding.windowEnd, effectiveTz)}
+            </span>
+          </span>
+          <ArrowUpRight
+            className="size-5 shrink-0 text-primary transition-transform group-hover:translate-x-px group-hover:-translate-y-px"
+            aria-hidden
+          />
+        </button>
+      )}
+
       <ul role="list" className="space-y-1">
         {timeline.map((it) => (
-          <li
-            key={
-              it.kind === "fact"
-                ? `fact-${it.id}`
-                : `plan-${it.time.toISOString()}`
-            }
-            role="listitem"
-          >
+          <li key={`fact-${it.id}`} role="listitem">
             <Button
               variant="outline"
-              onClick={() => {
-                if (it.kind === "fact") {
-                  onEditFeeding?.(it.id);
-                } else if (it.volumeRange) {
-                  // Neonatal: no prescriptive prefill — parent enters it themselves.
-                  onAddFeeding?.({ time: it.time });
-                } else {
-                  onAddFeeding?.({
-                    time: it.time,
-                    volumeMl: roundMl(it.volumeMl),
-                  });
-                }
-              }}
-              className={
-                "h-auto min-h-[44px] w-full items-start justify-between px-3 py-2 text-left font-normal " +
-                (it.kind === "fact"
-                  ? "border-solid border-foreground/20 bg-background dark:bg-background"
-                  : it.isTomorrow
-                    ? "border-solid border-primary bg-primary/5 text-foreground dark:bg-primary/10"
-                    : "border-dashed border-muted-foreground/40 bg-transparent text-muted-foreground dark:bg-transparent")
-              }
+              onClick={() => onEditFeeding?.(it.id)}
+              className="h-auto min-h-[44px] w-full items-start justify-between border-solid border-foreground/20 bg-background px-3 py-2 text-left font-normal dark:bg-background"
               aria-label={
-                it.kind === "fact" && it.medicationId
+                it.medicationId
                   ? `${fmtHm(it.time, effectiveTz)} ${
                       it.volumeMl != null ? fmtMl(it.volumeMl) : ""
                     } ${medMap.get(it.medicationId)?.name ?? "(архив)"} ${it.medicationDoseDrops} капель`
-                  : `${
-                      it.kind === "plan"
-                        ? `${fmtHm(it.windowStart, effectiveTz)}–${fmtHm(it.windowEnd, effectiveTz)}`
-                        : fmtHm(it.time, effectiveTz)
-                    } ${
-                      it.kind === "fact"
-                        ? it.volumeMl != null
-                          ? fmtMl(it.volumeMl)
-                          : ""
-                        : it.volumeRange
-                          ? `${it.volumeRange[0]}–${it.volumeRange[1]} мл`
-                          : fmtMl(it.volumeMl)
+                  : `${fmtHm(it.time, effectiveTz)} ${
+                      it.volumeMl != null ? fmtMl(it.volumeMl) : ""
                     }`
               }
             >
               <span className="tabular-nums">
-                {it.kind === "plan"
-                  ? `~${fmtHm(it.windowStart, effectiveTz)}–${fmtHm(it.windowEnd, effectiveTz)}`
-                  : fmtHm(it.time, effectiveTz)}
+                {fmtHm(it.time, effectiveTz)}
               </span>
               <div className="flex flex-col items-end gap-0.5">
                 <span className="text-sm tabular-nums">
-                  {it.kind === "fact"
-                    ? it.volumeMl != null
-                      ? fmtMl(it.volumeMl)
-                      : "по режиму"
-                    : it.volumeRange
-                      ? `${it.volumeRange[0]}–${it.volumeRange[1]} мл`
-                      : fmtMl(it.volumeMl)}
-                  {it.kind === "fact" && it.isTopUp ? " · докорм" : ""}
+                  {it.volumeMl != null ? fmtMl(it.volumeMl) : "по режиму"}
+                  {it.isTopUp ? " · докорм" : ""}
                 </span>
-                {it.kind === "fact" && it.medicationId && (
+                {it.medicationId && (
                   <span className="text-xs text-muted-foreground">
                     {medMap.get(it.medicationId)?.name ?? "(архив)"} ·{" "}
                     {it.medicationDoseDrops} капель
@@ -572,6 +518,65 @@ export function DayView({
         {timeline.length === 0 && (
           <li className="text-sm text-muted-foreground">Записей нет.</li>
         )}
+      </ul>
+    </div>
+  );
+}
+
+function DayViewSkeleton({
+  mode,
+  dateISO,
+  tz,
+}: {
+  mode: Mode;
+  dateISO: string;
+  tz: string;
+}) {
+  return (
+    <div className="mx-auto max-w-screen-sm px-4 py-4 space-y-6">
+      <header className="space-y-2">
+        <DayNav dateISO={dateISO} tz={tz} />
+        <div className="flex justify-center">
+          <Skeleton className="h-4 w-56" />
+        </div>
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          <Skeleton className="h-9 w-24" />
+          <Skeleton className="h-5 w-40" />
+        </div>
+      </header>
+
+      {mode === "live" && (
+        <Card className="gap-2 border-primary/30 py-3 shadow-none">
+          <CardHeader className="px-4">
+            <Skeleton className="h-4 w-28" />
+          </CardHeader>
+          <CardContent className="space-y-3 px-4">
+            <Skeleton className="h-10 w-48" />
+            <Skeleton className="h-4 w-full max-w-xs" />
+            <Skeleton className="h-5 w-44" />
+          </CardContent>
+        </Card>
+      )}
+
+      {mode === "live" && (
+        <div className="flex w-full items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 dark:bg-primary/10">
+          <Skeleton className="size-9 shrink-0 rounded-full" />
+          <div className="min-w-0 flex-1 space-y-1.5">
+            <Skeleton className="h-3 w-32" />
+            <Skeleton className="h-6 w-28" />
+          </div>
+        </div>
+      )}
+
+      <ul role="list" className="space-y-1">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <li key={i} role="listitem">
+            <div className="flex min-h-[44px] items-center justify-between rounded-md border border-foreground/20 px-3 py-2">
+              <Skeleton className="h-4 w-12" />
+              <Skeleton className="h-4 w-16" />
+            </div>
+          </li>
+        ))}
       </ul>
     </div>
   );
@@ -592,23 +597,4 @@ function flagText(f: TargetFlag): string {
     case "single_feed_unusually_large_for_weight":
       return `Одно кормление необычно велико для веса (${fmtMl(f.perFeedMl)}) — возможно, ошибка ввода, проверьте.`;
   }
-}
-
-function nextPlanned(items: TimelineItem[]): {
-  windowStart: Date;
-  windowEnd: Date;
-  volumeMl: number;
-} | null {
-  const now = Date.now();
-  for (const it of items) {
-    if (it.time.getTime() <= now) continue;
-    if (it.kind === "plan") {
-      return {
-        windowStart: it.windowStart,
-        windowEnd: it.windowEnd,
-        volumeMl: it.volumeMl,
-      };
-    }
-  }
-  return null;
 }

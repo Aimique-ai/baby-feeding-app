@@ -4,7 +4,6 @@ import { dbConnect } from "../db/mongo.js";
 import { BabyModel } from "../models/baby.js";
 import { serializeBaby } from "../lib/serializeBaby.js";
 import { buildFeedingPlan } from "../lib/buildFeedingPlan.js";
-import { selectNextReminderSlot } from "../lib/selectNextReminderSlot.js";
 import { sendPushToBaby } from "../push/webpush.js";
 import { TOLERANCE_MIN } from "./constants.js";
 import type { ReminderPayload } from "./reschedule.js";
@@ -45,11 +44,11 @@ export async function processReminder(
   }
 
   const dateISO = localDateISO(now, tz);
-  const { result } = await buildFeedingPlan(baby, dateISO, tz);
-  const selected = selectNextReminderSlot(result.plan, now);
+  const { result } = await buildFeedingPlan(baby, dateISO, tz, now);
+  const selected = result.nextWindow;
 
-  // Re-validate against the freshly-computed plan. Drift on the CENTER detects
-  // "baby was fed within the window" — a feed moves the plan so the next slot's
+  // Re-validate against the freshly-computed window. Drift on the CENTER detects
+  // "baby was fed within the window" — a feed moves the anchor so the window's
   // center diverges from the stored target by > TOLERANCE_MIN. The past-guard is
   // on windowEnd (NOT the fire instant) for BOTH kinds: once the window is over
   // the "end" reminder owns the moment, so a late-running "start" worker that

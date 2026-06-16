@@ -1,7 +1,6 @@
 import { localDateISO } from "@leon/domain/planning/dayBoundary";
 import type { Baby } from "@leon/schemas/baby";
 import { buildFeedingPlan } from "../lib/buildFeedingPlan.js";
-import { selectNextReminderSlot } from "../lib/selectNextReminderSlot.js";
 import { getReminderQueue } from "./queue.js";
 import {
   REMINDER_LEAD_MIN,
@@ -24,14 +23,14 @@ export type ReminderPayload = {
 export type NextReminder = { fireAt: Date; targetSlot: Date };
 
 /**
- * The next feeding moment (via the shared plan + selector) and when to fire one
- * edge of its window. "start" fires at `windowStart` (the window has opened —
- * watch for hunger cues); "end" fires at `windowEnd` (the safety net — too long
- * since the last feed). Either way, if the baby feeds within the window a
- * reschedule moves the slot and the reminder never fires ("silence = success").
- * `dateISO` is today-in-tz; `tomorrowSlot` (inside the plan) already covers the
- * overnight rollover, so no separate next-day query is needed. `targetSlot` in
- * the result is the center (for the worker's drift check + display).
+ * The single next-feeding window and when to fire one edge of it. "start" fires
+ * at `windowStart` (the window has opened — watch for hunger cues); "end" fires
+ * at `windowEnd` (the safety net — too long since the last feed). Either way, if
+ * the baby feeds within the window a reschedule moves the window and the reminder
+ * never fires ("silence = success"). The window is anchored on the last full
+ * feeding as raw instants, so it already spans midnight — no separate next-day
+ * query is needed. `targetSlot` is the window's center (for the worker's drift
+ * check + display).
  */
 export async function computeNextReminderForBaby(
   baby: Baby,
@@ -40,12 +39,12 @@ export async function computeNextReminderForBaby(
   now: Date = new Date(),
 ): Promise<NextReminder | null> {
   const dateISO = localDateISO(now, tz);
-  const { result } = await buildFeedingPlan(baby, dateISO, tz);
-  const slot = selectNextReminderSlot(result.plan, now);
-  if (!slot) return null;
-  const edge = kind === "start" ? slot.windowStart : slot.windowEnd;
+  const { result } = await buildFeedingPlan(baby, dateISO, tz, now);
+  const w = result.nextWindow;
+  if (!w) return null;
+  const edge = kind === "start" ? w.windowStart : w.windowEnd;
   const fireAt = new Date(edge.getTime() - REMINDER_LEAD_MIN * MS_PER_MIN);
-  return { fireAt, targetSlot: slot.time };
+  return { fireAt, targetSlot: w.time };
 }
 
 /**

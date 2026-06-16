@@ -1,12 +1,15 @@
-import { addMilliseconds } from "date-fns";
-import { localDateISO } from "./dayBoundary";
-import type { RemainderPlan, Slot, SlotCountSolution } from "./types";
+import type { FeedingWindow } from "./types";
 
 const MS_PER_HOUR = 3600000;
+const MS_PER_MIN = 60_000;
 
-function clamp(v: number, lo: number, hi: number): number {
-  return Math.max(lo, Math.min(hi, v));
-}
+export const STALE_ANCHOR_GRACE_HOURS = 3; // wall-clock; INV-1
+export const WINDOW_MIN_HALF_MIN = 30; // minimum half-width around center; INV-3
+
+// A feeding moves the window anchor only if its volume reaches this fraction of
+// the minimum portion. Below it the feeding is too small to reset the rhythm; a
+// feeding with no recorded volume is never gated by it (treated as a full feed).
+export const ANCHOR_MIN_FRACTION = 0.5;
 
 /** Target-free interval corridor — feeding frequency by age range. */
 export function intervalCorridors(range: [number, number]): {
@@ -43,256 +46,49 @@ export function ageCorridors(args: {
   return { ...interval, portionMin, portionMax };
 }
 
-export function snackStretch(args: {
-  volumeMl: number;
-  portionMin: number;
-  intervalMax: number;
-  intervalTarget: number;
-}): number {
-  const { volumeMl, portionMin, intervalMax, intervalTarget } = args;
-  const ratio = clamp(volumeMl / portionMin, 0, 1);
-  const maxStretch = Math.max(0, intervalMax - intervalTarget);
-  return ratio * maxStretch;
+// The minimum volume a feeding must reach to move the window anchor. energy:
+// minPortion = target/maxC; neonatal: minPortion = perFeedRange[0] (30). The
+// same value gates the prev-day anchor query in buildFeedingPlan, so the DB and
+// the planner agree on what counts as an anchor.
+export function anchorMinMl(
+  args: { range: [number, number]; target: number } | { perFeedMl: number },
+): number {
+  const minPortion =
+    "perFeedMl" in args ? args.perFeedMl : args.target / args.range[1];
+  return minPortion * ANCHOR_MIN_FRACTION;
 }
 
-export function solveSlotCount(args: {
-  horizonHours: number;
-  intervalMin: number;
-  intervalMax: number;
-  intervalTarget: number;
-}): SlotCountSolution {
-  const { horizonHours, intervalMin, intervalMax, intervalTarget } = args;
+type WindowPortion =
+  | { kind: "energy"; perFeedMl: number }
+  | { kind: "neonatal" };
 
-  if (horizonHours <= 0) {
-    return { n: 0, stepHours: 0, reason: "empty" };
-  }
+// The window is built from absolute instants only — never reads `now`. The
+// staleness guard (which can null the anchor) lives in runPipeline; a returned
+// window may be entirely in the past, which is a consumer concern.
+export function nextFeedingWindow(args: {
+  lastFullFeedingAt: Date | null;
+  range: [number, number];
+  portion: WindowPortion;
+}): FeedingWindow | null {
+  const { lastFullFeedingAt, range, portion } = args;
+  if (lastFullFeedingAt == null) return null;
 
-  const nCap = Math.max(1, Math.ceil(horizonHours / intervalMin));
+  const { intervalMin, intervalMax, intervalTarget } = intervalCorridors(range);
+  const base = lastFullFeedingAt.getTime();
+  const volumeMl = portion.kind === "energy" ? portion.perFeedMl : 0;
 
-  let bestN = -1;
-  let bestDist = Infinity;
-  for (let N = 1; N <= nCap + 1; N++) {
-    const step = horizonHours / (N + 1);
-    if (step < intervalMin - 1e-9 || step > intervalMax + 1e-9) continue;
-    const dist = Math.abs(step - intervalTarget);
-    if (dist < bestDist - 1e-9) {
-      bestN = N;
-      bestDist = dist;
-    }
-  }
+  const centerMs = base + intervalTarget * MS_PER_HOUR;
+  const halfMs = WINDOW_MIN_HALF_MIN * MS_PER_MIN;
 
-  if (bestN > 0) {
-    return {
-      n: bestN,
-      stepHours: horizonHours / (bestN + 1),
-      reason: "in-corridor",
-    };
-  }
-
-  const candidateN = Math.ceil(horizonHours / intervalMax - 1);
-  if (candidateN < 1) {
-    return { n: 0, stepHours: 0, reason: "empty" };
-  }
-  return {
-    n: candidateN,
-    stepHours: horizonHours / (candidateN + 1),
-    reason: "squeezed",
-  };
-}
-
-type PortionArg =
-  | {
-      kind: "target";
-      remainingMl: number;
-      portionMin: number;
-      portionMax: number;
-    }
-  | { kind: "flat"; perFeedRange: [number, number] };
-
-export function placeSlots(args: {
-  startOfLayout: Date;
-  n: number;
-  stepHours: number;
-  intervalMin: number;
-  intervalMax: number;
-  portion: PortionArg;
-}): { today: Slot[]; horizonNode: Slot | null } {
-  const {
-    startOfLayout,
-    n,
-    stepHours,
-    intervalMin,
-    intervalMax,
-    portion: portionArg,
-  } = args;
-
-  if (n <= 0) return { today: [], horizonNode: null };
-
-  const portion =
-    portionArg.kind === "target"
-      ? clamp(
-          portionArg.remainingMl / n,
-          portionArg.portionMin,
-          portionArg.portionMax,
-        )
-      : // flat: remainingMl is never read; slot volume is the lower edge of the
-        // range (conservative floor), the range is surfaced in the UI separately.
-        portionArg.perFeedRange[0];
-
-  // The window for slot i is anchored on the previous rhythm node
-  // (startOfLayout + (i-1)·step) plus the age interval corridor: windowStart at
-  // intervalMin, windowEnd at intervalMax. The center stays at +step.
-  const slotAt = (i: number): Slot => {
-    const prevNode = addMilliseconds(
-      startOfLayout,
-      (i - 1) * stepHours * MS_PER_HOUR,
-    );
-    return {
-      time: addMilliseconds(prevNode, stepHours * MS_PER_HOUR),
-      volumeMl: portion,
-      windowStart: addMilliseconds(prevNode, intervalMin * MS_PER_HOUR),
-      windowEnd: addMilliseconds(prevNode, intervalMax * MS_PER_HOUR),
-    };
-  };
-
-  const today: Slot[] = [];
-  for (let i = 1; i <= n; i++) {
-    today.push(slotAt(i));
-  }
-  const horizonNode = slotAt(n + 1);
-
-  return { today, horizonNode };
-}
-
-type PlanRemainderArgs =
-  | {
-      mode: "energy";
-      target: number;
-      consumed: number;
-      dayAnchor: Date;
-      tailAnchor: Date;
-      snackStretchHours: number;
-      lastFactAt: Date | null;
-      range: [number, number];
-      dateISO: string;
-      tz: string;
-    }
-  | {
-      mode: "neonatal";
-      perFeedRange: [number, number];
-      dayAnchor: Date;
-      tailAnchor: Date;
-      snackStretchHours: number;
-      lastFactAt: Date | null;
-      range: [number, number];
-      dateISO: string;
-      tz: string;
-    };
-
-export function planRemainder(args: PlanRemainderArgs): RemainderPlan {
-  const {
-    dayAnchor,
-    tailAnchor,
-    snackStretchHours,
-    lastFactAt,
-    range,
-    dateISO,
-    tz,
-  } = args;
-
-  const horizonEnd = addMilliseconds(dayAnchor, 24 * MS_PER_HOUR);
-  const stretchedTail = addMilliseconds(
-    tailAnchor,
-    snackStretchHours * MS_PER_HOUR,
-  );
-
-  const lowerByFact = lastFactAt ?? stretchedTail;
-  const startMs = Math.max(
-    stretchedTail.getTime(),
-    lowerByFact.getTime(),
-    dayAnchor.getTime(),
-  );
-  const startOfLayout = new Date(startMs);
-
-  const horizonHours = Math.max(
-    0,
-    (horizonEnd.getTime() - startOfLayout.getTime()) / MS_PER_HOUR,
-  );
-
-  const interval = intervalCorridors(range);
-
-  // tomorrowSlot volume: energy ⇒ portionMin; neonatal ⇒ lower edge of perFeed (30).
-  const tomorrowVolumeMl =
-    args.mode === "energy" ? args.target / range[1] : args.perFeedRange[0];
-
-  // tomorrowSlot window is anchored on tailAnchor + the interval corridor, same
-  // rule as placeSlots (prevNode = tailAnchor): center at intervalTarget,
-  // windowEnd at intervalMax — the upper bound the reminder fires on.
-  const projectedTomorrow = addMilliseconds(
-    tailAnchor,
-    interval.intervalTarget * MS_PER_HOUR,
-  );
-  const tomorrowSlot: Slot | null =
-    localDateISO(projectedTomorrow, tz) !== dateISO
-      ? {
-          time: projectedTomorrow,
-          volumeMl: tomorrowVolumeMl,
-          windowStart: addMilliseconds(
-            tailAnchor,
-            interval.intervalMin * MS_PER_HOUR,
-          ),
-          windowEnd: addMilliseconds(
-            tailAnchor,
-            interval.intervalMax * MS_PER_HOUR,
-          ),
-        }
-      : null;
-
-  if (horizonHours <= 0) {
-    return {
-      n: 0,
-      reason: "empty",
-      stepHours: 0,
-      horizonHours,
-      slotVolumeMl: 0,
-      slots: [],
-      tomorrowSlot,
-    };
-  }
-
-  const { n, stepHours, reason } = solveSlotCount({
-    horizonHours,
-    intervalMin: interval.intervalMin,
-    intervalMax: interval.intervalMax,
-    intervalTarget: interval.intervalTarget,
-  });
-
-  const portion: PortionArg =
-    args.mode === "energy"
-      ? {
-          kind: "target",
-          remainingMl: Math.max(0, args.target - args.consumed),
-          portionMin: args.target / range[1],
-          portionMax: args.target / range[0],
-        }
-      : { kind: "flat", perFeedRange: args.perFeedRange };
-
-  const { today } = placeSlots({
-    startOfLayout,
-    n,
-    stepHours,
-    intervalMin: interval.intervalMin,
-    intervalMax: interval.intervalMax,
-    portion,
-  });
+  // Always widen to at least center ± WINDOW_MIN_HALF_MIN; never narrow a wider
+  // corridor. The degenerate [5,5] band would otherwise be zero-width.
+  const windowStartMs = Math.min(base + intervalMin * MS_PER_HOUR, centerMs - halfMs);
+  const windowEndMs = Math.max(base + intervalMax * MS_PER_HOUR, centerMs + halfMs);
 
   return {
-    n,
-    reason,
-    stepHours,
-    horizonHours,
-    slotVolumeMl: today.length > 0 ? today[0].volumeMl : 0,
-    slots: today,
-    tomorrowSlot,
+    windowStart: new Date(windowStartMs),
+    windowEnd: new Date(windowEndMs),
+    time: new Date(centerMs),
+    volumeMl,
   };
 }

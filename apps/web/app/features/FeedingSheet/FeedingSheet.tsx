@@ -297,34 +297,6 @@ export function FeedingSheet({
               <div className="space-y-5 px-4 py-2">
                 <FormField
                   control={form.control}
-                  name="isTopUp"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Тип</FormLabel>
-                      <ToggleGroup
-                        type="single"
-                        variant="outline"
-                        className="w-full"
-                        value={field.value ? "topup" : "main"}
-                        onValueChange={(v) => {
-                          if (v === "main" || v === "topup")
-                            field.onChange(v === "topup");
-                        }}
-                      >
-                        <ToggleGroupItem value="main" className="flex-1">
-                          Основное
-                        </ToggleGroupItem>
-                        <ToggleGroupItem value="topup" className="flex-1">
-                          Докорм
-                        </ToggleGroupItem>
-                      </ToggleGroup>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
                   name="startAt"
                   render={({ field }) => (
                     <FormItem>

@@ -1,22 +1,17 @@
-import { startOfLocalDay, isBirthday } from "./dayBoundary";
+import { round5 } from "../math/round";
 import {
-  ageCorridors,
+  anchorMinMl,
   intervalCorridors,
-  planRemainder,
-  snackStretch,
+  nextFeedingWindow,
+  STALE_ANCHOR_GRACE_HOURS,
 } from "./remainderPlan";
-import type { Feeding, RemainderPlan } from "./types";
+import type { Feeding, FeedingWindow } from "./types";
 
 const MS_PER_HOUR = 3600000;
 
 export type PipelineResult = {
   consumed: number;
-  mainsToday: number;
-  dayAnchor: Date;
-  tailAnchor: Date;
-  snackStretchHours: number;
-  lastFactAt: Date | null;
-  plan: RemainderPlan;
+  nextWindow: FeedingWindow | null;
 };
 
 type RunPipelineArgs =
@@ -27,8 +22,7 @@ type RunPipelineArgs =
       dateISO: string;
       tz: string;
       range: [number, number];
-      birthDate: Date;
-      prevMainCandidates: Feeding[];
+      prevAnchor: Feeding | null;
     }
   | {
       mode: "neonatal";
@@ -37,122 +31,67 @@ type RunPipelineArgs =
       dateISO: string;
       tz: string;
       range: [number, number];
-      birthDate: Date;
-      prevMainCandidates: Feeding[];
+      prevAnchor: Feeding | null;
     };
 
-export function runPipeline(args: RunPipelineArgs): PipelineResult {
-  const { facts, dateISO, tz, range, birthDate, prevMainCandidates } = args;
+type WindowPortion =
+  | { kind: "energy"; perFeedMl: number }
+  | { kind: "neonatal" };
 
-  const dayStart = startOfLocalDay(dateISO, tz);
+export function runPipeline(args: RunPipelineArgs, now: Date): PipelineResult {
+  const { facts, range, prevAnchor } = args;
 
-  // portionMin — the "main vs snack" threshold. energy ⇒ target/maxC;
-  // neonatal ⇒ lower edge of perFeed (30). Interval corridors are the same
-  // for both modes.
-  let portionMin: number;
-  let intervalMax: number;
-  let intervalTarget: number;
-  if (args.mode === "energy") {
-    const corridors = ageCorridors({ range, target: args.target });
-    portionMin = corridors.portionMin;
-    intervalMax = corridors.intervalMax;
-    intervalTarget = corridors.intervalTarget;
-  } else {
-    const interval = intervalCorridors(range);
-    portionMin = args.perFeedRange[0];
-    intervalMax = interval.intervalMax;
-    intervalTarget = interval.intervalTarget;
-  }
+  // Anchor threshold — a feeding only moves the window if it is at least a
+  // fraction of the minimum portion. A feeding with no recorded volume (breast,
+  // "по режиму") counts as a full feeding. minPortion = target/maxC (energy) /
+  // perFeedRange[0] (neonatal); see anchorMinMl.
+  const minMl =
+    args.mode === "energy"
+      ? anchorMinMl({ range, target: args.target })
+      : anchorMinMl({ perFeedMl: args.perFeedRange[0] });
 
-  const isMainLike = (f: Feeding): boolean =>
-    !f.isTopUp || (f.volumeMl ?? 0) >= portionMin;
+  const movesAnchor = (f: Feeding): boolean =>
+    f.volumeMl == null || f.volumeMl >= minMl;
 
-  const prevSorted = [...prevMainCandidates].sort(
-    (a, b) => a.startAt.getTime() - b.startAt.getTime(),
-  );
-  let prevMainRaw: Feeding | null = null;
-  for (const f of prevSorted) {
-    if (isMainLike(f)) prevMainRaw = f;
-  }
-
-  const prevMainAnchorFresh =
-    prevMainRaw &&
-    dayStart.getTime() - prevMainRaw.startAt.getTime() <=
-      intervalMax * MS_PER_HOUR
-      ? prevMainRaw.startAt
-      : null;
-
-  const sorted = [...facts].sort(
-    (a, b) => a.startAt.getTime() - b.startAt.getTime(),
-  );
-
+  // consumed — flat sum of ALL today facts. The anchor threshold never affects
+  // this sum.
   let consumed = 0;
-  let mainsToday = 0;
-  let firstMainToday: Date | null = null;
-  let lastTailMove: Date | null = null;
-  let snackStretchHours = 0;
-  let lastFactAt: Date | null = null;
+  for (const f of facts) consumed += f.volumeMl ?? 0;
 
-  for (const f of sorted) {
-    consumed += f.volumeMl ?? 0;
-    lastFactAt = f.startAt;
-
-    if (isMainLike(f)) {
-      lastTailMove = f.startAt;
-      snackStretchHours = 0;
-      if (f.startAt.getTime() >= dayStart.getTime()) {
-        mainsToday += 1;
-        if (firstMainToday === null) firstMainToday = f.startAt;
-      }
-    } else {
-      snackStretchHours += snackStretch({
-        volumeMl: f.volumeMl ?? 0,
-        portionMin,
-        intervalMax,
-        intervalTarget,
-      });
+  // Last anchor-worthy feeding ACROSS the day boundary. prevAnchor is the
+  // DB-resolved most-recent qualifying feeding before today (already volume-
+  // filtered); today's facts are filtered here. Pick the MAX timestamp.
+  let lastFullFeedingAt: Date | null = prevAnchor ? prevAnchor.startAt : null;
+  for (const f of facts) {
+    if (!movesAnchor(f)) continue;
+    if (
+      lastFullFeedingAt == null ||
+      f.startAt.getTime() > lastFullFeedingAt.getTime()
+    ) {
+      lastFullFeedingAt = f.startAt;
     }
   }
 
-  const dayAnchor = isBirthday(birthDate, dateISO, tz)
-    ? birthDate
-    : (firstMainToday ?? prevMainAnchorFresh ?? dayStart);
+  // Staleness guard (INSTANT arithmetic). If the anchor is older than the full
+  // interval PLUS the wall-clock grace, there is no live rhythm to predict from:
+  // treat as no anchor. GRACE (3h) >> the worker's TOLERANCE_MIN guarantees the
+  // window stays non-null while the "end" reminder can still fire (INV-1).
+  if (lastFullFeedingAt != null) {
+    const { intervalMax } = intervalCorridors(range);
+    const thresholdMs = (intervalMax + STALE_ANCHOR_GRACE_HOURS) * MS_PER_HOUR;
+    if (now.getTime() - lastFullFeedingAt.getTime() > thresholdMs) {
+      lastFullFeedingAt = null;
+    }
+  }
 
-  const tailAnchor = lastTailMove ?? prevMainAnchorFresh ?? dayAnchor;
-
-  const plan =
+  // Per-feed number for the window (energy, display-only — volume never affects
+  // timing). round5(dailyMl/maxC) is deliberately = guidance.mlPerFeedRange[0]
+  // so the on-screen number agrees with the "Сколько давать" card's lower bound.
+  const portion: WindowPortion =
     args.mode === "energy"
-      ? planRemainder({
-          mode: "energy",
-          target: args.target,
-          consumed,
-          dayAnchor,
-          tailAnchor,
-          snackStretchHours,
-          lastFactAt,
-          range,
-          dateISO,
-          tz,
-        })
-      : planRemainder({
-          mode: "neonatal",
-          perFeedRange: args.perFeedRange,
-          dayAnchor,
-          tailAnchor,
-          snackStretchHours,
-          lastFactAt,
-          range,
-          dateISO,
-          tz,
-        });
+      ? { kind: "energy", perFeedMl: round5(args.target / range[1]) }
+      : { kind: "neonatal" };
 
-  return {
-    consumed,
-    mainsToday,
-    dayAnchor,
-    tailAnchor,
-    snackStretchHours,
-    lastFactAt,
-    plan,
-  };
+  const nextWindow = nextFeedingWindow({ lastFullFeedingAt, range, portion });
+  return { consumed, nextWindow };
 }

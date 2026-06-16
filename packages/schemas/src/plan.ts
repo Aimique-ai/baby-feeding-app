@@ -53,8 +53,7 @@ export function deserializeWeight(s: Weight): PlanWeight {
 //
 // Server-computed plan. The client reconstructs DayView's view from this WITHOUT
 // re-running the engine: `guidance` mirrors the @leon/domain FeedingTarget union,
-// `slots`/`tomorrowSlot` carry the live-day plan, `nextFeedingISO` is the single
-// "next feeding moment" (slots[i] > now, else tomorrowSlot) shared with the
+// `nextFeeding` is the single next-feeding window (or null) shared with the
 // reminder scheduler. Times are ISO strings (deserialize with deserializeFeedingPlan).
 
 const targetFlagSchema = z.discriminatedUnion("code", [
@@ -121,9 +120,9 @@ const guidanceSchema = z.discriminatedUnion("mode", [
   neonatalGuidanceSchema,
 ]);
 
-const planSlotSchema = z.object({
+const nextFeedingSchema = z.object({
   timeISO: z.iso.datetime(),
-  volumeMl: z.number(),
+  volumeMl: z.number(), // 0 for neonatal
   windowStartISO: z.iso.datetime(),
   windowEndISO: z.iso.datetime(),
 });
@@ -131,28 +130,21 @@ const planSlotSchema = z.object({
 export const feedingPlanResponseSchema = z.object({
   tz: z.string(),
   consumed: z.number(),
-  slots: z.array(planSlotSchema),
-  tomorrowSlot: planSlotSchema.nullable(),
-  nextFeedingISO: z.iso.datetime().nullable(),
+  nextFeeding: nextFeedingSchema.nullable(),
   guidance: guidanceSchema,
 });
 
 export type FeedingPlanResponse = z.infer<typeof feedingPlanResponseSchema>;
 
-export type DeserializedPlanSlot = {
+export type DeserializedNextFeeding = {
   time: Date;
   volumeMl: number;
   windowStart: Date;
   windowEnd: Date;
 };
 
-export type DeserializedFeedingPlan = Omit<
-  FeedingPlanResponse,
-  "slots" | "tomorrowSlot" | "nextFeedingISO"
-> & {
-  slots: DeserializedPlanSlot[];
-  tomorrowSlot: DeserializedPlanSlot | null;
-  nextFeeding: Date | null;
+export type DeserializedFeedingPlan = Omit<FeedingPlanResponse, "nextFeeding"> & {
+  nextFeeding: DeserializedNextFeeding | null;
 };
 
 export function deserializeFeedingPlan(
@@ -162,20 +154,13 @@ export function deserializeFeedingPlan(
     tz: s.tz,
     consumed: s.consumed,
     guidance: s.guidance,
-    slots: s.slots.map((slot) => ({
-      time: new Date(slot.timeISO),
-      volumeMl: slot.volumeMl,
-      windowStart: new Date(slot.windowStartISO),
-      windowEnd: new Date(slot.windowEndISO),
-    })),
-    tomorrowSlot: s.tomorrowSlot
+    nextFeeding: s.nextFeeding
       ? {
-          time: new Date(s.tomorrowSlot.timeISO),
-          volumeMl: s.tomorrowSlot.volumeMl,
-          windowStart: new Date(s.tomorrowSlot.windowStartISO),
-          windowEnd: new Date(s.tomorrowSlot.windowEndISO),
+          time: new Date(s.nextFeeding.timeISO),
+          volumeMl: s.nextFeeding.volumeMl,
+          windowStart: new Date(s.nextFeeding.windowStartISO),
+          windowEnd: new Date(s.nextFeeding.windowEndISO),
         }
       : null,
-    nextFeeding: s.nextFeedingISO ? new Date(s.nextFeedingISO) : null,
   };
 }
