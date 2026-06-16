@@ -2,6 +2,7 @@ import { Play, Plus, Square } from "lucide-react";
 import { useLocation } from "react-router";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
+import { Separator } from "~/components/ui/separator";
 import { SidebarTrigger } from "~/components/ui/sidebar";
 import { ThemeToggle } from "~/components/ThemeToggle";
 import { useFeedingSheet } from "~/features/FeedingSheetProvider";
@@ -43,7 +44,11 @@ export function AppHeader({ babyId }: Props) {
 
   return (
     <header className="sticky top-0 z-30 flex h-12 items-center gap-2 border-b bg-background/90 px-3 backdrop-blur">
-      <SidebarTrigger />
+      <SidebarTrigger className="-ml-1" />
+      <Separator
+        orientation="vertical"
+        className="mr-1 data-[orientation=vertical]:h-4"
+      />
       <h1 className="text-base font-semibold">{pageTitle}</h1>
       <div className="ml-auto flex items-center gap-2">
         <ThemeToggle />
