@@ -43,7 +43,7 @@ export function AppHeader({ babyId }: Props) {
   }
 
   return (
-    <header className="sticky top-0 z-30 flex h-12 items-center gap-2 border-b bg-background/90 px-3 backdrop-blur">
+    <header className="sticky top-0 z-30 flex h-12 items-center gap-2 border-b border-border/40 bg-background/10 px-3 backdrop-blur-sm">
       <SidebarTrigger className="-ml-1" />
       <Separator
         orientation="vertical"

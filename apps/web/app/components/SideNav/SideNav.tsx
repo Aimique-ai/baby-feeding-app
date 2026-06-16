@@ -9,7 +9,7 @@ import { NavMain } from "./NavMain";
 
 export function SideNav() {
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" className="backdrop-blur-sm">
       <SidebarHeader>
         <BabySwitcher />
       </SidebarHeader>
